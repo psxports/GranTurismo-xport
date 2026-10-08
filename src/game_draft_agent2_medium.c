@@ -1,0 +1,242 @@
+#include "game_draft_registry.h"
+/* Unverified draft translations */
+/* TODO Resolve unspecified call arguments during integration */
+
+uint32 gt_draft_80029B98(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    gt_draft_unresolved_call(0x80029B7Cu, 0, 0, 0, 0, 0, 0, 0, 0);
+    w_u8(0x8008F890u, 0);
+    if ((sint16)r_u16(0x800B63D6u) == 1) {
+        w_u16(0x800B63D6u, 2);
+        gt_draft_unresolved_call(0x800204ECu, r_u8(0x8008F88Du) != 0, 0, 0, 0, 0, 0, 0, 0);
+        return gt_draft_80029AA8(0, 0, 0, 0, 0, 0, 0, 0);
+    }
+    if ((sint16)r_u16(0x800B63D6u) == 2) {
+        w_u16(0x800B63D6u, 1);
+        if (r_u8(0x8008F88Du)) return gt_draft_80029AA8(0, 0, 0, 0, 0, 0, 0, 0);
+    }
+    return 1;
+}
+
+uint32 gt_draft_8002AB48(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 result = r_u8(0x800CB767u);
+    if (result) {
+        result = r_u8(0x800B63D9u);
+        if (result) {
+            if (r_u16(0x800994B4u)) return gt_draft_unresolved_call(0x8006FFF8u, 0, 0, 0, 0, 0, 0, 0, 0);
+            result = r_u8(0x800994C0u);
+            if (!result) return gt_draft_unresolved_call(0x8006FFF8u, 0, 0, 0, 0, 0, 0, 0, 0);
+            w_u8(0x800B63D9u, 0);
+        }
+    }
+    return result;
+}
+
+uint32 gt_draft_8002ABC0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 result = r_u8(0x800CB767u);
+    w_u8(0x800B63D9u, 0);
+    if (result && (sint32)a0 >= 0) {
+        uint32 request = gt_draft_unresolved_call(0x80070024u, a0, 0, 0, 0, 0, 0, 0, 0);
+        gt_draft_unresolved_call(0x80070054u, request, a1, 0, 0, 0, 0, 0, 0);
+        gt_draft_unresolved_call(0x80070118u, 0, 0, 0, 0, 0, 0, 0, 0);
+        w_u8(0x800B63D9u, 1);
+        w_u8(0x800B63C1u, a1 ? a0 : 255u);
+        w_u8(0x800B6314u, a1);
+        return 0xFFFFFFFFu;
+    }
+    return result;
+}
+
+uint32 gt_draft_8002AC8C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    gt_draft_unresolved_call(0x80031F18u, 0, 0, 0, 0, 0, 0, 0, 0);
+    uint32 mode = r_u8(0x800CB7F5u);
+    uint32 sound = mode < 4 ? 10u : (mode == 5 ? 11u : 255u);
+    w_u8(0x800B63C1u, sound);
+    w_u8(0x800B6314u, 0);
+    uint32 table = r_u32(0x800B630Cu) == 1 ? 0x800CB8D0u : 0x800CB8C0u;
+    w_u8(0x800B63BFu, gt_draft_unresolved_call(0x80070144u, table, 0, 0, 0, 0, 0, 0, 0));
+    w_u8(0x800B63D9u, 0);
+    return gt_draft_unresolved_call(0x8007EDF8u, 6553, 6553, 0, 0, 0, 0, 0, 0);
+}
+
+uint32 gt_draft_8002ADDC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 car = r_u8(0x800B63BCu);
+    uint32 index = r_u8(gt_draft_unresolved_call(0x8006E3D4u, car, 0, 0, 0, 0, 0, 0, 0)) & 127u;
+    gt_draft_unresolved_call(0x80070190u, 128, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x8001C688u, index, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x80024D48u, car, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x800221E8u, 0, 0, 0, 0, 0, 0, 0, 0);
+    return gt_draft_unresolved_call(0x80022468u, car, 0, 0, 0, 0, 0, 0, 0);
+}
+
+uint32 gt_draft_80043320(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 owner = r_u32(0x800BEA64u);
+    uint32 index = r_u16(owner + r_u8(0x800941DBu));
+    uint32 item = gt_draft_unresolved_call(0x8001EB94u, 30, 0, 0, 0, 0, 0, 0, 0) + 32u * (index - 1u);
+    w_u16(0x80092ABCu, r_u8(r_u32(0x800BEA64u) + 65));
+    w_u16(0x80092AB8u, r_u8(item + 10));
+    w_u16(0x80092ABAu, r_u8(item + 11));
+    w_u16(0x80092ACCu, r_u8(r_u32(0x800BEA64u) + 78));
+    w_u16(0x80092AC8u, r_u8(item + 12));
+    uint32 result = r_u8(item + 13);
+    w_u16(0x80092ACAu, result);
+    return result;
+}
+
+uint32 gt_draft_8002A7EC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    gt_draft_unresolved_call(0x8008A908u, 0, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x8006EFB4u, 0, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x8006F7DCu, 0, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x80086C78u, 0x8008FB3Cu, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x80086AF4u, 0, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x80086C78u, 0x8008FB44u, 0, 0, 0, 0, 0, 0, 0);
+    return gt_draft_unresolved_call(0x80086AF4u, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+uint32 gt_draft_8004A8E8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    gt_draft_unresolved_call(0x8008B7D8u, 0x8008DD10u, 0, 0, 0, 0, 0, 0, 0);
+    uint32 checksum = r_u32(a0 + 5896u);
+    w_u32(a0 + 5896u, 0);
+    if (checksum == gt_draft_unresolved_call(0x8007AAD4u, a0, 6016, 0, 0, 0, 0, 0, 0)) {
+        w_u32(a0 + 5896u, checksum);
+        gt_draft_unresolved_call(0x8008B7D8u, 0x8008DCFCu, checksum, 0, 0, 0, 0, 0, 0);
+        return 0;
+    }
+    gt_draft_unresolved_call(0x8008B7D8u, 0x8008DD30u, 0, 0, 0, 0, 0, 0, 0);
+    return 0xFFFFFFFFu;
+}
+
+uint32 gt_draft_8004A804(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 base = a0 + 512u;
+    sint32 item = r_u16(base + 52u * a1 + 40u);
+    for (sint32 i = 0; i < (sint32)a2; ++i) {
+        item = (sint16)r_u16(base + 2u * (uint32)item + 3336u);
+        if (item == -1) break;
+    }
+    return (uint32)item;
+}
+
+uint32 gt_draft_80049FD4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    w_u8(0x800B53B5u, 0);
+    w_u8(0x800B53B6u, 0);
+    w_u8(0x800B53B8u, 1);
+    w_u8(0x800B53B7u, 0);
+    sint32 candidate = (sint32)gt_draft_unresolved_call(0x8003B954u, 0x80092EBCu, a0, 0, 0, 0, 0, 0, 0);
+    if (candidate == -2) return 0xFFFFFFFEu;
+    if (candidate == -1) return 0xFFFFFFFFu;
+    uint32 choice = r_u8(r_u32(0x800B53ACu) + 8u * (uint32)candidate + 1u) < 2 ? (uint32)candidate : 64u;
+    gt_draft_unresolved_call(0x8008B7D8u, 0x8008DCC0u, choice, 0, 0, 0, 0, 0, 0);
+    return choice;
+}
+
+uint32 gt_draft_800462AC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 device = r_u32(0x800BDD08u);
+    gt_draft_unresolved_call(0x8003A304u, 0, 0, 0, 0, 0, 0, 0, 0);
+    if (!r_u8(device)) return 0;
+    gt_draft_unresolved_call(0x80035388u, 1, 0, 0, 0, 0, 0, 0, 0);
+    sint32 result = (sint32)gt_draft_unresolved_call(0x8004D820u, 0x80092B08u, device + 2, 0, 0, 0, 0, 0, 0);
+    if (result == -2) { gt_draft_unresolved_call(0x80035778u, 2, 0, 0, 0, 0, 0, 0, 0); return 1; }
+    if (result == -3) {
+        gt_draft_unresolved_call(0x80035778u, 4, 0, 0, 0, 0, 0, 0, 0);
+        gt_draft_unresolved_call(0x800438ECu, r_u8(0x8009278Du), r_u8(0x800B5375u), 0, 0, 0, 0, 0, 0);
+        return 1;
+    }
+    return 0;
+}
+
+uint32 gt_draft_80048AF8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    sint32 length = (sint32)gt_draft_unresolved_call(0x8007C2B0u, a0, 0, 0, 0, 0, 0, 0, 0);
+    uint32 end = a0 + (uint32)length;
+    uint32 changed = 0, result;
+    for (;;) {
+        result = (sint32)gt_draft_8003A8F4(1, a0, 0, 0, 0, 0, 0, 0) < (sint32)a1;
+        --length;
+        if (result) break;
+        --end;
+        if (length < 0) break;
+        w_u8(end, 0);
+        changed = 1;
+    }
+    if (changed) return gt_draft_unresolved_call(0x8007BEC4u, a0, 0x8008DC38u, 0, 0, 0, 0, 0, 0);
+    return result;
+}
+
+uint32 gt_draft_80042E84(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 table = gt_draft_unresolved_call(0x8001EB94u, 33, 0, 0, 0, 0, 0, 0, 0);
+    uint32 owner = r_u32(0x800BEA64u);
+    uint32 index = r_u16(owner + r_u8(0x800941DEu));
+    w_u16(0x800929CCu, r_u8(r_u32(0x800BEA64u) + 67));
+    w_u16(0x800929DCu, r_u8(r_u32(0x800BEA64u) + 80));
+    uint32 row = table + 72u * (index - 1u);
+    w_u16(0x800929C8u, r_u8(row + 24));
+    w_u16(0x800929CAu, r_u8(row + 25));
+    w_u16(0x800929D8u, r_u8(row + 39));
+    uint32 result = r_u8(row + 40);
+    w_u16(0x800929DAu, result);
+    return result;
+}
+
+uint32 gt_draft_80041980(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    sint32 span = (sint32)(a1 - a0);
+    if (!span) return 0;
+    sint32 scaled = (sint32)((a2 - a0) * (a3 - 1u));
+    /* TODO Bind original divide overflow exception to a fail-fast adapter */
+    if (scaled == (-2147483647 - 1) && span == -1) gt_draft_exception(6);
+    sint32 value = scaled / span;
+    if (value < 0) value = 0;
+    if (value >= (sint32)a3) return a3 - 1u;
+    return (uint32)value;
+}
+
+uint32 gt_draft_8004AAB8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    w_u8(0x800BEA6Cu, gt_draft_8004A9B8(0, 0, 0, 0, 0, 0, 0, 0));
+    w_u8(0x800BEA6Du, gt_draft_8004A9B8(0, 0, 0, 0, 0, 0, 0, 0));
+    w_u8(0x800BEA6Eu, gt_draft_8004A9B8(0, 0, 0, 0, 0, 0, 0, 0));
+    uint32 result = gt_draft_8004A9B8(0, 0, 0, 0, 0, 0, 0, 0);
+    w_u8(0x800BEA6Fu, result);
+    return result;
+}
+
+uint32 gt_draft_8001C170(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 packet = a1;
+    for (sint32 i = 0; i < (sint32)a2; ++i) {
+        uint32 row = a0 + 4u * r_u16(packet + 22);
+        uint32 texture = gt_draft_unresolved_call(0x80030DFCu, r_u32(row), 0, 0, 0, 0, 0, 0, 0);
+        uint32 palette = gt_draft_80030E1C(r_u32(row), 0, 0, 0, 0, 0, 0, 0);
+        uint32 du = gt_draft_80030E3C(r_u32(row), 0, 0, 0, 0, 0, 0, 0);
+        uint32 dv = gt_draft_80030E60(r_u32(row), 0, 0, 0, 0, 0, 0, 0);
+        uint32 word = r_u32(packet + 28) & 0xFFE0FFFFu;
+        w_u16(packet + 22, r_u16(texture));
+        word |= (r_u16(palette) & 31u) << 16;
+        w_u32(packet + 28, word);
+        uint32 color = r_u16(palette);
+        w_u8(packet + 36, r_u8(packet + 36) + du);
+        w_u8(packet + 20, r_u8(packet + 20) + du);
+        w_u32(packet + 28, (word & 0xFE7FFFFFu) | (((color >> 7) & 3u) << 23));
+        w_u8(packet + 21, r_u8(packet + 21) + dv);
+        w_u8(packet + 28, r_u8(packet + 28) + du);
+        w_u8(packet + 37, r_u8(packet + 37) + dv);
+        w_u8(packet + 29, r_u8(packet + 29) + dv);
+        if (a3 == 4) {
+            w_u8(packet + 44, r_u8(packet + 44) + du);
+            w_u8(packet + 45, r_u8(packet + 45) + dv);
+        }
+        packet += a3 == 3 ? 40u : 48u;
+    }
+    return packet;
+}
