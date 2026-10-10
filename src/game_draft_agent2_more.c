@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 /* Unverified draft translations */
 /* TODO Resolve unspecified outgoing argument carriers during integration */
@@ -14,12 +15,7 @@ uint32 gt_draft_8002C894(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_8002C944(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    sint16 rect[4] = {(sint16)a1, (sint16)a2, (sint16)(a1 + 2u), (sint16)(a2 + 6u)};
-    uint32 address = gt_draft_buffer_address(rect, sizeof(rect));
-    uint32 value = gt_draft_8002C8E4(a3, 0, 0, 0, 0, 0, 0, 0);
-    uint32 result = gt_draft_unresolved_call(0x8006F4F0u, a0, address, value, 0, 0, 0, 0, 0);
-    gt_draft_buffer_release(address);
-    return result;
+    return gtmain_race_meter_rectangle_draw(a0, (sint16)a1, (sint16)a2, (sint32)a3);
 }
 
 uint32 gt_draft_8003CC54(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -56,50 +52,18 @@ uint32 gt_draft_80041FE0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_8002FCD4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    sint32 value = (sint16)r_u16(a3 + 96);
-    if (value <= 0) value = 1;
-    sint32 maximum = value, global = (sint16)r_u16(0x800B634Cu);
-    if (global > 0) maximum = global;
-    if (maximum < value) value = maximum;
-    if (value >= 100) value = 99;
-    if (maximum >= 100) maximum = 99;
-    gt_draft_unresolved_call(0x8006C874u, 16512, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006C790u, 1, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006CA10u, a0, a1, a2, 0x800BD90Eu, 0, 0, 0, 0);
-    char buffer[32]; uint32 address = gt_draft_buffer_address(buffer, sizeof(buffer));
-    gt_draft_unresolved_call(0x8007C014u, address, 0x8008C80Cu, (uint32)value, (uint32)maximum, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006C790u, 2, 0, 0, 0, 0, 0, 0, 0);
-    uint32 result = gt_draft_unresolved_call(0x8006CA10u, a0, a1, a2 + 9, address, 0, 0, 0, 0);
-    gt_draft_buffer_release(address);
-    return result;
+    (void)a4; (void)a5; (void)a6; (void)a7;
+    return (uint32)gtmain_race_lap_counter_draw(a0, (sint32)a1, (sint32)a2, a3);
 }
 
 uint32 gt_draft_80030CA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    uint32 object = r_u32(0x800B6368u);
-    uint32 first = gt_draft_80030938(0, 0, 0, 0, 0, 0, 0, 0), second = 0;
-    if (r_u16(0x800912E0u)) { second = first; first = 0; }
-    /* TODO Four uninitialized outgoing argument slots omitted by pseudocode */
-    gt_draft_80030974(object, first, 0x800BD82Bu, 0x800912FCu, 64, 0, 0, 0);
-    return gt_draft_80030974(object, second, 0x800BD959u, 0x80091304u, 160, 0, 0, 0);
+    return gtmain_race_choice_boxes_draw();
 }
 
 uint32 gt_draft_8001E6D4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    uint32 row = 96u * a0;
-    char buffer[32]; uint32 address = gt_draft_buffer_address(buffer, sizeof(buffer));
-    uint32 source = a1 + r_u32(a1 + 172) + 424u * (r_u16(0x800BB790u + row) & 0xFFFu) - 400u;
-    uint32 copied = gt_draft_unresolved_call(0x8007BE38u, address, source, 0, 0, 0, 0, 0, 0);
-    sint16 index = (sint16)gt_draft_unresolved_call(0x8006B828u, copied, 0, 0, 0, 0, 0, 0, 0);
-    if (r_u16(0x800BB7B2u + row)) {
-        buffer[4] = 114;
-        sint32 alternate = (sint32)gt_draft_unresolved_call(0x8006B828u, address, 0, 0, 0, 0, 0, 0, 0);
-        if (alternate >= 0) index = (sint16)alternate;
-    }
-    gt_draft_buffer_release(address);
-    uint32 result = 2u * a0;
-    w_u16(0x800B63C4u + result, (uint32)index);
-    return result;
+    return gtmain_car_selection_bind(a0, a1);
 }
 
 uint32 gt_draft_80042F1C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -163,9 +127,7 @@ uint32 gt_draft_8002B190(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_800300A0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    gt_draft_unresolved_call(0x8006C790u, 2, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006C874u, a2, 0, 0, 0, 0, 0, 0, 0);
-    return gt_draft_unresolved_call(0x8006CA10u, a0, (uint32)(sint32)(sint16)r_u16(0x800911A8u + 8u * a3), a1, r_u32(0x800911ACu + 8u * a3), 0, 0, 0, 0);
+    return (uint32)gtmain_race_label_font2_draw(a0, (sint32)a1, a2, a3);
 }
 
 uint32 gt_draft_8002C264(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)

@@ -1,4 +1,5 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -7,7 +8,7 @@ static void gtmain_mode_audio_prepare(void)
     w_u16(0x1F801DAAu, r_u16(0x1F801DAAu) | 1u);
     if ((sint16)r_u16(0x800C0C02u)) {
         uint32 entry = r_u32(0x800C0C34u), value = 0u;
-        uint8 file[24];
+        CdlFILE file;
         while (r_u8(entry)) {
             uint32 length = 0u, i;
             while (r_u8(entry + length)) ++length;
@@ -18,15 +19,15 @@ static void gtmain_mode_audio_prepare(void)
             }
             entry += length + 1u;
         }
-        if (!value || !CdSearchFilePSX(file, (const char *)psx_addr(value, 1u))) {
+        if (!value || !CdSearchFile(&file, (const char *)psx_addr(value, 1u))) {
             w_u32(0x800B1AB0u, 2u);
             gt_draft_unresolved_call(0x8007196Cu, value, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
         }
         w_u32(0x800B1AB0u, 0u);
         {
-            uint32 minutes = (file[0] >> 4u) * 10u + (file[0] & 15u);
-            uint32 seconds = (file[1] >> 4u) * 10u + (file[1] & 15u);
-            uint32 frames = (file[2] >> 4u) * 10u + (file[2] & 15u);
+            uint32 minutes = (file.pos.minute >> 4u) * 10u + (file.pos.minute & 15u);
+            uint32 seconds = (file.pos.second >> 4u) * 10u + (file.pos.second & 15u);
+            uint32 frames = (file.pos.sector >> 4u) * 10u + (file.pos.sector & 15u);
             w_u32(0x800994A4u, (minutes * 60u + seconds) * 75u + frames - 150u);
         }
     }
@@ -94,9 +95,9 @@ uint32 gtmain_mode_init(void)
     }
     if (mode == 3u || mode == 4u) {
         if (mode == 4u) w_u8(0x800B63DCu, 1u);
-        return gt_draft_unresolved_call(0x80028598u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+        return (uint32)gtmain_race_session_restore();
     }
     if (mode == 1u)
-        return gt_draft_unresolved_call(0x80027640u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+        return (uint32)gtmain_race_session_enter();
     return 1u;
 }

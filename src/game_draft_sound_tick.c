@@ -1,4 +1,33 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
+
+
+static uint32 gtmain_sound_pan_pair_native(uint32 volume, uint32 pan)
+{
+    uint32 left = r_u16(0x8008EA86u - 2u * pan) * volume;
+    uint32 right = r_u16(0x8008E988u + 2u * pan) * volume;
+    return (uint32)(uint16)((sint32)left >> 14) |
+        ((uint32)(uint16)((sint32)right >> 14) << 16);
+}
+
+static void gtmain_sound_voice_volume_native(uint32 owner, uint32 packed_volume)
+{
+    sint32 index = (sint8)r_u8(owner);
+    uint32 voice;
+    uint8 state;
+    if (index < 0) return;
+    voice = 0x800B55D4u + 40u * (uint32)index;
+    state = r_u8(voice + 4u);
+    w_u8(voice + 4u, 1u);
+    if (r_u32(voice + 20u) == owner) {
+        uint8 flags;
+        w_u8(voice + 4u, 2u);
+        flags = r_u8(voice + 5u);
+        w_u32(voice + 8u, packed_volume);
+        w_u8(voice + 5u, flags | 2u);
+    }
+    w_u8(voice + 4u, state);
+}
 
 uint32 gtmain_sound_voice_tick(void)
 {
@@ -132,15 +161,15 @@ void gtmain_sound_sequence_voices(void)
         if ((sint8)r_u8(voice + 27u) < 0) continue;
         owner = r_u32(voice);
         if (!owner) {
-            gt_draft_unresolved_call(0x8007F018u, voice + 27u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-            gt_draft_unresolved_call(0x8007F068u, voice + 27u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+            gtmain_sound_voice_release(voice + 27u);
+            gtmain_sound_voice_detach(voice + 27u);
             continue;
         }
         if ((sint32)r_u32(voice + 16u) > 0) {
             uint32 remaining = r_u32(voice + 16u) - r_u32(owner + 20u);
             w_u32(voice + 16u, remaining);
             if ((sint32)remaining <= 0)
-                gt_draft_unresolved_call(0x8007F018u, voice + 27u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+                gtmain_sound_voice_release(voice + 27u);
         }
         channel = r_u32(voice + 4u);
         bend = (sint16)r_u16(channel + 12u);
@@ -149,8 +178,8 @@ void gtmain_sound_sequence_voices(void)
             instrument = r_u32(voice + 12u);
             multiplier = r_u8(instrument + (bend > 0 ? 15u : 14u));
             argument = (r_u8(voice + 24u) << 8) + (uint32)((sint32)(multiplier * (uint32)bend) >> 5);
-            pitch = gt_draft_unresolved_call(0x8007EE68u, argument, r_u16(instrument + 4u), 0u, 0u, 0u, 0u, 0u, 0u);
-            gt_draft_unresolved_call(0x8007EEE8u, voice + 27u, pitch & 0xFFFFu, 0u, 0u, 0u, 0u, 0u, 0u);
+            pitch = gtmain_sound_pitch_ratio(argument, r_u16(instrument + 4u));
+            gtmain_sound_voice_pitch(voice + 27u, (sint16)pitch);
             channel = r_u32(voice + 4u);
             w_u16(voice + 22u, r_u16(channel + 12u));
         }
@@ -158,9 +187,8 @@ void gtmain_sound_sequence_voices(void)
         if (r_u16(voice + 20u) != volume || r_u8(voice + 26u) != r_u8(channel + 16u)) {
             uint32 patch = r_u32(voice + 8u);
             uint32 coefficient = r_u16(0x8008E888u + r_u8(voice + 25u) * 2u);
-            uint32 level, buffer;
+            uint32 level, packed_volume;
             sint32 pan;
-            uint8 pair[24];
             instrument = r_u32(voice + 12u);
             pan = (sint32)(r_u8(instrument + 9u) + r_u8(channel + 16u) + r_u8(patch + 1u)) - 128;
             if (pan < 0) pan = 0;
@@ -168,11 +196,8 @@ void gtmain_sound_sequence_voices(void)
             level = (uint32)((sint32)(volume * (uint32)(sint32)(sint16)r_u16(patch + 2u)) >> 14);
             level = (uint32)((sint32)(coefficient * level) >> 14);
             level = (uint32)((sint32)((uint32)(sint32)(sint16)r_u16(instrument + 2u) * level) >> 14);
-            /* TODO Bind temporary SDK volume pairs to native helpers */
-            buffer = gt_draft_buffer_address(pair, sizeof(pair));
-            gt_draft_unresolved_call(0x8007EE18u, buffer, level, (uint32)pan, 0u, 0u, 0u, 0u, 0u);
-            gt_draft_unresolved_call(0x8007EF48u, voice + 27u, buffer, 0u, 0u, 0u, 0u, 0u, 0u);
-            gt_draft_buffer_release(buffer);
+            packed_volume = gtmain_sound_pan_pair_native(level, (uint32)pan);
+            gtmain_sound_voice_volume_native(voice + 27u, packed_volume);
             channel = r_u32(voice + 4u);
             w_u16(voice + 20u, r_u16(channel + 10u));
             w_u8(voice + 26u, r_u8(channel + 16u));

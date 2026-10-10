@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
 uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size);
@@ -143,9 +144,11 @@ static uint32 gtmain_frame_callback(uint32 address)
 
 void gtmain_frame_vblank(void)
 {
-    w_u32(0x800C009Cu, r_u32(0x800C009Cu) + 1u);
+    uint32 ticks = r_u32(0x800C009Cu), callback = r_u32(0x800C0090u);
+    w_u32(0x800C009Cu, ticks + 1u);
     w_u32(0x800C0094u, r_u32(0x800C0094u) + 1u);
-    gtmain_frame_callback(r_u32(0x800C0090u));
+    if (callback == 0x8006F11Cu) gtmain_loading_callback_noop();
+    else gtmain_frame_callback(callback);
 }
 
 static void gtmain_frame_environments(void)
@@ -222,6 +225,7 @@ uint32 gtmain_frame_engine(uint32 descriptor, uint32 callback_node)
     DrawSync(0);
     {
         uint32 previous = r_u32(callback_node), next = r_u32(callback_node + 4u);
+        gtmain_native_frame_guest_removed(callback_node, previous, next);
         w_u32(previous ? previous + 4u : 0x800B1A20u, next);
         if (next) w_u32(next, previous);
     }

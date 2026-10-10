@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 #include "game_draft_agent3_support.h"
 
@@ -19,7 +20,7 @@ uint32 gt_draft_8002F998(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   }
   gt_draft_unresolved_call(0x8007C014u, r_u32((uint32)(0x80091224u)), 0x8008C7D4u, (uint32)(r_u32((uint32)((0x80091190u + 4u * (uint32)((sint32)a0))))), (uint32)(0x800BDA65), 0u, 0u, 0u, 0u);
   v3 = gt_draft_unresolved_call(0x8006C1CCu, r_u32((uint32)(0x800B716C)), 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  gt_draft_unresolved_call(0x8007BE38u, r_u32((uint32)(0x8009126Cu)), v3, 0u, 0u, 0u, 0u, 0u, 0u);
-  return gt_draft_unresolved_call(0x8007BE38u, r_u32((uint32)(0x8009122Cu)), v2, 0u, 0u, 0u, 0u, 0u, 0u);
+  gtmain_string_copy(r_u32((uint32)(0x8009126Cu)), v3);
+  return gtmain_string_copy(r_u32((uint32)(0x8009122Cu)), v2);
 }
 

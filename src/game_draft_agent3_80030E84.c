@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 #include "game_draft_agent3_support.h"
 
@@ -15,7 +16,7 @@ uint32 gt_draft_80030E84(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   v3 = 0;
   while (1)
   {
-    v4 = (gt_draft_unresolved_call(0x8007BF04u, ((uint32)((sint32)((uint32)(8) * (uint32)((sint32)((uint32)(v3) + (uint32)(v2))))) + (uint32)(r_u32((uint32)(0x800B49D4)))), (sint32)a0, 0u, 0u, 0u, 0u, 0u, 0u) == 0);
+    v4 = (gtmain_string_compare(((uint32)((sint32)((uint32)(8) * (uint32)((sint32)((uint32)(v3) + (uint32)(v2))))) + (uint32)(r_u32((uint32)(0x800B49D4)))), (sint32)a0) == 0);
     result = v2;
     if (v4)
       break;

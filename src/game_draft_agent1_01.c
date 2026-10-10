@@ -1,14 +1,10 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
 uint32 gt_draft_800380B4(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint32 a5,uint32 a6,uint32 a7)
 {
-    /* TODO Incoming v0 is a nonstandard carrier supplied through a4 */
-    uint32 countdown = a4;
-    uint32 toggle;
-    if ((sint32)countdown > 0) w_u16(0x801F300Au, countdown - 1u);
-    toggle = (r_u8(0x801F3008u) + 1u) & 1u;
-    w_u8(0x801F3008u, toggle);
-    return toggle;
+    /* Legacy a4 represents the reviewed incoming countdown */
+    return gtmain_menu_countdown_toggle_tail((sint32)a4);
 }
 
 uint32 gt_draft_8001A068(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint32 a5,uint32 a6,uint32 a7)
@@ -21,15 +17,7 @@ uint32 gt_draft_8001A068(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint3
 
 uint32 gt_draft_8001DF30(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint32 a5,uint32 a6,uint32 a7)
 {
-    uint32 result;
-    w_u16(a0 + 12u,a1);
-    /* TODO External adapter may consume further retained arguments */
-    gt_draft_unresolved_call(0x8006B3E0u,a0,a1,a2,a3,0,0,0,0);
-    gt_draft_gte_write(24,1,r_u16(a0+8u)<<16);
-    gt_draft_gte_write(25,1,r_u16(a0+10u)<<16);
-    result=r_u16(a0+12u);
-    gt_draft_gte_write(26,1,result);
-    return result;
+    return gtmain_camera_projection_set(a0, (sint32)a1);
 }
 
 uint32 gt_draft_8001E218(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint32 a5,uint32 a6,uint32 a7)

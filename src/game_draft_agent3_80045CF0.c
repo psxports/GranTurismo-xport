@@ -1,4 +1,5 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 #include "game_draft_agent3_support.h"
 
 /* Unverified draft from complete exported pseudocode with guest address operations */
@@ -52,7 +53,7 @@ uint32 gt_draft_80045CF0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   sint8 v56[26];
   sint8 v57;
   v13 = (sint32)((uint32)((sint32)a1) + (uint32)(160));
-  v14 = gt_draft_unresolved_call(0x8003B928u, 0x80093530u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+  v14 = gtmain_menu_list_extent(0x80093530u);
   if (((r_u8((uint32)(0x800B5374)) == 27) || (r_u8((uint32)(0x800B5374)) == 35)))
   {
     v13 = (sint32)((uint32)((sint32)a1) + (uint32)(120));

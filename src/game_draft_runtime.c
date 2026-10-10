@@ -60,10 +60,18 @@ void xport_bind_native_spu_transfer(void)
         gt_draft_failure("native SPU transfer binding", 0x80085C88u);
 }
 void gt_draft_buffer_release(uint32 address) { gt_draft_failure("native buffer release", address); }
-uint32 gt_draft_gte_read(uint32 reg, uint32 control) { gt_draft_failure("GTE read adapter", reg | (control << 8)); }
-void gt_draft_gte_write(uint32 reg, uint32 control, uint32 value) { gt_draft_failure("GTE write adapter", reg | (control << 8)); }
+uint32 gt_draft_gte_read(uint32 reg, uint32 control)
+{
+    if (!control && (reg == 30u || reg == 31u)) return xport_gte_read_data(reg);
+    gt_draft_failure("GTE read adapter", reg | (control << 8));
+}
+void gt_draft_gte_write(uint32 reg, uint32 control, uint32 value)
+{
+    if (!control && (reg == 30u || reg == 31u)) { xport_gte_write_data(reg, value); return; }
+    gt_draft_failure("GTE write adapter", reg | (control << 8));
+}
 void gt_draft_gte_command(uint32 command) { gt_draft_failure("GTE command adapter", command); }
-void gt_draft_exception(uint32 code) { gt_draft_failure("guest exception adapter", code); }
+__declspec(noreturn) void gt_draft_exception(uint32 code) { gt_draft_failure("guest exception adapter", code); }
 uint32 gt_draft_incoming_register(uint32 function_address, uint32 register_index) { gt_draft_failure("nonstandard incoming register adapter", function_address); }
 void gt_draft_loader_context_capture(uint32 address) { gt_draft_failure("loader context capture adapter", address); }
 void gtmain_load_bios_kernel(void)
@@ -91,6 +99,16 @@ void gtmain_load_bios_kernel(void)
     w_u32(0xA0000100u, descriptor);
     w_u32(0xA0000104u, 32u);
     /* TODO Restore the remaining BIOS boot initialization through native APIs */
+}
+
+void gt_native_spu_init(void)
+{
+    static uint8 preserved[0x80000u];
+    sint32 available = spu_download(0u, preserved, sizeof(preserved));
+    SpuInit();
+    /* SDK initialization preserves sample RAM across executable transitions */
+    if (available && !spu_upload(0u, preserved, sizeof(preserved)))
+        gt_draft_failure("SPU RAM initialization restore", 0u);
 }
 
 void gtmain_load_image(void)

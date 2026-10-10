@@ -40,7 +40,7 @@ static void gtmain_pad_library_init(uint32 first_buffer, uint32 second_buffer)
     w_u32(0x800B1EF4u, 1u);
 }
 
-static void gtmain_pad_reset_port(uint32 state)
+void gtmain_pad_reset_port(uint32 state)
 {
     uint32 index;
     if (!r_u8(state + 73u)) return;

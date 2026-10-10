@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 #include "game_draft_agent3_support.h"
 
@@ -39,7 +40,7 @@ uint32 gt_draft_8001EE20(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
       v9 = 0;
     }
     v10 = (uint32)(((uint32)(((uint32)(((uint32)(r_u32((uint32)(0x800D6FEC))) - (uint32)(2146603044))) + (uint32)(24))) + (uint32)((sint32)((uint32)(4) * (uint32)((sint32)((uint32)((sint32)((uint32)(4) * (uint32)((sint32)((uint32)(v9) - (uint32)(v8))))) - (uint32)(v8)))))));
-    gt_draft_unresolved_call(0x8007BDFCu, (sint32)((uint32)((sint32)((uint32)(96) * (uint32)(v5))) - (uint32)(2146677268)), v10, 96, 0u, 0u, 0u, 0u, 0u);
+    gtmain_memory_copy((sint32)((uint32)((sint32)((uint32)(96) * (uint32)(v5))) - (uint32)(2146677268)), v10, 96);
     w_u16((uint32)((uint32)((sint32)((uint32)((sint32)((uint32)((sint32)((uint32)(96) * (uint32)(v5))) - (uint32)(2146677684))) + (uint32)(416)))), (uint32)(((uint32)(r_u16((uint32)((uint32)((sint32)((uint32)((sint32)((uint32)((sint32)((uint32)(96) * (uint32)(v5))) - (uint32)(2146677684))) + (uint32)(416)))))) | (uint32)(((uint32)((uint16)(v6)) << ((uint32)(12) & 31u))))));
     w_u32((uint32)((uint32)((sint32)((uint32)((sint32)((uint32)((sint32)((uint32)(4) * (uint32)(v5))) - (uint32)(2146677684))) + (uint32)(16)))), (uint32)(r_u32((uint32)((uint32)(((uint32)(((uint32)(((uint32)(r_u32((uint32)(0x800D7088))) - (uint32)(2146603044))) + (uint32)(((uint32)(424) * (uint32)((r_u16((uint32)(v10)) & 0xFFF)))))) - (uint32)(12)))))));
     result = 1;

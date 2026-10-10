@@ -1,4 +1,5 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 /* Unverified draft translations */
 /* TODO Resolve unspecified call arguments during integration */
 
@@ -18,19 +19,16 @@ uint32 gt_draft_80029B98(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return 1;
 }
 
-uint32 gt_draft_8002AB48(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE 8002AB48 */
+void gt_draft_8002AB48(void)
 {
-    uint32 result = r_u8(0x800CB767u);
-    if (result) {
-        result = r_u8(0x800B63D9u);
-        if (result) {
-            if (r_u16(0x800994B4u)) return gt_draft_unresolved_call(0x8006FFF8u, 0, 0, 0, 0, 0, 0, 0, 0);
-            result = r_u8(0x800994C0u);
-            if (!result) return gt_draft_unresolved_call(0x8006FFF8u, 0, 0, 0, 0, 0, 0, 0, 0);
-            w_u8(0x800B63D9u, 0);
-        }
+    if (!r_u8(0x800CB767u) || !r_s8(0x800B63D9u)) return;
+    if (!r_s16(0x800994B4u) && r_u8(0x800994C0u)) {
+        w_u8(0x800B63D9u, 0u);
+        return;
     }
-    return result;
+    /* TODO Transitive stream pause-state dependencies remain partial */
+    gtmain_stream_pause_if_loaded();
 }
 
 uint32 gt_draft_8002ABC0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -49,17 +47,17 @@ uint32 gt_draft_8002ABC0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return result;
 }
 
-uint32 gt_draft_8002AC8C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_8002AC8C(void)
 {
-    gt_draft_unresolved_call(0x80031F18u, 0, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_race_sound_banks_update();
     uint32 mode = r_u8(0x800CB7F5u);
     uint32 sound = mode < 4 ? 10u : (mode == 5 ? 11u : 255u);
+    uint32 table = r_u32(0x800B630Cu) == 1 ? 0x800CB8D0u : 0x800CB8C0u;
     w_u8(0x800B63C1u, sound);
     w_u8(0x800B6314u, 0);
-    uint32 table = r_u32(0x800B630Cu) == 1 ? 0x800CB8D0u : 0x800CB8C0u;
-    w_u8(0x800B63BFu, gt_draft_unresolved_call(0x80070144u, table, 0, 0, 0, 0, 0, 0, 0));
+    w_u8(0x800B63BFu, gtmain_stream_playlist_next(table));
     w_u8(0x800B63D9u, 0);
-    return gt_draft_unresolved_call(0x8007EDF8u, 6553, 6553, 0, 0, 0, 0, 0, 0);
+    return gtmain_spu_master_volume(6553, 6553);
 }
 
 uint32 gt_draft_8002ADDC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -88,15 +86,16 @@ uint32 gt_draft_80043320(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return result;
 }
 
-uint32 gt_draft_8002A7EC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE 8002A7EC */
+uint32 gt_draft_8002A7EC(void)
 {
-    gt_draft_unresolved_call(0x8008A908u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006EFB4u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006F7DCu, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x80086C78u, 0x8008FB3Cu, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x80086AF4u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x80086C78u, 0x8008FB44u, 0, 0, 0, 0, 0, 0, 0);
-    return gt_draft_unresolved_call(0x80086AF4u, 0, 0, 0, 0, 0, 0, 0, 0);
+    VSync(0);
+    gtmain_display_mask(0u);
+    gtmain_frame_draw_apply(0u);
+    ClearImage((PSX_RECT *)psx_addr(0x8008FB3Cu, sizeof(PSX_RECT)), 0, 0, 0);
+    DrawSync(0);
+    ClearImage((PSX_RECT *)psx_addr(0x8008FB44u, sizeof(PSX_RECT)), 0, 0, 0);
+    return (uint32)DrawSync(0);
 }
 
 uint32 gt_draft_8004A8E8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -156,7 +155,7 @@ uint32 gt_draft_800462AC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_80048AF8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    sint32 length = (sint32)gt_draft_unresolved_call(0x8007C2B0u, a0, 0, 0, 0, 0, 0, 0, 0);
+    sint32 length = (sint32)gtmain_string_length(a0);
     uint32 end = a0 + (uint32)length;
     uint32 changed = 0, result;
     for (;;) {
@@ -168,7 +167,7 @@ uint32 gt_draft_80048AF8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
         w_u8(end, 0);
         changed = 1;
     }
-    if (changed) return gt_draft_unresolved_call(0x8007BEC4u, a0, 0x8008DC38u, 0, 0, 0, 0, 0, 0);
+    if (changed) return gtmain_string_append(a0, 0x8008DC38u);
     return result;
 }
 
@@ -190,15 +189,7 @@ uint32 gt_draft_80042E84(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_80041980(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    sint32 span = (sint32)(a1 - a0);
-    if (!span) return 0;
-    sint32 scaled = (sint32)((a2 - a0) * (a3 - 1u));
-    /* TODO Bind original divide overflow exception to a fail-fast adapter */
-    if (scaled == (-2147483647 - 1) && span == -1) gt_draft_exception(6);
-    sint32 value = scaled / span;
-    if (value < 0) value = 0;
-    if (value >= (sint32)a3) return a3 - 1u;
-    return (uint32)value;
+    return (uint32)gtmain_menu_range_index((sint32)a0, (sint32)a1, (sint32)a2, (sint32)a3);
 }
 
 uint32 gt_draft_8004AAB8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)

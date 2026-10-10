@@ -1,4 +1,5 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
 /* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
 uint32 gt_draft_800479F0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -13,12 +14,12 @@ uint32 gt_draft_800479F0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   if ( ((r_u16(a0 + 4) | r_u16(a0 + 8)) & 0x100) != 0 )
   {
     gt_draft_unresolved_call(0x80035778u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8003B8ECu, 0x80092E9Cu, v2 - 10, 0, 0, 0, 0, 0, 0);
+    gtmain_menu_list_select(0x80092E9Cu, v2 - 10);
   }
   else if ( ((r_u16(a0 + 4) | r_u16(a0 + 8)) & 0x200) != 0 )
   {
     gt_draft_unresolved_call(0x80035778u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8003B8ECu, 0x80092E9Cu, v2 + 10, 0, 0, 0, 0, 0, 0);
+    gtmain_menu_list_select(0x80092E9Cu, v2 + 10);
   }
   else
   {

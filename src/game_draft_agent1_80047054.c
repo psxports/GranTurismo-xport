@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
 /* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
@@ -57,7 +58,7 @@ uint32 gt_draft_80047054(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     v10 = 8 * a1;
   }
   v15 = v3 + 4 * (4 * (v10 - a1) + a1);
-  gt_draft_unresolved_call(0x8007BE38u, v15, -2146741356, 0, 0, 0, 0, 0, 0);
+  gtmain_string_copy(v15, -2146741356);
   result = 1;
     w_u16(v15 + 114, 1);
   return result;

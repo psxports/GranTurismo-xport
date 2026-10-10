@@ -1,66 +1,43 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
+uint32 gtmain_camera_follow_update(uint32 camera)
+{
+    uint32 car = r_u32(camera + 180u), yaw, result;
+    sint32 mode, next;
+    uint32 pitch, roll, base_yaw, first_pitch, first_roll;
+    uint8 rotation[20], vector[12];
+    gtmain_camera_projection_set(camera, r_s16(camera + 262u));
+    mode = r_s16(camera + 260u);
+    w_u16(camera + 244u, r_u16(car + 20u));
+    next = mode == 2 ? 2 : mode + 1;
+    base_yaw = r_u16(car + 80u);
+    if (!mode) {
+        pitch = r_u16(car + 2240u); roll = r_u16(car + 2244u);
+        if (r_s8(camera + 255u)) { pitch = 0u - pitch; roll = 0u - roll; }
+        first_pitch = pitch; first_roll = roll; base_yaw = 0;
+    } else {
+        pitch = r_u16(0x8008F24Cu + 2u * (uint32)mode); roll = 0;
+        first_pitch = first_roll = 0;
+    }
+    /* Original interpolation factor is zero; retain the next-angle preload */
+    (void)r_u16(0x8008F24Cu + 2u * (uint32)next);
+    yaw = base_yaw + r_u16(car + 2242u);
+    if (r_s8(camera + 255u)) yaw += 2048u;
+    gtmain_model_rotation(rotation, (sint16)yaw, (sint16)first_pitch, (sint16)first_roll);
+    gtmain_model_rotation(psx_addr(camera + 140u, 20u), (sint16)yaw, (sint16)pitch, (sint16)roll);
+    gtmain_vector_lerp(vector, psx_addr(0x8008F228u + 12u * (uint32)mode, 12u),
+        psx_addr(0x8008F228u + 12u * (uint32)next, 12u), 0);
+    gtmain_model_rotate_vector(vector, rotation, vector);
+    w_u32(camera + 120u, r_u32(car + 2228u) + xport_load_le32(vector));
+    w_u32(camera + 124u, r_u32(car + 2232u) + xport_load_le32(vector + 4u));
+    result = r_u32(car + 2236u) + xport_load_le32(vector + 8u);
+    w_u32(camera + 128u, result);
+    return result;
+}
+
+/* Retain legacy draft callers until their ordinary ABI migration */
 uint32 gt_draft_8001D8A0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    sint32 v2 = 0;
-    uint32 v3 = 0;
-    sint32 v4 = 0;
-    sint32 v5 = 0;
-    sint32 v6 = 0;
-    sint32 v7 = 0;
-    sint16 v8 = 0;
-    sint16 v9 = 0;
-    sint16 v10 = 0;
-    sint16 v11 = 0;
-    sint16 v12 = 0;
-    sint32 v13 = 0;
-    sint16 v14 = 0;
-    sint32 result = 0;
-    sint32 v16[4] = {0};
-    sint8 v17[24] = {0};
-  v2 = r_u32(a0 + 180);
-  v3 = (uint32)(a0 + 120);
-  gt_draft_8001DF30(a0, (sint16)r_u16(a0 + 262), 0, 0, 0, 0, 0, 0);
-  v4 = (sint16)r_u16(a0 + 260);
-    w_u16(a0 + 244, r_u16(v2 + 20));
-  v5 = v4 + 1;
-  if ( v4 == 2 )
-    v5 = 2;
-  if ( v4 )
-  {
-    v8 = r_u16(v2 + 80);
-    v6 = (v6 & 0xFFFF0000u) | (((uint32)(r_u16(0x8008F24Cu + 2u * (v4))) & 0xFFFFu) << 0);
-    v7 = (v7 & 0xFFFF0000u) | (((uint32)(0) & 0xFFFFu) << 0);
-    v9 = 0;
-    v10 = 0;
-  }
-  else
-  {
-    v6 = r_u16(v2 + 2240);
-    v7 = r_u16(v2 + 2244);
-    v8 = 0;
-    if ( r_u8(a0 + 255) )
-    {
-      v6 = -v6;
-      v7 = -v7;
-    }
-    v9 = v6;
-    v10 = v7;
-  }
-  v11 = v6;
-  v12 = v7;
-  v13 = (sint8)r_u8(a0 + 255);
-  v14 = v8 + r_u16(v2 + 2242);
-  if ( v13 )
-    v14 = v8 + r_u16(v2 + 2242) + 2048;
-  gt_draft_unresolved_call(0x8006B134u, gt_draft_buffer_address(v17, sizeof(v17)) /* TODO Adapter lifecycle */, v14, v9, v10, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006B134u, v3 + 20, v14, v11, v12, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006B0A8u, gt_draft_buffer_address(v16, sizeof(v16)) /* TODO Adapter lifecycle */, (0x8008F228u + 4u * (3 * v4)), (0x8008F228u + 4u * (3 * v5)), 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006B2CCu, gt_draft_buffer_address(v16, sizeof(v16)) /* TODO Adapter lifecycle */, gt_draft_buffer_address(v17, sizeof(v17)) /* TODO Adapter lifecycle */, gt_draft_buffer_address(v16, sizeof(v16)) /* TODO Adapter lifecycle */, 0, 0, 0, 0, 0);
-    w_u32(v3, r_u32(v2 + 2228) + v16[0]);
-    w_u32(v3 + 4u * (1), r_u32(v2 + 2232) + v16[1]);
-  result = r_u32(v2 + 2236) + v16[2];
-    w_u32(v3 + 4u * (2), result);
-  return result;
+    return gtmain_camera_follow_update(a0);
 }

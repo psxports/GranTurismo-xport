@@ -14,7 +14,6 @@ static uint32 gtmain_skip_records(uint32 address, uint32 count, uint32 stride)
 
 uint32 gtmain_resource_init(uint32 path, uint32 buffer, uint32 capacity)
 {
-    uint32 current, count, next_count;
     size_t size = 0u;
     /* Load the extracted original file through the host filesystem */
     if (!buffer || !xport_cd_file_read(path, "DATA", buffer, capacity, &size)) {
@@ -22,6 +21,12 @@ uint32 gtmain_resource_init(uint32 path, uint32 buffer, uint32 capacity)
         return gt_draft_unresolved_call(0x80071844u, path, buffer, capacity, 0u, 0u, 0u, 0u, 0u);
     }
     w_u32(0x800B1AB0u, 0u);
+    return gt_resource_relocate(buffer);
+}
+
+uint32 gt_resource_relocate(uint32 buffer)
+{
+    uint32 current, count, next_count;
     count = (uint32)(sint32)(sint16)r_u16(buffer + 12u);
     current = (buffer + 75u) & ~3u;
     w_u32(buffer + 24u, current);
@@ -59,7 +64,7 @@ static uint32 gtmain_host_u32(const uint8 *data)
     return (uint32)data[0] | ((uint32)data[1] << 8) | ((uint32)data[2] << 16) | ((uint32)data[3] << 24);
 }
 
-static uint32 gtmain_archive_section(FILE *file, const uint8 *header, uint32 header_bytes, uint32 index, uint32 destination)
+uint32 gt_archive_section(FILE *file, const uint8 *header, uint32 header_bytes, uint32 index, uint32 destination, uint32 gtos)
 {
     uint32 offset, stored, bytes, i;
     uint32 compressed = header[13] & 0x80u;
@@ -110,15 +115,20 @@ static uint32 gtmain_archive_section(FILE *file, const uint8 *header, uint32 hea
             }
         }
         free(input);
-        w_u8(0x800994C0u, 1u);
+        w_u8(gtos ? 0x8004F6A4u : 0x800994C0u, 1u);
     }
-    w_u32(0x800B1AB0u, 0u);
+    w_u32(gtos ? 0x80073AC0u : 0x800B1AB0u, 0u);
     return destination;
 decode_failed:
     free(input);
 failed:
-    w_u32(0x800B1AB0u, 5u);
-    return gt_draft_unresolved_call(0x8006AE5Cu, 0x8008C01Cu, index, destination, 0u, 0u, 0u, 0u, 0u);
+    w_u32(gtos ? 0x80073AC0u : 0x800B1AB0u, 5u);
+    return gt_draft_unresolved_call(gtos ? 0x8002B85Cu : 0x8006AE5Cu, 0x8008C01Cu, index, destination, 0u, 0u, 0u, 0u, 0u);
+}
+
+static uint32 gtmain_archive_section(FILE *file, const uint8 *header, uint32 header_bytes, uint32 index, uint32 destination)
+{
+    return gt_archive_section(file, header, header_bytes, index, destination, 0u);
 }
 
 uint32 gtmain_messages_init(void)
@@ -164,7 +174,7 @@ failed:
     return gt_draft_unresolved_call(0x8006A21Cu, path, destination, stored_limit, output_limit, 0u, 0u, 0u, 0u);
 }
 
-static uint32 gtmain_sound_bank_relocate(uint32 bank, uint32 spu_address)
+uint32 gt_sound_bank_relocate(uint32 bank, uint32 spu_address)
 {
     uint32 delta, i, count;
     if (r_u32(bank) != 0x54534E49u) return 0u;
@@ -227,8 +237,8 @@ uint32 gtmain_sound_bank_load(uint32 destination, uint32 spu_address, uint32 buf
         uint32 i;
         for (i = 0u; i < metadata_bytes; ++i) w_u8(destination + i, r_u8(buffer + i));
     }
-    gtmain_sound_bank_relocate(buffer, spu_address);
-    gtmain_sound_bank_relocate(destination, spu_address);
+    gt_sound_bank_relocate(buffer, spu_address);
+    gt_sound_bank_relocate(destination, spu_address);
     if (sample_bytes) {
         uint32 address = r_u32(destination + 12u);
         w_u32(0x800B235Cu, address >> 3u);

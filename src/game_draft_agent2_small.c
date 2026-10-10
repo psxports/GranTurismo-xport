@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 /* Unverified draft translations */
 /* TODO Resolve unused call argument carriers during integration */
@@ -63,7 +64,7 @@ uint32 gt_draft_8004635C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gt_draft_unresolved_call(0x800706BCu, a0, (a1 & 0xFFFFu) | (a2 << 16), r_u32(table + 12), r_u32(table + 8), a4, 0, 0, 0);
 }
 
-uint32 gt_draft_80029DE4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_80029DE4(void)
 {
     if (r_u8(0x800CB7F5u) == 4 && r_u32(0x800B630Cu) != 1) {
         w_u16(0x800B63D6u, 1);
@@ -139,8 +140,7 @@ uint32 gt_draft_8002A3CC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_8002A500(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    gt_draft_unresolved_call(0x8007C014u, 0x800BC2E0u, 0x8008BFE0u, 0x800BD926u, r_u32(0x8008FAF8u + 4u * r_u8(0x800CB7F8u)), r_u8(0x800CB7F9u) + 1u, 0, 0, 0);
-    return gt_draft_8002FA74(0x800BC2E0u, 0, 0, 0, 0, 0, 0, 0);
+    return gtmain_course_route_caption_update();
 }
 
 uint32 gt_draft_80047160(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -155,11 +155,7 @@ uint32 gt_draft_80030E1C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_80030938(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    uint32 flag = r_u16(0x800912E2u);
-    uint32 intensity = flag & 7u;
-    if (flag & 8u) intensity ^= 7u;
-    intensity = (intensity * 32u) & 255u;
-    return (a0 << 24) | intensity | (intensity << 8);
+    return gtmain_race_choice_highlight(a0);
 }
 
 uint32 gt_draft_8002F8B4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -169,7 +165,7 @@ uint32 gt_draft_8002F8B4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_8001ECA8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    return gt_draft_unresolved_call(0x8006BAD4u, 0x800BB850u, 0x800BB790u, 0x800D6FDCu, 0, 0, 0, 0, 0);
+    return gtmain_player_configuration_build();
 }
 
 uint32 gt_draft_8003DBF4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)

@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
 /* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
@@ -65,7 +66,7 @@ uint32 gt_draft_800446DC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   }
   gt_draft_8003A8AC(a0, a1 + 24, a2 - 1, v36, 0, 0, 0, 0);
   gt_draft_unresolved_call(0x8007C014u, gt_draft_buffer_address(&v31, sizeof(v31)) /* TODO Adapter lifecycle */, (uint32)0x800BCF24, r_u16(2 * a4 - 2146736064), 0, 0, 0, 0, 0);
-  v23 = gt_draft_unresolved_call(0x8007C2B0u, gt_draft_buffer_address(&v31, sizeof(v31)) /* TODO Adapter lifecycle */, 0, 0, 0, 0, 0, 0, 0);
+  v23 = gtmain_string_length(gt_draft_buffer_address(&v31, sizeof(v31)) /* TODO Adapter lifecycle */);
   gt_draft_unresolved_call(0x8003A95Cu, a0, a1 - (8 * v23 - 266), a2 + 4, gt_draft_buffer_address(&v31, sizeof(v31)) /* TODO Adapter lifecycle */, 8, 2, v26, v27);
   gt_draft_unresolved_call(0x8006C790u, 1, 0, 0, 0, 0, 0, 0, 0);
   v24 = gt_draft_unresolved_call(0x80035398u, 0, a3, 0, 0, 0, 0, 0, 0);

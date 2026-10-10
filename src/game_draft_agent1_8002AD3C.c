@@ -1,10 +1,14 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_8002AD3C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE 8002AD3C */
+void gt_draft_8002AD3C(void)
 {
-
-  gt_draft_unresolved_call(0x80070190u, 0, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_8002ABC0((sint8)r_u8(0x800B63C1u), (sint8)r_u8(0x800B6314u), 0, 0, 0, 0, 0, 0);
-  return gt_draft_unresolved_call(0x80031668u, 0, 0, 0, 0, 0, 0, 0, 0);
+    sint32 entry, parameter;
+    gtmain_stream_mode_set(0);
+    entry = (sint8)r_u8(0x800B63C1u);
+    parameter = (sint8)r_u8(0x800B6314u);
+    /* TODO Transitive stream and car callback owners remain partial */
+    gtmain_race_stream_start(entry, parameter);
+    gtmain_race_sound_callbacks_active();
 }

@@ -1,4 +1,5 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -37,10 +38,65 @@ uint32 gtmain_graph_reset(uint32 mode)
     return 0u;
 }
 
+static uint32 *native_frame_node;
+static uint32 vblank_dispatching;
+
+void gtmain_native_frame_callback_insert(uint32 *node)
+{
+    uint32 previous = 0u, current;
+    /* TODO Bind nested nodes and mutations during mixed VBlank dispatch */
+    if (!node || native_frame_node || vblank_dispatching)
+        gt_draft_failure("GTMAIN native VBlank node lifetime", 0x8007A608u);
+    EnterCriticalSectionPSX();
+    current = r_u32(0x800B1A20u);
+    while (current) {
+        if (node[3] < r_u32(current + 12u)) break;
+        previous = current;
+        current = r_u32(current + 4u);
+    }
+    node[0] = previous;
+    node[1] = current;
+    native_frame_node = node;
+    ExitCriticalSection();
+}
+
+void gtmain_native_frame_callback_remove(uint32 *node)
+{
+    if (!node || native_frame_node != node || vblank_dispatching)
+        gt_draft_failure("GTMAIN native VBlank node removal", 0x8007B6E4u);
+    EnterCriticalSectionPSX();
+    native_frame_node = NULL;
+    ExitCriticalSection();
+}
+
+void gtmain_native_frame_guest_removed(uint32 node, uint32 previous, uint32 next)
+{
+    if (!native_frame_node) return;
+    /* TODO Bind mutations during mixed VBlank dispatch */
+    if (vblank_dispatching)
+        gt_draft_failure("GTMAIN mixed VBlank list mutation", 0x8007B6E4u);
+    if (native_frame_node[0] == node) native_frame_node[0] = previous;
+    if (native_frame_node[1] == node) native_frame_node[1] = next;
+}
+
+static void native_frame_node_dispatch(uint32 previous, uint32 next)
+{
+    if (native_frame_node && native_frame_node[0] == previous &&
+        native_frame_node[1] == next) {
+        uint32 callback = native_frame_node[2];
+        if (callback == 0x8006F124u) gtmain_frame_vblank();
+        else if (callback)
+            gt_draft_failure("GTMAIN native VBlank callback identity", callback);
+    }
+}
+
 static void gtmain_vblank(void)
 {
-    uint32 node = r_u32(0x800B1A20u);
+    uint32 node = r_u32(0x800B1A20u), previous = 0u;
+    uint32 first_ticks, second_ticks;
+    vblank_dispatching = 1u;
     while (node) {
+        native_frame_node_dispatch(previous, node);
         uint32 callback = r_u32(node + 8u);
         uint32 next = r_u32(node + 4u);
         /* TODO Dispatch translated callbacks as they become reachable */
@@ -50,10 +106,15 @@ static void gtmain_vblank(void)
             gtmain_frame_vblank();
         else if (callback)
             gt_draft_unresolved_call(callback, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+        previous = node;
         node = next;
     }
-    w_u32(0x800C0A88u, r_u32(0x800C0A88u) + 1u);
-    w_u32(0x800C0A8Cu, r_u32(0x800C0A8Cu) + 1u);
+    native_frame_node_dispatch(previous, 0u);
+    first_ticks = r_u32(0x800C0A88u);
+    second_ticks = r_u32(0x800C0A8Cu);
+    w_u32(0x800C0A88u, first_ticks + 1u);
+    w_u32(0x800C0A8Cu, second_ticks + 1u);
+    vblank_dispatching = 0u;
 }
 
 uint32 gtmain_frame_init(uint32 mode)
@@ -73,7 +134,7 @@ uint32 gtmain_frame_events_init(void)
     uint32 i;
     for (i = 0u; i < 8u; ++i) {
         uint32 row = 0x800B1A2Cu + i * 12u;
-        uint32 event = (uint32)OpenEvent(r_u32(row), r_u32(row + 4u), 0x1000u, r_u32(row + 8u));
+        uint32 event = (uint32)OpenEventGuest(r_u32(row), r_u32(row + 4u), 0x1000u, r_u32(row + 8u));
         if (event != 0xFFFFFFFFu && !EnableEvent(event))
             gt_draft_unresolved_call(0x8007B734u, event, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
         w_u32(0x800C0A60u + i * 4u, event);
@@ -83,6 +144,9 @@ uint32 gtmain_frame_events_init(void)
 
 void gtmain_frame_callback_insert(uint32 node)
 {
+    if (native_frame_node && vblank_dispatching)
+        gt_draft_failure("GTMAIN mixed VBlank list mutation", 0x8007A608u);
+    EnterCriticalSectionPSX();
     uint32 previous = 0u;
     uint32 current = r_u32(0x800B1A20u);
     uint32 link = 0x800B1A20u;
@@ -92,6 +156,11 @@ void gtmain_frame_callback_insert(uint32 node)
         previous = current;
         current = r_u32(current + 4u);
     }
+    if (native_frame_node && native_frame_node[0] == previous &&
+        native_frame_node[1] == current) {
+        if (priority < native_frame_node[3]) native_frame_node[0] = node;
+        else native_frame_node[1] = node;
+    }
     w_u32(node, previous);
     w_u32(node + 4u, current);
     if (previous) {
@@ -100,6 +169,7 @@ void gtmain_frame_callback_insert(uint32 node)
     }
     if (current) w_u32(current, node);
     w_u32(link, node);
+    ExitCriticalSection();
 }
 
 

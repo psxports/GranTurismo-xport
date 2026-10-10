@@ -25,7 +25,7 @@ static uint32 gtmain_spu_initialize(uint32 mode)
     uint32 result;
     uint32 value;
     ResetCallback();
-    SpuInit();
+    gt_native_spu_init();
     gtmain_spu_chip_init(mode);
     xport_bind_native_spu_transfer();
     if (!mode) {

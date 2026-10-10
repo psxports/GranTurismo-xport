@@ -1,26 +1,11 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 /* Unverified drafts adapted from existing camera translations */
 /* TODO Buffer adapters must expose native arrays to raw guest address callees */
 
 uint32 gt_draft_8001DDD0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    uint32 base = r_u32(a0 + 180);
-    w_u16(a0 + 264, r_u16(a0 + 264) + 16);
-    w_u16(a0 + 266, (uint32)-64);
-    w_u32(a0 + 268, 0xFFFA8000u);
-    w_u32(a0 + 272, 214);
-    w_u16(a0 + 244, r_u16(base + 20));
-    gt_draft_8001DF30(a0, 214, 0, 0, 0, 0, 0, 0);
-    uint32 vector[3] = {0, 0x10000u, r_u32(a0 + 268)};
-    uint32 address = gt_draft_buffer_address(vector, sizeof(vector));
-    gt_draft_unresolved_call(0x8006B134u, a0 + 140, (uint32)(sint32)(sint16)r_u16(a0 + 264), (uint32)(sint32)(sint16)r_u16(a0 + 266), 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006B2CCu, address, a0 + 140, address, 0, 0, 0, 0, 0);
-    w_u32(a0 + 120, r_u32(base + 2228) + vector[0]);
-    w_u32(a0 + 124, r_u32(base + 2232) + vector[1]);
-    uint32 result = r_u32(base + 2236) + vector[2];
-    w_u32(a0 + 128, result);
-    gt_draft_buffer_release(address);
-    return result;
+    return gtmain_camera_orbit_update(a0);
 }
 
 uint32 gt_draft_8001D4DC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -55,49 +40,75 @@ uint32 gt_draft_8001D4DC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_8001D654(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    uint32 base = r_u32(a0 + 180);
-    gt_draft_8001DF30(a0, (uint32)(sint32)(sint16)r_u16(a0 + 262), 0, 0, 0, 0, 0, 0);
-    sint32 time = (sint16)r_u16(0x800B6312u);
-    w_u16(a0 + 244, r_u16(base + 20));
-    if (r_u32(0x800B6318u) != 1) time = (sint32)((uint32)time * 2u);
-    time = (sint32)((uint32)time - 120u);
+    return gtmain_camera_countdown_update(a0);
+}
+
+uint32 gtmain_camera_countdown_update(uint32 camera)
+{
+    uint32 car = r_u32(camera + 180u), positions, angles, intervals, kind, index = 0, table, result;
+    sint32 time, duration, fraction;
+    uint8 current[6], next[6], interpolated[6], vector[12];
+    gtmain_camera_projection_set(camera, r_s16(camera + 262u));
+    time = r_s16(0x800B6312u);
+    result = r_u16(car + 20u);
+    kind = r_u32(0x800B6318u);
+    w_u16(camera + 244u, result);
+    if (kind != 1u) time *= 2;
+    time -= 120;
     if (time < 0) time = 0;
-    uint32 mode = r_u8(0x800CB75Du);
-    uint32 positions = mode == 1 ? 0x8008F278u : 0x8008F254u;
-    uint32 angles = mode == 0 ? 0x8008F29Cu : 0x8008F2B4u;
-    if (mode > 2) angles = 0x8008F29Cu;
-    uint32 intervals = mode == 2 ? 0x8008F2D4u : 0x8008F2CCu;
-    uint32 index = 0; sint32 duration;
+    kind = r_u8(0x800CB75Du);
+    positions = kind == 1u ? 0x8008F278u : 0x8008F254u;
+    angles = kind == 1u || kind == 2u ? 0x8008F2B4u : 0x8008F29Cu;
+    intervals = kind == 2u ? 0x8008F2D4u : 0x8008F2CCu;
     for (;;) {
-        duration = (sint32)r_u32(intervals + 4u * index);
+        duration = r_s32(intervals + 4u * index);
         if (time < duration) break;
         ++index; time = (sint32)((uint32)time - (uint32)duration);
-        if (index >= 3) break;
+        if (index >= 3u) break;
     }
-    uint32 numerator = (uint32)time << 12;
-    /* TODO Bind original divide exceptions through a fail-fast adapter */
-    if (!duration) gt_draft_exception(7);
-    if (duration == -1 && numerator == 0x80000000u) gt_draft_exception(6);
-    uint32 fraction = (uint32)((sint32)numerator / duration);
-    sint16 current[4], next[4], interpolated[4];
-    uint32 table = angles + 8u * index;
-    current[1] = (sint16)(r_u16(base + 2242) + r_u16(table + 2));
-    current[0] = (sint16)r_u16(table); current[2] = (sint16)r_u16(table + 4);
-    next[1] = (sint16)(r_u16(base + 2242) + r_u16(table + 10));
-    next[0] = (sint16)r_u16(table + 8); next[2] = (sint16)r_u16(table + 12);
-    uint32 out_address = gt_draft_buffer_address(interpolated, sizeof(interpolated));
-    uint32 current_address = gt_draft_buffer_address(current, sizeof(current));
-    uint32 next_address = gt_draft_buffer_address(next, sizeof(next));
-    gt_draft_unresolved_call(0x8006B244u, out_address, current_address, next_address, fraction, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006B134u, a0 + 140, (uint32)(sint32)interpolated[1], (uint32)(sint32)interpolated[0], (uint32)(sint32)interpolated[2], 0, 0, 0, 0);
-    uint32 vector[3]; uint32 vector_address = gt_draft_buffer_address(vector, sizeof(vector));
-    gt_draft_unresolved_call(0x8006B0A8u, vector_address, positions + 12u * index, positions + 12u * index + 12u, fraction, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006B2CCu, vector_address, a0 + 140, vector_address, 0, 0, 0, 0, 0);
-    w_u32(a0 + 120, r_u32(base + 2228) + vector[0]);
-    w_u32(a0 + 124, r_u32(base + 2232) + vector[1]);
-    uint32 result = r_u32(base + 2236) + vector[2];
-    w_u32(a0 + 128, result);
-    gt_draft_buffer_release(vector_address); gt_draft_buffer_release(next_address);
-    gt_draft_buffer_release(current_address); gt_draft_buffer_release(out_address);
+    result = (uint32)time << 12;
+    if (!duration) { gt_draft_exception(7u); return 0; }
+    if (duration == -1 && result == 0x80000000u) { gt_draft_exception(6u); return 0; }
+    fraction = (sint32)result / duration;
+    table = angles + 8u * index;
+    xport_store_le16(current + 2u, (uint16)(r_u16(car + 2242u) + r_u16(table + 2u)));
+    xport_store_le16(current, r_u16(table)); xport_store_le16(current + 4u, r_u16(table + 4u));
+    xport_store_le16(next + 2u, (uint16)(r_u16(car + 2242u) + r_u16(table + 10u)));
+    xport_store_le16(next, r_u16(table + 8u)); xport_store_le16(next + 4u, r_u16(table + 12u));
+    gtmain_angles_lerp(interpolated, current, next, fraction);
+    gtmain_model_rotation(psx_addr(camera + 140u, 20u), (sint16)xport_load_le16(interpolated + 2u),
+        (sint16)xport_load_le16(interpolated), (sint16)xport_load_le16(interpolated + 4u));
+    gtmain_vector_lerp(vector, psx_addr(positions + 12u * index, 12u),
+        psx_addr(positions + 12u * index + 12u, 12u), fraction);
+    gtmain_model_rotate_vector(vector, psx_addr(camera + 140u, 20u), vector);
+    w_u32(camera + 120u, r_u32(car + 2228u) + xport_load_le32(vector));
+    w_u32(camera + 124u, r_u32(car + 2232u) + xport_load_le32(vector + 4u));
+    result = r_u32(car + 2236u) + xport_load_le32(vector + 8u);
+    w_u32(camera + 128u, result);
+    return result;
+}
+
+uint32 gtmain_camera_countdown_mode(uint32 camera)
+{
+    if (r_s16(0x800B63DEu) < 2) w_u8(camera + 253u, 0);
+    return gtmain_camera_countdown_update(camera);
+}
+
+uint32 gtmain_camera_orbit_update(uint32 camera)
+{
+    uint32 car = r_u32(camera + 180u), angle = r_u16(camera + 264u), yaw = r_u16(car + 20u), result;
+    uint8 vector[12];
+    w_u16(camera + 264u, angle + 16u); w_u16(camera + 266u, (uint16)-64);
+    w_u32(camera + 268u, 0xFFFA8000u); w_u32(camera + 272u, 214u);
+    w_u16(camera + 244u, yaw);
+    gtmain_camera_projection_set(camera, 214);
+    xport_store_le32(vector, 0); xport_store_le32(vector + 4u, 0x10000u);
+    xport_store_le32(vector + 8u, r_u32(camera + 268u));
+    gtmain_model_rotation(psx_addr(camera + 140u, 20u), r_s16(camera + 264u), r_s16(camera + 266u), 0);
+    gtmain_model_rotate_vector(vector, psx_addr(camera + 140u, 20u), vector);
+    w_u32(camera + 120u, r_u32(car + 2228u) + xport_load_le32(vector));
+    w_u32(camera + 124u, r_u32(car + 2232u) + xport_load_le32(vector + 4u));
+    result = r_u32(car + 2236u) + xport_load_le32(vector + 8u);
+    w_u32(camera + 128u, result);
     return result;
 }

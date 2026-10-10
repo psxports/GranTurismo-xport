@@ -1,6 +1,6 @@
 #include "game_draft_registry.h"
 
-static void gtmain_spu_delay(void)
+void gtmain_spu_delay(void)
 {
     volatile uint32 value = 13u;
     uint32 iteration;
@@ -28,7 +28,7 @@ void gtmain_spu_dma_complete(void)
     }
 }
 
-static uint32 gtmain_spu_transfer(uint32 source, uint32 size)
+uint32 gtmain_spu_transfer(uint32 source, uint32 size)
 {
     uint32 registers = r_u32(0x800B2344u);
     uint32 initial_status = r_u16(registers + 430u) & 0x7FFu;

@@ -1,4 +1,6 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "psx_gte.h"
 
 /* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
 uint32 gt_draft_8002F28C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -61,13 +63,13 @@ uint32 gt_draft_8002F28C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     v56 = a0 + 268;
     do
     {
-      v5 = r_u32(v2 + 4u * (10));
-      v6 = r_u32(v2 + 4u * (12));
-    w_u32(a0 + 872, r_u32(v2 + 4u * (8)));
+      v5 = r_u32(v2 + 20u);
+      v6 = r_u32(v2 + 24u);
+    w_u32(a0 + 872, r_u32(v2 + 16u));
     w_u32(a0 + 876, v5);
     w_u32(a0 + 880, v6);
-      gt_draft_unresolved_call(0x8006B134u, v52, (sint16)r_u16(v2 + 2u * (1)), (sint16)r_u16(v2), (sint16)r_u16(v2 + 2u * (2)), 0, 0, 0, 0);
-      gt_draft_unresolved_call(0x80070774u, v52, v52, v2 + 8, 0, 0, 0, 0, 0);
+      gtmain_model_rotation(psx_addr(v52, 18u), (sint16)r_u16(v2 + 2u * (1)), (sint16)r_u16(v2), (sint16)r_u16(v2 + 2u * (2)));
+      gtmain_matrix_scale_axes(psx_addr(v52, 20u), psx_addr(v52, 20u), psx_addr(v2 + 8u, 8u));
       v7 = r_u32(a0 + 872) - r_u32(a0 + 44);
       v8 = r_u32(a0 + 876) - r_u32(a0 + 48);
       v9 = (sint16)r_u16(v2 + 2u * (7));
@@ -77,73 +79,73 @@ uint32 gt_draft_8002F28C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
       v13 = r_u32(a0 + 52);
     w_u32(a0 + 248, v7);
     w_u32(a0 + 252, v8);
-      v14 = v12 - v13;
-    w_u32(a0 + 256, v12 - v13);
+      v14 = (sint32)((uint32)v12 - (uint32)v13);
+    w_u32(a0 + 256, (uint32)v12 - (uint32)v13);
       carrier_s7 = 16 * v9;
-      v16 = 16 * v9 * (sint64)(sint32)r_u32(v10 + 28);
-      v17 = gt_draft_unresolved_call(0x80070830u, v11, a0 + 248, v16 >> 12, (uint64)(v16 >> 12) >> 32, 0, 0, 0, 0);
+      v16 = 16 * v9 * (sint64)(sint32)xport_load_le32(gtmain_render_source(a0) + 28u);
+      v17 = gtmain_model_range_index(v11, psx_addr(a0 + 248u, 12u), (sint32)(uint32)(v16 >> 12));
       if ( v17 != -1 )
       {
         v18 = r_u32(v11 + 8 * v17 + 8);
-gt_draft_gte_write(30, 0, carrier_s7);
-carrier_v1 = gt_draft_gte_read(31, 0);
+xport_gte_write_data(30u, carrier_s7);
+carrier_v1 = xport_gte_read_data(31u);
         v20 = 31 - carrier_v1;
         v21 = v7;
         if ( v7 < 0 )
-          v21 = -v7;
+          v21 = (sint32)(0u - (uint32)v7);
         v22 = v8;
         if ( v8 < 0 )
-          v22 = -v8;
+          v22 = (sint32)(0u - (uint32)v8);
         v23 = v21 | v22;
         v24 = v14;
         if ( v14 < 0 )
-          v24 = -v14;
+          v24 = (sint32)(0u - (uint32)v14);
         carrier_v1 = v23 | v24;
-gt_draft_gte_write(30, 0, carrier_v1);
-carrier_v0 = gt_draft_gte_read(31, 0);
+xport_gte_write_data(30u, carrier_v1);
+carrier_v0 = xport_gte_read_data(31u);
         v27 = 31 - carrier_v0;
         v28 = (sint16)r_u16(v18 + 84) + v20 - 16;
         v29 = r_u16(v18 + 84) + v20 - 16;
-        if ( 31 - carrier_v0 < v28 )
+        if ( v27 < v28 )
           v27 = (sint16)r_u16(v18 + 84) + v20 - 16;
         v30 = v27 - v28;
         v31 = v27 - 12;
         if ( v31 < 0 )
-    v31 = (v31 & 0xFFFF0000u) | (((uint32)(0) & 0xFFFFu) << 0);
+    v31 = 0;
         v32 = v20 - 12;
     w_u16(a0 + 40, v31);
     w_u16(a0 + 42, v30);
-    w_u16(a0 + 260, v7 >> v31);
-    w_u16(a0 + 262, v8 >> v31);
-    w_u16(a0 + 264, v14 >> v31);
-    w_u16(a0 + 864, 20 - v29 - v30);
+    w_u16(a0 + 260, v7 >> ((uint32)v31 & 31u));
+    w_u16(a0 + 262, v8 >> ((uint32)v31 & 31u));
+    w_u16(a0 + 264, v14 >> ((uint32)v31 & 31u));
+    w_u16(a0 + 864, 20 - v28 - v30);
         if ( v32 <= 0 )
         {
           if ( v32 < 0 )
-            carrier_s7 <<= -(sint8)v32;
+            carrier_s7 <<= (0u - (uint32)v32) & 31u;
         }
         else
         {
-          carrier_s7 >>= v32;
+          carrier_s7 = (uint32)((sint32)carrier_s7 >> ((uint32)v32 & 31u));
         }
-        gt_draft_unresolved_call(0x8006EB0Cu, v53, 0, 0, 0, 0, 0, 0, 0);
-gt_draft_gte_write(0, 0, r_u32(carrier_s0 + (0x104)));
-gt_draft_gte_write(1, 0, r_u32(carrier_s0 + (0x108)));
-gt_draft_gte_command(0x486012);
-w_u32(carrier_s0 + (0x54), gt_draft_gte_read(9, 0));
-w_u32(carrier_s0 + (0x58), gt_draft_gte_read(10, 0));
-w_u32(carrier_s0 + (0x5C), gt_draft_gte_read(11, 0));
+        gtmain_matrix_bind_packed_negation(psx_addr(v53, 20u));
+xport_gte_write_data(0u, r_u32(carrier_s0 + (0x104)));
+xport_gte_write_data(1u, r_u32(carrier_s0 + (0x108)));
+xport_gte_execute(0x486012u);
+w_u32(carrier_s0 + (0x54), xport_gte_read_data(9u));
+w_u32(carrier_s0 + (0x58), xport_gte_read_data(10u));
+w_u32(carrier_s0 + (0x5C), xport_gte_read_data(11u));
         carrier_v1 = r_u32(a0 + 84);
         carrier_v0 = r_u32(a0 + 88);
-gt_draft_gte_write(5, 1, carrier_v1);
+gte_ctc2(carrier_v1, 5u);
         carrier_v1 = r_u32(a0 + 92);
-gt_draft_gte_write(6, 1, carrier_v0);
-gt_draft_gte_write(7, 1, carrier_v1);
-        gt_draft_unresolved_call(0x80070320u, v54, v53, v55, 0, 0, 0, 0, 0);
-        gt_draft_unresolved_call(0x800708E8u, v54, v54, (sint16)carrier_s7, 0, 0, 0, 0, 0);
-        gt_draft_unresolved_call(0x800709A8u, v54, v54, v30, 0, 0, 0, 0, 0);
-        gt_draft_unresolved_call(0x8006A64Cu, a0, v54, 0, 0, 0, 0, 0, 0);
-        gt_draft_unresolved_call(0x8006EB5Cu, a0, 0, 0, 0, 0, 0, 0, 0);
+gte_ctc2(carrier_v0, 6u);
+gte_ctc2(carrier_v1, 7u);
+        gtmain_matrix_multiply(psx_addr(v54, 20u), psx_addr(v53, 20u), psx_addr(v55, 20u));
+        gtmain_matrix_scale_gte(psx_addr(v54, 20u), psx_addr(v54, 20u), (uint16)carrier_s7);
+        gtmain_matrix_shift(psx_addr(v54, 18u), psx_addr(v54, 18u), v30);
+        gtmain_model_matrix_bind(a0, psx_addr(v54, 20u));
+        gtmain_lighting_bind(a0);
         v36 = r_u16(v18 + 68);
         v37 = r_u16(v18 + 70);
         v38 = r_u16(v18 + 72);
@@ -174,31 +176,31 @@ gt_draft_gte_write(7, 1, carrier_v1);
     w_u16(a0 + 240, v39);
     w_u16(a0 + 242, v40);
     w_u16(a0 + 244, v41);
-        v42 = gt_draft_unresolved_call(0x8006EBB4u, a0, a0 + 184, 8, 0, 0, 0, 0, 0);
+        v42 = gtmain_model_bounds_classify(a0, psx_addr(a0 + 184u, 76u), 8u);
         if ( (v42 & 0x1F) == 0 )
         {
-          gt_draft_unresolved_call(0x80070A60u, v56, v55, 0, 0, 0, 0, 0, 0);
-          gt_draft_unresolved_call(0x800708E8u, v56, v56, -(sint16)carrier_s7, 0, 0, 0, 0, 0);
-          gt_draft_unresolved_call(0x80070B0Cu, a0 + 56, v56, a0 + 260, 0, 0, 0, 0, 0);
+          gtmain_matrix_transpose(psx_addr(v56, 18u), psx_addr(v55, 18u));
+          gtmain_matrix_scale_gte(psx_addr(v56, 20u), psx_addr(v56, 20u), (uint16)(0u - carrier_s7));
+          gtmain_matrix_rotate_short(psx_addr(a0 + 56u, 8u), psx_addr(v56, 20u), psx_addr(a0 + 260u, 8u));
           carrier_v0 = r_u32(a0 + 96);
           carrier_v1 = r_u32(a0 + 100);
-gt_draft_gte_write(0, 1, carrier_v0);
+gte_ctc2(carrier_v0, 0u);
           carrier_v0 = r_u32(a0 + 104);
-gt_draft_gte_write(1, 1, carrier_v1);
+gte_ctc2(carrier_v1, 1u);
           carrier_v1 = r_u32(a0 + 108);
-gt_draft_gte_write(2, 1, carrier_v0);
+gte_ctc2(carrier_v0, 2u);
           carrier_v0 = r_u32(a0 + 112);
-gt_draft_gte_write(3, 1, carrier_v1);
-gt_draft_gte_write(4, 1, carrier_v0);
+gte_ctc2(carrier_v1, 3u);
+gte_ctc2(carrier_v0, 4u);
     w_u32(a0 + 912, v18);
     w_u32(a0 + 916, r_u32(v18));
     w_u32(a0 + 932, r_u32(v18 + 4));
           if ( ((v42 >> 16) & 0x3F) != 0 )
-            v48 = gt_draft_unresolved_call(0x80016BCCu, (uint32)a0, (uint32)v18, 0, 0, 0, 0, 0, 0);
+            v48 = gtmain_model_depth_cued_clipped_draw(a0, (uint32)v18);
           else
-            v48 = gt_draft_unresolved_call(0x800150A4u, a0, (uint32)v18, 0, 0, 0, 0, 0, 0);
-          v49 = gt_draft_unresolved_call(0x8002E954u, a0, r_u32(a0 + 932), r_u16(v48 + 2u * (32)), 0, 0, 0, 0, 0);
-          gt_draft_unresolved_call(0x8002EBA4u, a0, v49, r_u16(v48 + 2u * (33)), 0, 0, 0, 0, 0);
+            v48 = gtmain_model_depth_cued_draw(a0, (uint32)v18);
+          v49 = gtmain_model_sprites_draw(a0, r_u32(a0 + 932), r_u16(v48 + 64u));
+          gtmain_model_radial_effect_draw(a0, v49, r_u16(v48 + 66u));
         }
       }
       v2 += 28;

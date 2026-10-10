@@ -5,7 +5,7 @@
 /* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
 uint32 gt_draft_80019F10(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-  ResetCallback();
+  ResetCallbackPSX();
   uint32 cd_result = gtmain_cd_init();
   gtmain_sound_init(cd_result);
   /* Native startup does not install or patch the guest BIOS card driver */

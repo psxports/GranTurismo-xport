@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 /* Unverified draft adapted from existing phase polygon translation */
 /* TODO Preserve byte lane bus semantics in an eventual unaligned access adapter */
@@ -8,12 +9,12 @@ uint32 gt_draft_8001A0E0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     uint32 material_first = r_u32(config + 16u), material_second = r_u32(config + 20u);
     uint32 height = r_u16(a0 + 78u), coordinate = r_u16(a0 + 72u);
     w_u16(a0 + 784u, r_u16(a0 + 66u));
-    uint32 source = r_u32(a0);
+    uint8 *source = gtmain_render_source(a0);
     w_u16(a0 + 788u, height);
-    uint32 vertices = source + 36u;
+    uint8 *vertices = source + 36u;
     w_u16(a0 + 786u, coordinate);
     uint32 head = r_u32(a0 + 772u) + 4u;
-    uint32 phase = gt_draft_unresolved_call(0x8006A388u, source, a0 + 784u, 0, 0, 0, 0, 0, 0);
+    uint32 phase = gtmain_view_plane_intersections_native(source, psx_addr(a0 + 784u, 6u));
     uint32 opaque_first = (phase < 8u ? material_first : material_second) & 0xF7FFFFFFu;
     uint32 translucent_first = (phase < 8u ? material_first : material_second) | 0x08000000u;
     uint32 opaque_second = (phase < 8u ? material_second : material_first) & 0xF7FFFFFFu;
@@ -81,14 +82,14 @@ uint32 gt_draft_8001A0E0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
                 w_u8(head, current); w_u8(head + 1u, current >> 8); w_u8(head + 2u, current >> 16);
                 w_u8(current, tag); w_u8(current + 1u, tag >> 8); w_u8(current + 2u, tag >> 16);
                 w_u8(current + 3u, lengths[packet] + 1u);
-                result = r_u32(vertices + positions[packet][0]);
+                result = xport_load_le32(vertices + positions[packet][0]);
                 if (packet + 1u < packets) next = r_u32(0x800BFE4Cu);
                 w_u32(current + 8u, result);
                 for (uint32 vertex = 1; vertex + 1u < lengths[packet]; ++vertex) {
-                    result = r_u32(vertices + positions[packet][vertex]);
+                    result = xport_load_le32(vertices + positions[packet][vertex]);
                     w_u32(current + 8u + vertex * 4u, result);
                 }
-                uint32 final_vertex = r_u32(vertices + positions[packet][lengths[packet] - 1u]);
+                uint32 final_vertex = xport_load_le32(vertices + positions[packet][lengths[packet] - 1u]);
                 if (packet + 1u < packets) {
                     result = next + 8u + 4u * lengths[packet + 1u];
                     w_u32(0x800BFE4Cu, result);
