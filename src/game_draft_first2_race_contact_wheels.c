@@ -46,7 +46,7 @@ uint32 gtmain_race_contact_response(uint32 car)
     uint32 tangent = cw_mul(sine, (sint32)x) + cw_mul(cosine, (sint32)z);
     sint32 rate = r_s32(0x800BF518u);
     uint32 product = tangent * (uint32)rate;
-    if (!rate) gt_draft_failure("GTMAIN contact response BREAK7", 0x80066BE4u);
+    if (!rate) gt_draft_exception(7u);
     sint32 threshold = 4096 / rate, impulse = (sint32)product / 2048;
     if (impulse >= 65) impulse = 64;
     else if (impulse < -64) impulse = -64;

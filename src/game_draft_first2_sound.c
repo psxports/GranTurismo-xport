@@ -353,7 +353,7 @@ void gtmain_sound_shutdown(void)
         w_u32(0x800B2414u, 0);
         w_u32(0x800B237Cu, 0); w_u32(0x800B2380u, 0);
         DMACallback(4, NULL);
-        SpuQuit();
+        /* Original SDK shutdown removes callbacks and retains sample RAM */
     }
 }
 

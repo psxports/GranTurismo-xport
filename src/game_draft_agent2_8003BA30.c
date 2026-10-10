@@ -2,8 +2,6 @@
 
 uint32 gt_draft_8003BA30(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    (void)a4;
-    (void)a7;
     /* TODO Bind the legacy published buffer to a real native 152 byte output */
     if (a6 != 0u)
         gt_draft_failure("Native legacy descriptor output binding and provenance", 0x8003BA30u);

@@ -15,7 +15,6 @@ static void pad_write32(uint32 address, uint32 value) { pad_mmio_boundary(addres
 static void pad_timer(uint32 delay)
 {
     /* TODO Bind unselected actual timer snapshot service */
-    (void)delay;
     gt_draft_failure("Native pad timer snapshot", 0x80081E98u);
 }
 static uint32 pad_expired(void)

@@ -1,51 +1,35 @@
-#include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_8003DAA8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE 8003DAA8 */
+uint32 gtmain_menu_record_header_prepare(void)
 {
-    sint32 result = 0;
-    sint32 v1 = 0;
-    sint16 v2 = 0;
-    sint32 v3 = 0;
-    uint16 v4 = 0;
-    sint16 v5 = 0;
-    uint32 v6 = 0;
-  gt_draft_unresolved_call(0x8007BD58u, -2145570852, 0, 126976, 0, 0, 0, 0, 0);
-  result = (sint8)r_u8(0x801F1FE5u);
-  v1 = -2145443860;
-  if ( !(sint8)r_u8(0x801F1FE5u) )
-  {
-    v2 = r_u32(0x801F1FECu);
-    w_u32(0x801D2FDCu, 17235);
-    w_u8(0x801D2FDEu, 17);
-    w_u8(0x801D2FDFu, r_u32(0x801F1FE0u));
-    if ( r_u32(0x801F1FECu) )
-    {
-      v3 = -2145570852;
-      do
-      {
-        v4 = r_u8(v1 + 1);
-        v1 += 2;
-        v5 = gt_draft_unresolved_call(0x80071640u, ((uint16)(v2 << 8) | v4) & 0x7F7F, 0, 0, 0, 0, 0, 0, 0);
-    w_u8(v3 + 4, (((uint32)(v5) >> 24) & 0xFFu));
-    w_u8(v3 + 5, v5);
-        v2 = r_u8(v1);
-        v3 += 2;
-      }
-      while ( r_u8(v1) );
+    uint32 source = 0x801F1FECu, destination = 0x801D2FDCu;
+    uint32 character, value, icon;
+    sint32 loading, kind;
+    (void)gtmain_menu_record_workspace_clear();
+    loading = (sint8)r_u8(0x801F1FE5u);
+    if (loading) return (uint32)loading;
+    character = r_u8(source);
+    w_u16(destination, 0x4353u);
+    value = r_u32(0x801F1FE0u);
+    w_u8(destination + 2u, 17u);
+    w_u8(destination + 3u, value);
+    while (character) {
+        value = r_u8(source + 1u);
+        source += 2u;
+        /* TODO Bind unrecorded original symbol converter */
+        value = gt_draft_unresolved_call(0x80071640u,
+            ((character << 8) | value) & 0x7F7Fu, 0, 0, 0, 0, 0, 0, 0) & 65535u;
+        w_u8(destination + 4u, value >> 8);
+        w_u8(destination + 5u, value);
+        character = r_u8(source);
+        destination += 2u;
     }
-    if ( r_u32(0x801F1FE4u) == 1 )
-    {
-      v6 = r_u32(0x8009969Cu);
-      return gt_draft_unresolved_call(0x80071698u, -2145570756, v6, 416, 0, 0, 0, 0, 0);
-    }
-    if ( r_u32(0x801F1FE4u) >= 2 && r_u32(0x801F1FE4u) == 2 )
-    {
-      v6 = r_u32(0x800997D4u);
-      return gt_draft_unresolved_call(0x80071698u, -2145570756, v6, 416, 0, 0, 0, 0, 0);
-    }
-    gt_draft_unresolved_call(0x80071698u, -2145570756, r_u32(0x8009954Cu), 416, 0, 0, 0, 0, 0);
-    return gt_draft_unresolved_call(0x8002CAD0u, r_u32(0x801F1FDCu) + 512, 0, 0, 0, 0, 0, 0, 0);
-  }
-  return result;
+    kind = (sint8)r_u8(0x801F1FE4u);
+    icon = kind == 1 ? 0x8009969Cu : kind == 2 ? 0x800997D4u : 0x8009954Cu;
+    /* TODO Bind bounded source extent and original result of the icon decoder */
+    value = gt_draft_unresolved_call(0x80071698u, 0x801D303Cu, icon, 416u, 0, 0, 0, 0, 0);
+    if (kind == 1 || kind == 2) return value;
+    /* TODO Bind unrecorded original game record payload tail */
+    return gt_draft_unresolved_call(0x8002CAD0u, r_u32(0x801F1FDCu) + 512u, 0, 0, 0, 0, 0, 0, 0);
 }

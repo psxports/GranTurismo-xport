@@ -48,7 +48,7 @@ void gtos_reverb_init(void)
     w_u8(0x8007635Du, 1u);
 }
 
-static void gtos_spu_complete(uint8 status, uint8 *result)
+static void gtos_spu_complete(void)
 {
     uint32 registers = r_u32(0x80074114u);
     uint32 callback = r_u32(0x8007414Cu);

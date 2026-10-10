@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 #include "game_draft_agent3_support.h"
 
@@ -16,7 +17,7 @@ uint32 gt_draft_80044C90(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   uint32 varsC;
   gt_draft_8003BA30(a0, 0x80092C28u, (sint32)((uint32)((sint32)a1) + (uint32)(74)), (sint32)((uint32)((sint32)a2) + (uint32)(80)), (sint32)a3, (sint32)a4, 0, 0);
   gt_draft_unresolved_call(0x80043F34u, (sint32)(a0), (uint32)(r_u32((uint32)((0x80092C38u + 4u * (uint32)((sint8)r_u8((uint32)(0x80092C29u))))))), (sint32)a1, (sint32)a2, (sint32)a4,0u,0u,0u);
-  gt_draft_80043FE4((sint32)(a0), (sint32)a1, (sint32)a2, (sint32)a4, 0u, 0u, 0u, 0u);
+  gtmain_menu_vehicle_course_labels_draw(a0, (sint32)a1, (sint32)a2, (sint32)a4);
   gt_draft_unresolved_call(0x800469F0u, a0, (sint32)a1, (sint32)a2, (sint32)a4, 0u, 0u, 0u, 0u);
   return 0;
 }

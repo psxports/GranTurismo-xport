@@ -1,10 +1,10 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-/* TODO Bind remaining original vehicle dependencies */
-static uint32 controls_call(uint32 owner, uint32 a0, uint32 a1, uint32 a2, uint32 a3)
+/* TODO Implement unrecorded GTMAIN.EXE 8005F2D0 only for an observed native blocker */
+static uint32 controls_special_course_progress(uint32 position)
 {
-    return gt_draft_unresolved_call(owner, a0, a1, a2, a3, 0, 0, 0, 0);
+    return gt_draft_unresolved_call(0x8005F2D0u, position, 0, 0, 0, 0, 0, 0, 0);
 }
 
 static uint32 controls_div(uint32 value, uint32 shift)
@@ -188,7 +188,6 @@ void gtmain_race_controls_ai(uint32 car, const uint8 *unused_controls, sint32 in
 {
     uint32 output = 0x1F8001FCu + 4u * (uint32)index;
     uint32 timer;
-    (void)unused_controls;
     w_u8(car + 1699u, 0); w_u8(output, 0); w_u8(output + 2u, r_u8(car + 32u));
     if (r_u8(car + 1688u)) {
         w_u8(output + 1u, 0);
@@ -388,19 +387,20 @@ void gtmain_race_velocity_publish(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 80057BF8 */
-void gtmain_race_lap_car_tick(uint32 car, sint32 rank)
+uint32 gtmain_race_lap_car_tick(uint32 car, sint32 rank)
 {
     uint32 mode = r_u8(0x800CB7F5u), previous = r_u32(car + 1804u), current, hit, sum;
     uint32 storage[3];
     uint8 *position = (uint8 *)storage;
-    if (mode == 4u && r_u16(0x800BF520u) == 4u) current = controls_call(0x8005F2D0u, car + 60u, 0, 0, 0);
+    if (mode == 4u && r_u16(0x800BF520u) == 4u) current = controls_special_course_progress(car + 60u);
     else {
         xport_store_le32(position, r_u32(car + 60u) << 4); xport_store_le32(position + 4u, r_u32(car + 68u) << 4);
         xport_store_le32(position + 8u, r_u32(car + 64u) << 4);
         current = (uint32)gtmain_course_progress(r_u32(car + 1892u), position);
     }
     w_u32(car + 1804u, current);
-    if (r_s16(0x800B63DEu)) return;
+    sint32 paused = r_s16(0x800B63DEu);
+    if (paused) return (uint32)paused;
     hit = (uint32)gtmain_race_lap_crossing(car, (sint32)previous, rank);
     if (hit == 1u) {
         sint32 component = r_s32(car + 1724u);
@@ -417,7 +417,7 @@ void gtmain_race_lap_car_tick(uint32 car, sint32 rank)
         w_u8(car + 58u, (uint8)(r_u8(car + 58u) & 254u));
         gtmain_race_control_latch(car, 0, 0);
     }
-    gtmain_race_course_events(car, r_s32(car + 1804u), (sint32)previous);
+    return gtmain_race_course_events(car, r_s32(car + 1804u), (sint32)previous);
 }
 
 /* GTMAIN.EXE 8002E0B8 */

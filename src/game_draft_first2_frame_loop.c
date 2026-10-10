@@ -60,8 +60,13 @@ static sint32 frame_callback(uint32 token, uint32 argument)
     if (token == 0x8002B328u) { gtmain_race_frame_tick(); return 0; }
     if (token == 0x8002B44Cu) return gtmain_race_frame_status();
     if (token == 0x8002BA60u) { gtmain_race_frame_draw(); return 0; }
+    if (token == 0x80035D90u) return gtmain_menu_overlay_tick();
+    if (token == 0x80038304u) return (sint32)gtmain_menu_end_panel_tick();
+    if (token == 0x80036350u) return gtmain_menu_race_selection_tick();
+    if (token == 0x800336D8u) return gtmain_menu_name_commit_tick();
+    if (token == 0x80034470u) return gtmain_menu_reward_tick();
+    if (token == 0x800325C4u) return gtmain_menu_result_list_tick();
     /* TODO Resolve remaining native callback identities and their typed arguments */
-    (void)argument;
     gt_draft_failure("GTMAIN native frame callback", token);
 }
 

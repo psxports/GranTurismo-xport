@@ -1,131 +1,81 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
-#include "game_draft_agent3_support.h"
+#include "psx_gte.h"
 
-/* Continued from the existing camera or packet translation without the guest save frame */
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO GTE scalar temporaries retain inline operation order and require adapter integration */
-/* TODO Original BREAK exception handler is an unresolved adapter */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_8001C870(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static uint32 direction_scale(uint32 value, sint32 shift)
 {
-  sint32 gte_a0;
-  sint32 gte_s2;
-  sint32 gte_s3;
-  sint32 gte_s4;
-  sint32 gte_s6;
-  sint32 gte_v0;
-  sint32 gte_v1;
-  sint32 v2;
-  sint32 v4;
-  sint32 v5;
-  sint32 v6;
-  sint32 v9;
-  sint32 v10;
-  sint32 v14;
-  sint32 v18;
-  sint32 v19;
-  sint32 v20;
-  sint32 v21;
-  sint32 v22;
-  sint32 v29;
-  sint32 v30;
-  sint32 v31;
-  sint32 v32;
-  sint32 result;
-  sint32 v34;
-  sint32 v35;
-  v2 = r_u32((uint32)(a1));
-  v34 = r_u32((uint32)(a1));
-  v4 = r_u32((uint32)((a1 + 4u * (uint32)(1))));
-  v5 = r_u32((uint32)((a1 + 4u * (uint32)(2))));
-  if ((r_u32((uint32)(a1)) < 0))
-    v34 = (sint32)(0u - (uint32)(v2));
-  v6 = r_u32((uint32)((a1 + 4u * (uint32)(1))));
-  if ((v4 < 0))
-    v6 = (sint32)(0u - (uint32)(v4));
-  v35 = r_u32((uint32)((a1 + 4u * (uint32)(2))));
-  if ((v5 < 0))
-    v35 = (sint32)(0u - (uint32)(v5));
-  gte_v0 = ((v34 | v6) | v35);
-  gt_draft_gte_write(30, 0, gte_v0);
-  gte_v1 = gt_draft_gte_read(31, 0);
-  v9 = (sint32)((uint32)(17) - (uint32)(gte_v1));
-  v10 = ((sint32)((uint32)(17) - (uint32)(gte_v1)) < 0);
-  gte_v1 = ((sint32)(v2) >> ((uint32)((sint32)((uint32)(17) - (uint32)(gte_v1))) & 31u));
-  if (v10)
-  {
-    v14 = (sint32)(0u - (uint32)(v9));
-    gte_v1 = (sint32)((uint32)(v2) << ((uint32)(v14) & 31u));
-    gte_s3 = (sint32)((uint32)(v4) << ((uint32)(v14) & 31u));
-    gte_v0 = (sint32)((uint32)(v5) << ((uint32)(v14) & 31u));
-  }
-  else
-  {
-    gte_s3 = ((sint32)(v4) >> ((uint32)(v9) & 31u));
-    gte_v0 = ((sint32)(v5) >> ((uint32)(v9) & 31u));
-  }
-  gt_draft_gte_write(9, 0, gte_v1);
-  gt_draft_gte_write(10, 0, gte_s3);
-  gt_draft_gte_write(11, 0, gte_v0);
-  gt_draft_gte_command(0xA00428);
-  gte_s6 = gt_draft_gte_read(25, 0);
-  gte_a0 = gt_draft_gte_read(26, 0);
-  gte_s4 = gt_draft_gte_read(27, 0);
-  v18 = 0;
-  v19 = 4096;
-  v20 = gt_draft_unresolved_call(0x8006AFBCu, (sint32)((uint32)((sint32)((uint32)(gte_s6) + (uint32)(gte_a0))) + (uint32)(gte_s4)), 0, 0u, 0u, 0u, 0u, 0u, 0u);
-  if (v20)
-  {
-    v21 = gt_draft_unresolved_call(0x8006AFBCu, (sint32)((uint32)(gte_s6) + (uint32)(gte_s4)), 0, 0u, 0u, 0u, 0u, 0u, 0u);
-    if (((v20 == (sint32)(0u - (uint32)(1))) && ((sint32)((uint32)(gte_s3) << ((uint32)(12) & 31u)) == 0x80000000)))
-      gt_draft_exception(6u);
-    v18 = gt3_sdiv((sint32)((uint32)(gte_s3) << ((uint32)(12) & 31u)), v20);
-    v22 = (sint32)((uint32)(v21) << ((uint32)(12) & 31u));
-    if (((v20 == (sint32)(0u - (uint32)(1))) && (v22 == 0x80000000)))
-      gt_draft_exception(6u);
-    v19 = gt3_sdiv(v22, v20);
-  }
-  gte_v0 = (v34 | v35);
-  gt_draft_gte_write(30, 0, gte_v0);
-  gte_v1 = gt_draft_gte_read(31, 0);
-  gte_s3 = ((sint32)(v5) >> ((uint32)((sint32)((uint32)(17) - (uint32)(gte_v1))) & 31u));
-  if (((sint32)((uint32)(17) - (uint32)(gte_v1)) < 0))
-  {
-    gte_s2 = (sint32)((uint32)(v2) << ((uint32)((sint32)((uint32)(gte_v1) - (uint32)(17))) & 31u));
-    gte_s3 = (sint32)((uint32)(v5) << ((uint32)((sint32)((uint32)(gte_v1) - (uint32)(17))) & 31u));
-  }
-  else
-  {
-    gte_s2 = ((sint32)(v2) >> ((uint32)((sint32)((uint32)(17) - (uint32)(gte_v1))) & 31u));
-  }
-  gt_draft_gte_write(9, 0, gte_s2);
-  gt_draft_gte_write(10, 0, gte_s3);
-  gt_draft_gte_command(0xA00428);
-  gte_v0 = gt_draft_gte_read(25, 0);
-  gte_a0 = gt_draft_gte_read(26, 0);
-  v29 = 0;
-  v30 = 4096;
-  v31 = gt_draft_unresolved_call(0x8006AFBCu, (sint32)((uint32)(gte_v0) + (uint32)(gte_a0)), 0, 0u, 0u, 0u, 0u, 0u, 0u);
-  v32 = (sint32)((uint32)(gte_s2) << ((uint32)(12) & 31u));
-  if (v31)
-  {
-    if (((v31 == (sint32)(0u - (uint32)(1))) && (v32 == 0x80000000)))
-      gt_draft_exception(6u);
-    v29 = gt3_sdiv(v32, v31);
-    if (((v31 == (sint32)(0u - (uint32)(1))) && ((sint32)((uint32)(gte_s3) << ((uint32)(12) & 31u)) == 0x80000000)))
-      gt_draft_exception(6u);
-    v30 = gt3_sdiv((sint32)((uint32)(gte_s3) << ((uint32)(12) & 31u)), v31);
-  }
-  w_u16((uint32)(a0), (uint32)(v30));
-  w_u16((uint32)((a0 + 2u * (uint32)(3))), (uint32)(0));
-  w_u16((uint32)((a0 + 2u * (uint32)(4))), (uint32)(v19));
-  w_u16((uint32)((a0 + 2u * (uint32)(5))), (uint32)(v18));
-  w_u16((uint32)((a0 + 2u * (uint32)(6))), (uint32)((sint32)(0u - (uint32)((sint16)(v29)))));
-  w_u16((uint32)((a0 + 2u * (uint32)(1))), (uint32)((sint32)(0u - (uint32)((sint16)(((sint32)((sint32)((uint32)(v29) * (uint32)(v18))) >> ((uint32)(12) & 31u)))))));
-  w_u16((uint32)((a0 + 2u * (uint32)(2))), (uint32)(((sint32)((sint32)((uint32)(v29) * (uint32)(v19))) >> ((uint32)(12) & 31u))));
-  w_u16((uint32)((a0 + 2u * (uint32)(7))), (uint32)((sint32)(0u - (uint32)((sint16)(((sint32)((sint32)((uint32)(v30) * (uint32)(v18))) >> ((uint32)(12) & 31u)))))));
-  result = ((sint32)((sint32)((uint32)(v30) * (uint32)(v19))) >> ((uint32)(12) & 31u));
-  w_u16((uint32)((a0 + 2u * (uint32)(8))), (uint32)(result));
-  return result;
+    if (shift < 0)
+        return value << ((0u - (uint32)shift) & 31u);
+    return (uint32)((sint32)value >> ((uint32)shift & 31u));
 }
 
+static uint32 direction_divide(uint32 numerator, uint32 denominator)
+{
+    if (!denominator)
+        gt_draft_exception(7u);
+    if (denominator == 0xFFFFFFFFu && numerator == 0x80000000u)
+        gt_draft_exception(6u);
+    return (uint32)((sint32)numerator / (sint32)denominator);
+}
+
+/* Unverified translation from complete pseudocode and original MIPS */
+uint32 gtmain_camera_direction_matrix(uint8 *matrix, const uint8 *vector)
+{
+    uint32 x = xport_load_le32(vector);
+    uint32 y = xport_load_le32(vector + 4u);
+    uint32 z = xport_load_le32(vector + 8u);
+    uint32 ax = (sint32)x < 0 ? 0u - x : x;
+    uint32 ay = (sint32)y < 0 ? 0u - y : y;
+    uint32 az = (sint32)z < 0 ? 0u - z : z;
+    uint32 sx, sy, sz, square_x, square_y, square_z, root, horizontal;
+    uint32 pitch_sine = 0u, pitch_cosine = 4096u;
+    uint32 yaw_sine = 0u, yaw_cosine = 4096u, result;
+    sint32 shift;
+
+    xport_gte_write_data(30u, ax | ay | az);
+    shift = (sint32)(17u - xport_gte_read_data(31u));
+    sx = direction_scale(x, shift);
+    sy = direction_scale(y, shift);
+    sz = direction_scale(z, shift);
+    gte_lwc2(9u, sx);
+    gte_lwc2(10u, sy);
+    gte_lwc2(11u, sz);
+    xport_gte_execute(0xA00428u);
+    square_x = xport_gte_read_data(25u);
+    square_y = xport_gte_read_data(26u);
+    square_z = xport_gte_read_data(27u);
+    root = gtmain_fixed_sqrt(square_x + square_y + square_z, 0u);
+    if (root)
+    {
+        horizontal = gtmain_fixed_sqrt(square_x + square_z, 0u);
+        pitch_sine = direction_divide(sy << 12, root);
+        pitch_cosine = direction_divide(horizontal << 12, root);
+    }
+    xport_gte_write_data(30u, ax | az);
+    shift = (sint32)(17u - xport_gte_read_data(31u));
+    sz = direction_scale(z, shift);
+    sx = direction_scale(x, shift);
+    gte_lwc2(9u, sx);
+    gte_lwc2(10u, sz);
+    /* The second SQ leaves IR3 from the first operation unchanged */
+    xport_gte_execute(0xA00428u);
+    square_x = xport_gte_read_data(25u);
+    square_z = xport_gte_read_data(26u);
+    root = gtmain_fixed_sqrt(square_x + square_z, 0u);
+    if (root)
+    {
+        yaw_sine = direction_divide(sx << 12, root);
+        yaw_cosine = direction_divide(sz << 12, root);
+    }
+    xport_store_le16(matrix, (uint16)yaw_cosine);
+    xport_store_le16(matrix + 6u, 0u);
+    xport_store_le16(matrix + 8u, (uint16)pitch_cosine);
+    xport_store_le16(matrix + 10u, (uint16)pitch_sine);
+    xport_store_le16(matrix + 12u, (uint16)(0u - yaw_sine));
+    xport_store_le16(matrix + 2u, (uint16)(0u - (uint32)((sint32)(yaw_sine * pitch_sine) >> 12)));
+    xport_store_le16(matrix + 4u, (uint16)((sint32)(yaw_sine * pitch_cosine) >> 12));
+    xport_store_le16(matrix + 14u, (uint16)(0u - (uint32)((sint32)(yaw_cosine * pitch_sine) >> 12)));
+    result = (uint32)((sint32)(yaw_cosine * pitch_cosine) >> 12);
+    xport_store_le16(matrix + 16u, (uint16)result);
+    return result;
+}

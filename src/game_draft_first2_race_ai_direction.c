@@ -7,6 +7,20 @@ static uint32 direction_call(uint32 owner, uint32 a, uint32 b, uint32 c)
     return gt_draft_unresolved_call(owner, a, b, c, 0, 0, 0, 0, 0);
 }
 
+/* TODO Bind unrecorded behavior mode and pair cache dependencies */
+static sint32 direction_behavior_mode3(uint32 mode)
+{
+    return (sint32)gt_draft_unresolved_call(0x80053C68u, mode, 0, 0, 0, 0, 0, 0, 0);
+}
+static sint32 direction_behavior_mode4(uint32 mode)
+{
+    return (sint32)gt_draft_unresolved_call(0x80053CA0u, mode, 0, 0, 0, 0, 0, 0, 0);
+}
+static uint32 direction_pair_cache_clear(sint32 car_index, sint32 count)
+{
+    return gt_draft_unresolved_call(0x80062138u, (uint32)car_index, (uint32)count, 0, 0, 0, 0, 0, 0);
+}
+
 static uint32 direction_fp(uint32 a, uint32 b)
 {
     return (uint32)((sint32)(a * b) / 4096);
@@ -109,14 +123,14 @@ sint32 gtmain_race_behavior_set(uint32 car, sint32 behavior)
         /* Fall through */
     case 4:
         if (r_u8(car + 1912u) == 3u) goto publish;
-        mode = (sint32)direction_call(0x80053C68u, r_u8(car + 1912u), 0, 0);
+        mode = direction_behavior_mode3(r_u8(car + 1912u));
         if (mode == -1) return 0;
         gtmain_race_ai_mode_set(car, (uint8)mode); goto publish;
     case 3:
-        mode = (sint32)direction_call(0x80053CA0u, r_u8(car + 1912u), 0, 0);
+        mode = direction_behavior_mode4(r_u8(car + 1912u));
         if (mode == -1) return 0;
         gtmain_race_ai_mode_set(car, (uint8)mode);
-        direction_call(0x80062138u, r_u8(car), (uint32)r_s16(0x800BC1A6u), 0); goto publish;
+        direction_pair_cache_clear(r_u8(car), r_s16(0x800BC1A6u)); goto publish;
     case 5: goto neutral;
     case 6: case 7: goto publish;
     default: break;
@@ -131,13 +145,19 @@ publish:
 }
 
 /* GTMAIN.EXE 80054FE4 */
-void gtmain_race_finish_mark(uint32 car)
+uint32 gtmain_race_finish_mark(uint32 car)
 {
     if (!r_u8(car + 1960u)) {
-        uint32 behavior = r_u8(car + 1696u); w_u8(car + 1960u, 1);
-        if (behavior - 2u < 2u || r_u8(car + 1696u) == 4u) return;
+        uint32 behavior = r_u8(car + 1696u);
+        uint32 result = behavior - 2u < 2u;
+        w_u8(car + 1960u, 1);
+        if (result) return result;
+        if (r_u8(car + 1696u) == 4u) return 4;
     }
-    gtmain_race_behavior_set(car, 1); w_u16(car + 1700u, (uint16)(r_s16(car + 1700u) / 2));
+    gtmain_race_behavior_set(car, 1);
+    uint32 value = r_u16(car + 1700u);
+    w_u16(car + 1700u, (uint16)((sint16)value / 2));
+    return value >> 15;
 }
 
 /* GTMAIN.EXE 80054A98 */
@@ -180,7 +200,7 @@ braking:
 }
 
 /* GTMAIN.EXE 80051398 */
-void gtmain_race_wheel_surface_reset(uint32 car)
+uint32 gtmain_race_wheel_surface_reset(uint32 car)
 {
     uint32 wheel, base, enabled, surface;
     for (wheel = 0; wheel < 4u; ++wheel) {
@@ -192,6 +212,7 @@ void gtmain_race_wheel_surface_reset(uint32 car)
         } else { w_u32(base + 36u, 0); w_u8(base + 43u, 0); w_u16(base + 40u, 4096); }
         w_u8(base + 42u, 0);
     }
+    return 0;
 }
 
 /* GTMAIN.EXE 80051800 */

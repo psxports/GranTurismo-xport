@@ -1,5 +1,6 @@
 #include "game_draft_registry.h"
 #include "game_first2_registry.h"
+#include <stdio.h>
 /* Unverified draft translations */
 /* TODO Resolve unspecified call arguments during integration */
 
@@ -10,11 +11,11 @@ uint32 gt_draft_80029B98(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     if ((sint16)r_u16(0x800B63D6u) == 1) {
         w_u16(0x800B63D6u, 2);
         gt_draft_unresolved_call(0x800204ECu, r_u8(0x8008F88Du) != 0, 0, 0, 0, 0, 0, 0, 0);
-        return gt_draft_80029AA8(0, 0, 0, 0, 0, 0, 0, 0);
+        return gtmain_race_mode_vehicle_prepare();
     }
     if ((sint16)r_u16(0x800B63D6u) == 2) {
         w_u16(0x800B63D6u, 1);
-        if (r_u8(0x8008F88Du)) return gt_draft_80029AA8(0, 0, 0, 0, 0, 0, 0, 0);
+        if (r_u8(0x8008F88Du)) return gtmain_race_mode_vehicle_prepare();
     }
     return 1;
 }
@@ -100,16 +101,7 @@ uint32 gt_draft_8002A7EC(void)
 
 uint32 gt_draft_8004A8E8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    gt_draft_unresolved_call(0x8008B7D8u, 0x8008DD10u, 0, 0, 0, 0, 0, 0, 0);
-    uint32 checksum = r_u32(a0 + 5896u);
-    w_u32(a0 + 5896u, 0);
-    if (checksum == gt_draft_unresolved_call(0x8007AAD4u, a0, 6016, 0, 0, 0, 0, 0, 0)) {
-        w_u32(a0 + 5896u, checksum);
-        gt_draft_unresolved_call(0x8008B7D8u, 0x8008DCFCu, checksum, 0, 0, 0, 0, 0, 0);
-        return 0;
-    }
-    gt_draft_unresolved_call(0x8008B7D8u, 0x8008DD30u, 0, 0, 0, 0, 0, 0, 0);
-    return 0xFFFFFFFFu;
+    return (uint32)gtmain_replay_header_check(a0);
 }
 
 uint32 gt_draft_8004A804(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -123,31 +115,47 @@ uint32 gt_draft_8004A804(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return (uint32)item;
 }
 
-uint32 gt_draft_80049FD4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+sint32 gtmain_menu_entry_type_input(uint32 input)
 {
+    sint32 candidate, choice;
     w_u8(0x800B53B5u, 0);
     w_u8(0x800B53B6u, 0);
     w_u8(0x800B53B8u, 1);
     w_u8(0x800B53B7u, 0);
-    sint32 candidate = (sint32)gt_draft_unresolved_call(0x8003B954u, 0x80092EBCu, a0, 0, 0, 0, 0, 0, 0);
-    if (candidate == -2) return 0xFFFFFFFEu;
-    if (candidate == -1) return 0xFFFFFFFFu;
-    uint32 choice = r_u8(r_u32(0x800B53ACu) + 8u * (uint32)candidate + 1u) < 2 ? (uint32)candidate : 64u;
-    gt_draft_unresolved_call(0x8008B7D8u, 0x8008DCC0u, choice, 0, 0, 0, 0, 0, 0);
+    candidate = gtmain_menu_selector_input(0x80092EBCu, input);
+    if (candidate == -2) return -2;
+    if (candidate == -1) return -1;
+    choice = 64;
+    if (r_u8(r_u32(0x800B53ACu) + 8u * (uint32)candidate + 1u) < 2u)
+        choice = candidate;
+    printf((const char *)psx_addr(0x8008DCC0u, 11u), (int)choice);
     return choice;
 }
 
-uint32 gt_draft_800462AC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_menu_device_selection_input(void)
 {
     uint32 device = r_u32(0x800BDD08u);
-    gt_draft_unresolved_call(0x8003A304u, 0, 0, 0, 0, 0, 0, 0, 0);
-    if (!r_u8(device)) return 0;
-    gt_draft_unresolved_call(0x80035388u, 1, 0, 0, 0, 0, 0, 0, 0);
-    sint32 result = (sint32)gt_draft_unresolved_call(0x8004D820u, 0x80092B08u, device + 2, 0, 0, 0, 0, 0, 0);
-    if (result == -2) { gt_draft_unresolved_call(0x80035778u, 2, 0, 0, 0, 0, 0, 0, 0); return 1; }
-    if (result == -3) {
-        gt_draft_unresolved_call(0x80035778u, 4, 0, 0, 0, 0, 0, 0, 0);
-        gt_draft_unresolved_call(0x800438ECu, r_u8(0x8009278Du), r_u8(0x800B5375u), 0, 0, 0, 0, 0, 0);
+    sint32 result;
+    gtmain_menu_stream_check();
+    if (!(sint8)r_u8(device)) return 0;
+    gtmain_menu_flags(1);
+    /* TODO Bind unselected device selection input */
+    result = (sint32)gt_draft_unresolved_call(0x8004D820u,
+        0x80092B08u, device + 2u, 0, 0, 0, 0, 0, 0);
+    if (result == -2)
+    {
+        gtmain_menu_sound(2);
+        return 1;
+    }
+    if (result == -3)
+    {
+        sint32 mode, selection;
+        gtmain_menu_sound(4);
+        mode = (sint8)r_u8(0x8009278Du);
+        selection = (sint8)r_u8(0x800B5375u);
+        /* TODO Bind unselected device selection transition */
+        gt_draft_unresolved_call(0x800438ECu, (uint32)mode,
+            (uint32)selection, 0, 0, 0, 0, 0, 0);
         return 1;
     }
     return 0;
@@ -155,20 +163,7 @@ uint32 gt_draft_800462AC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 
 uint32 gt_draft_80048AF8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    sint32 length = (sint32)gtmain_string_length(a0);
-    uint32 end = a0 + (uint32)length;
-    uint32 changed = 0, result;
-    for (;;) {
-        result = (sint32)gt_draft_8003A8F4(1, a0, 0, 0, 0, 0, 0, 0) < (sint32)a1;
-        --length;
-        if (result) break;
-        --end;
-        if (length < 0) break;
-        w_u8(end, 0);
-        changed = 1;
-    }
-    if (changed) return gtmain_string_append(a0, 0x8008DC38u);
-    return result;
+    return gtmain_menu_text_fit(a0, (sint32)a1);
 }
 
 uint32 gt_draft_80042E84(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -192,13 +187,17 @@ uint32 gt_draft_80041980(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return (uint32)gtmain_menu_range_index((sint32)a0, (sint32)a1, (sint32)a2, (sint32)a3);
 }
 
-uint32 gt_draft_8004AAB8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_menu_settings_masks_update(void)
 {
-    w_u8(0x800BEA6Cu, gt_draft_8004A9B8(0, 0, 0, 0, 0, 0, 0, 0));
-    w_u8(0x800BEA6Du, gt_draft_8004A9B8(0, 0, 0, 0, 0, 0, 0, 0));
-    w_u8(0x800BEA6Eu, gt_draft_8004A9B8(0, 0, 0, 0, 0, 0, 0, 0));
-    uint32 result = gt_draft_8004A9B8(0, 0, 0, 0, 0, 0, 0, 0);
-    w_u8(0x800BEA6Fu, result);
+    uint32 result;
+    result = gtmain_menu_settings_mask(0x80093590u, 6);
+    w_u8(0x800BEA6Cu, (uint8)result);
+    result = gtmain_menu_settings_mask(0x80093598u, 3);
+    w_u8(0x800BEA6Du, (uint8)result);
+    result = gtmain_menu_settings_mask(0x8009359Cu, 4);
+    w_u8(0x800BEA6Eu, (uint8)result);
+    result = gtmain_menu_settings_mask(0x800935A0u, 2);
+    w_u8(0x800BEA6Fu, (uint8)result);
     return result;
 }
 

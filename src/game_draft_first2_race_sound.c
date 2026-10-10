@@ -62,7 +62,6 @@ void gtmain_race_sound_car(uint32 scratch, uint32 car, uint32 car_index, uint32 
     uint32 special = (uint32)((sint32)(sint16)r_u16(car + 26u) - 1) < 2u;
     sint32 pitch_scale, pan = 64, first_volume, second_volume, effect_volume;
     sint16 sound_id;
-    (void)car_index;
     if (!volume) return;
     if (!special || mode == 1u) {
         uint32 listener = r_u32(0x800B6638u);
@@ -193,24 +192,23 @@ sint32 gtmain_vector_normalize_xyz(uint8 *out, const uint8 *input)
     if (x | y | z) {
         uint32 squared = (uint32)x * (uint32)x + (uint32)y * (uint32)y + (uint32)z * (uint32)z;
         sint32 numerator;
-        /* Existing square root retains its native GTE adapter TODO */
         length = (sint32)gtmain_fixed_sqrt(squared, 0);
         numerator = (sint32)((uint32)x << 12);
-        if (!length) { gt_draft_exception(7u); return 0; }
+        if (!length) gt_draft_exception(7u);
         if (length == -1 && numerator == (sint32)0x80000000u) {
-            gt_draft_exception(6u); return 0;
+            gt_draft_exception(6u);
         }
         x = numerator / length;
         numerator = (sint32)((uint32)y << 12);
-        if (!length) { gt_draft_exception(7u); return 0; }
+        if (!length) gt_draft_exception(7u);
         if (length == -1 && numerator == (sint32)0x80000000u) {
-            gt_draft_exception(6u); return 0;
+            gt_draft_exception(6u);
         }
         y = numerator / length;
         numerator = (sint32)((uint32)z << 12);
-        if (!length) { gt_draft_exception(7u); return 0; }
+        if (!length) gt_draft_exception(7u);
         if (length == -1 && numerator == (sint32)0x80000000u) {
-            gt_draft_exception(6u); return 0;
+            gt_draft_exception(6u);
         }
         z = numerator / length;
     }

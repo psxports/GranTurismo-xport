@@ -83,13 +83,13 @@ void gtmain_load_bios_kernel(void)
     if (fopen_s(&image, "DATA/GTMAIN.bios-kernel.bin", "rb") || !image)
         gt_draft_failure("SCPH-5502 kernel image open", 0x500u);
     /* ROM boot copies this region before clearing kernel BSS */
-    received = fread(DRAM + 0x500u, 1u, 0x8BF0u, image);
+    received = fread(psx_addr(0x500u, 0x8BF0u), 1u, 0x8BF0u, image);
     extra = fgetc(image);
     failed = ferror(image);
     fclose(image);
     if (received != 0x8BF0u || extra != EOF || failed)
         gt_draft_failure("SCPH-5502 kernel image read", (uint32)received);
-    memset(DRAM + 0x7460u, 0, 0x8920u - 0x7460u);
+    memset(psx_addr(0x7460u, 0x8920u - 0x7460u), 0, 0x8920u - 0x7460u);
     /* ROM boot allocates four interrupt queue descriptors */
     psx_bios_init_kernel_heap(0xA000E000u, 0x2000u);
     descriptor = psx_bios_kernel_malloc(32u);
@@ -101,14 +101,21 @@ void gtmain_load_bios_kernel(void)
     /* TODO Restore the remaining BIOS boot initialization through native APIs */
 }
 
+void gt_native_boot_snapshot_seed(void);
+
 void gt_native_spu_init(void)
 {
+    static uint32 boot_seeded;
     static uint8 preserved[0x80000u];
     sint32 available = spu_download(0u, preserved, sizeof(preserved));
     SpuInit();
     /* SDK initialization preserves sample RAM across executable transitions */
     if (available && !spu_upload(0u, preserved, sizeof(preserved)))
         gt_draft_failure("SPU RAM initialization restore", 0u);
+    if (!boot_seeded) {
+        gt_native_boot_snapshot_seed();
+        boot_seeded = 1u;
+    }
 }
 
 void gtmain_load_image(void)
@@ -135,7 +142,7 @@ void gtmain_load_image(void)
         gt_draft_failure("GTMAIN image size or read error", (uint32)received);
     }
     /* Verified decoded image loads at its original RAM address */
-    memcpy(DRAM + 0x10000u, payload, size);
+    memcpy(psx_addr(0x80010000u, size), payload, size);
     free(payload);
 }
 

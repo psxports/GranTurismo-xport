@@ -2,7 +2,6 @@
 
 sint32 gtmain_driver_mode_set(uint32 unused, uint32 driver, sint32 mode)
 {
-    (void)unused;
     if (mode == 1) { w_u16(driver + 246u, 1); w_u8(driver + 253u, 0); return 1; }
     if (!mode) { w_u16(driver + 246u, 0); return 2; }
     if (mode == 2)
@@ -12,7 +11,7 @@ sint32 gtmain_driver_mode_set(uint32 unused, uint32 driver, sint32 mode)
         w_u8(driver + 253u, result ? 0 : 1);
         return 1;
     }
-    if (mode == 3) { w_u16(driver + 246u, 3); w_u8(driver + 253u, 2); }
+    if (mode == 3) { w_u16(driver + 246u, 2); w_u8(driver + 253u, 2); }
     return 2;
 }
 

@@ -146,16 +146,15 @@ uint32 gtmain_vector_normalize_xy(uint8 *out, const uint8 *input)
         uint32 extent = abs_x < abs_y ? abs_y : abs_x;
         sint32 numerator, divisor;
         while (extent < 4096u) { extent <<= 1; x <<= 1; y <<= 1; }
-        /* TODO The existing square-root service retains its native GTE adapter boundary */
         length = gtmain_fixed_sqrt(x * x + y * y, 0u);
         divisor = (sint32)length;
         numerator = (sint32)(x << 12);
-        if (!divisor || (divisor == -1 && (uint32)numerator == 0x80000000u))
-            gt_draft_failure("GTMAIN vector normalization division trap", 0x80070D60u);
+        if (!divisor) gt_draft_exception(7u);
+        if (divisor == -1 && (uint32)numerator == 0x80000000u) gt_draft_exception(6u);
         x = (uint32)(numerator / divisor);
         numerator = (sint32)(y << 12);
-        if (!divisor || (divisor == -1 && (uint32)numerator == 0x80000000u))
-            gt_draft_failure("GTMAIN vector normalization division trap", 0x80070D94u);
+        if (!divisor) gt_draft_exception(7u);
+        if (divisor == -1 && (uint32)numerator == 0x80000000u) gt_draft_exception(6u);
         y = (uint32)(numerator / divisor);
     }
     xport_store_le16(out, (uint16)x);

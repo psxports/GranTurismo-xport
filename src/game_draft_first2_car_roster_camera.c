@@ -178,24 +178,37 @@ uint32 gtmain_camera_resource_load(uint32 car_index)
 
 uint32 gtmain_camera_interval_update(uint32 camera)
 {
+    uint32 descriptor = r_u32(camera + 184u);
+    uint32 buttons = r_u16(descriptor + 8u);
     uint32 car = r_u32(camera + 180u);
-    gtmain_camera_car_select(camera, r_u16(r_u32(camera + 184u) + 8u));
-    uint32 record = gtmain_course_interval_find((sint16)r_u16(car + 96u), (sint32)r_u32(car + 1844u));
-    if (!record) return gtmain_camera_mode_update(camera);
-    uint32 progress = r_u32(car + 1844u), end = r_u32(record + 12u), start = r_u32(record + 8u);
-    uint32 length = r_u32(r_u32(0x800BC1A8u));
-    if ((sint32)end < (sint32)start) end += length;
-    if ((sint32)progress < (sint32)start) progress += length;
-    uint32 denominator = end - start, numerator = progress - start;
-    w_u32(0x800B3910u, denominator ? (uint32)gtmain_signed_divide64((sint64)(sint32)numerator * 4096,
-        (sint32)denominator, 0x8001CC20u) : 0);
-    uint32 kind = r_u16(record);
+    sint32 lap, initial_progress;
+    uint32 record, progress, end, begin, header, length, numerator, denominator, kind, fraction;
+
+    gtmain_camera_car_select(camera, buttons);
+    lap = r_s16(car + 96u);
+    initial_progress = (sint32)r_u32(car + 1844u);
+    record = gtmain_course_interval_find(lap, initial_progress);
+    if (!record)
+        return gtmain_camera_mode_update(camera);
+    progress = r_u32(car + 1844u);
+    end = r_u32(record + 12u);
+    begin = r_u32(record + 8u);
+    header = r_u32(0x800BC1A8u);
+    length = r_u32(header);
+    if ((sint32)end < (sint32)begin) end += length;
+    if ((sint32)progress < (sint32)begin) progress += length;
+    denominator = end - begin;
+    numerator = progress - begin;
+    fraction = denominator ? (uint32)gtmain_signed_divide64(
+        (sint64)(sint32)numerator * 4096, (sint32)denominator, 0x8001CC20u) : 0u;
+    w_u32(0x800B3910u, fraction);
+    kind = r_u16(record);
     w_u32(0x800B6400u, record);
-    if (kind == 0) return call2(0x8001D360u, camera, 0);
-    if (kind == 1) return call2(0x8001D438u, camera, 0);
-    if (kind == 2) return call2(0x8001D4ACu, camera, 0);
-    if (kind == 3) return call2(0x8001D4DCu, camera, 0);
-    return 3;
+    if (kind == 0u) return gtmain_camera_path_phase_update(camera);
+    if (kind == 1u) return (uint32)gtmain_camera_saved_pose_load(camera);
+    if (kind == 2u) return gtmain_camera_config_pose_prepare(camera);
+    if (kind == 3u) return gtmain_camera_path_distance_update(camera);
+    return 3u;
 }
 
 uint32 gtmain_camera_spline_position(uint32 spline, uint8 *position12)

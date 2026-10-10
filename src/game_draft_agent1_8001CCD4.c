@@ -1,8 +1,12 @@
-#include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_8001CCD4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE:8001CCD4 */
+uint32 gtmain_vector_length10(const uint8 *vector)
 {
-
-  return gt_draft_unresolved_call(0x8006AFBCu, ((sint32)r_u32(a1) >> 10) * ((sint32)r_u32(a1) >> 10) + ((sint32)r_u32(a1 + 4u * (1)) >> 10) * ((sint32)r_u32(a1 + 4u * (1)) >> 10) + ((sint32)r_u32(a1 + 4u * (2)) >> 10) * ((sint32)r_u32(a1 + 4u * (2)) >> 10), 0, 0, 0, 0, 0, 0, 0);
+    uint32 x = (uint32)((sint32)xport_load_le32(vector) >> 10);
+    uint32 x_squared = x * x;
+    uint32 y = (uint32)((sint32)xport_load_le32(vector + 4u) >> 10);
+    uint32 y_squared = y * y;
+    uint32 z = (uint32)((sint32)xport_load_le32(vector + 8u) >> 10);
+    return gtmain_fixed_sqrt(x_squared + y_squared + z * z, 0u);
 }

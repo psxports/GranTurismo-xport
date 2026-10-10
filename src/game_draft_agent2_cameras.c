@@ -8,34 +8,44 @@ uint32 gt_draft_8001DDD0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_camera_orbit_update(a0);
 }
 
-uint32 gt_draft_8001D4DC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_camera_path_distance_update(uint32 camera)
 {
-    uint32 base = r_u32(a0 + 180), config = r_u32(0x800B6400u);
-    uint32 params = r_u32(r_u32(base + 2336) + 68);
-    gt_draft_8001D308(a0 + 120, config + 28, 0, 0, 0, 0, 0, 0);
-    w_u16(a0 + 244, gt_draft_80023DCC(r_u16(config + 6), a0 + 120, 0, 0, 0, 0, 0, 0));
-    uint32 vector[3];
-    vector[0] = r_u32(base + 2228) - r_u32(a0 + 120);
-    vector[1] = r_u32(base + 2232) - r_u32(a0 + 124);
-    uint32 z = r_u32(base + 2236) - r_u32(a0 + 128);
-    vector[1] += 52428u; vector[2] = z;
-    uint32 address = gt_draft_buffer_address(vector, sizeof(vector));
-    gt_draft_8001C870(a0 + 140, address, 0, 0, 0, 0, 0, 0);
-    uint32 length = gt_draft_8001CCD4(address, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_buffer_release(address);
-    sint32 shift = (sint16)r_u16(params + 76) - 16;
-    uint32 scaled = length * 10496u;
-    scaled = shift < 0 ? scaled << ((0u - (uint32)shift) & 31u) : (uint32)((sint32)scaled >> ((uint32)shift & 31u));
-    sint32 divisor = (sint16)r_u16(params + 78);
-    /* TODO Bind original divide exceptions through a fail-fast adapter */
-    if (!divisor) gt_draft_exception(7);
-    if (scaled == 0x80000000u && divisor == -1) gt_draft_exception(6);
-    uint32 quotient = (uint32)((sint32)scaled / divisor);
-    sint32 delay = (sint32)(quotient * r_u16(config + 20)) >> 12;
-    sint32 upper = r_u16(config + 16), lower = r_u16(config + 18);
-    if (upper < delay) delay = upper;
-    else if (delay < lower) delay = lower;
-    return gt_draft_8001DF30(a0, (uint32)delay, 0, 0, 0, 0, 0, 0);
+    uint32 car = r_u32(camera + 180u);
+    uint32 config = r_u32(0x800B6400u);
+    uint32 params = r_u32(r_u32(car + 2336u) + 68u);
+    uint8 vector[12];
+    uint32 first, second, z_first, z_second, length, scaled, quotient, factor;
+    sint32 shift, divisor, distance, upper, lower;
+
+    gtmain_vector_path_dispatch(camera + 120u, config + 28u);
+    w_u16(camera + 244u, (uint16)gtmain_course_segment_find(r_u16(config + 6u), psx_addr(camera + 120u, 12u)));
+    first = r_u32(car + 2228u);
+    second = r_u32(camera + 120u);
+    xport_store_le32(vector, first - second);
+    first = r_u32(car + 2232u);
+    second = r_u32(camera + 124u);
+    xport_store_le32(vector + 4u, first - second);
+    z_first = r_u32(car + 2236u);
+    z_second = r_u32(camera + 128u);
+    xport_store_le32(vector + 4u, first - second + 52428u);
+    xport_store_le32(vector + 8u, z_first - z_second);
+    gtmain_camera_direction_matrix(psx_addr(camera + 140u, 18u), vector);
+    length = gtmain_vector_length10(vector);
+    shift = r_s16(params + 76u) - 16;
+    scaled = length * 10496u;
+    scaled = shift < 0 ? scaled << ((0u - (uint32)shift) & 31u)
+        : (uint32)((sint32)scaled >> ((uint32)shift & 31u));
+    divisor = r_s16(params + 78u);
+    if (!divisor) gt_draft_exception(7u);
+    if (scaled == 0x80000000u && divisor == -1) gt_draft_exception(6u);
+    quotient = (uint32)((sint32)scaled / divisor);
+    factor = r_u16(config + 20u);
+    upper = r_u16(config + 16u);
+    lower = r_u16(config + 18u);
+    distance = (sint32)(quotient * factor) >> 12;
+    if (upper < distance) distance = upper;
+    else if (distance < lower) distance = lower;
+    return gtmain_camera_projection_set(camera, distance);
 }
 
 uint32 gt_draft_8001D654(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)

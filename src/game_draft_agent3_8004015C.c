@@ -1,97 +1,44 @@
-#include "game_draft_registry.h"
-#include "game_draft_agent3_support.h"
+#include "game_first2_registry.h"
+#include <stdio.h>
 
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_8004015C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE 8004015C */
+uint32 gtmain_menu_record_labels_prepare(void)
 {
-  sint8 v0;
-  sint32 v1;
-  sint32 v2;
-  w_u8((uint32)(0x800B5300), (uint32)(0));
-  gt_draft_8003DAA8(0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  if (!(sint8)r_u8((uint32)(0x801F1FE5)))
-  {
-    gt_draft_unresolved_call(0x8008B7D8u, 0x8008D274u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    if (((sint8)r_u8((uint32)(0x801F1FE4)) != 1))
-    {
-      if ((((sint8)r_u8((uint32)(0x801F1FE4)) >= 2) && ((sint8)r_u8((uint32)(0x801F1FE4)) == 2)))
-      {
-        gt_draft_unresolved_call(0x8008B7D8u, 0x8008D2C0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-        w_u32((uint32)(0x80092274u), (uint32)((sint32)(0u - (uint32)(2146705112))));
-        w_u8((uint32)(0x80092271u), (uint32)(0));
-        v0 = 5;
-        goto LABEL_28;
-      }
-      gt_draft_unresolved_call(0x8008B7D8u, 0x8008D2E8u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-      v2 = (sint32)(0u - (uint32)(2146708407));
-      LABEL_27:
-      w_u32((uint32)(0x80092274u), (uint32)(v2));
-
-      w_u8((uint32)(0x80092271u), (uint32)(2));
-      v0 = 5;
-      goto LABEL_28;
+    sint32 loading, kind, replay;
+    uint32 label = 0u, caption = 5u, text;
+    w_u8(0x800B5300u, 0u);
+    (void)gtmain_menu_record_header_prepare();
+    loading = (sint8)r_u8(0x801F1FE5u);
+    text = loading ? 0x8008D2F8u : 0x8008D274u;
+    /* Reviewed literal messages contain no format conversions */
+    fputs((const char *)psx_addr(text, 1u), stdout);
+    kind = (sint8)r_u8(0x801F1FE4u);
+    if (kind == 1) {
+        if (!loading) {
+            fputs((const char *)psx_addr(0x8008D2D4u, 1u), stdout);
+            replay = (sint8)r_u8(0x801F2034u);
+            if (replay == 0) w_u32(0x80092274u, 0x800BC30Au);
+            else if (replay == 1) w_u32(0x80092274u, 0x800BC31Eu);
+            else if (replay == 2) w_u32(0x80092274u, 0x800BC330u);
+        } else {
+            replay = (sint8)r_u8(0x801F2034u);
+            fputs((const char *)psx_addr(0x8008D2D4u, 1u), stdout);
+            w_u32(0x80092274u, replay == 4 ? 0x800BC359u : 0x800BC349u);
+        }
+        w_u8(0x80092271u, 2u);
+        caption = 15u;
+    } else if (kind == 2) {
+        fputs((const char *)psx_addr(0x8008D2C0u, 1u), stdout);
+        label = loading ? 0x800BE140u : 0x800BE128u;
+        w_u32(0x80092274u, label);
+        w_u8(0x80092271u, 0u);
+    } else {
+        fputs((const char *)psx_addr(0x8008D2E8u, 1u), stdout);
+        label = loading ? 0x800BD45Cu : 0x800BD449u;
+        w_u32(0x80092274u, label);
+        w_u8(0x80092271u, 2u);
     }
-    gt_draft_unresolved_call(0x8008B7D8u, 0x8008D2D4u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    if (((sint8)r_u8((uint32)(0x801F2034)) == 1))
-    {
-      v1 = (sint32)(0u - (uint32)(2146712802));
-    }
-    else
-      if (((sint8)r_u8((uint32)(0x801F2034)) >= 2))
-    {
-      if (((sint8)r_u8((uint32)(0x801F2034)) != 2))
-      {
-        LABEL_15:
-        w_u8((uint32)(0x80092271u), (uint32)(2));
-
-        v0 = 15;
-        goto LABEL_28;
-      }
-      v1 = (sint32)(0u - (uint32)(2146712784));
-    }
-    else
-    {
-      if ((sint8)r_u8((uint32)(0x801F2034)))
-        goto LABEL_15;
-      v1 = (sint32)(0u - (uint32)(2146712822));
-    }
-    w_u32((uint32)(0x80092274u), (uint32)(v1));
-    goto LABEL_15;
-  }
-  gt_draft_unresolved_call(0x8008B7D8u, 0x8008D2F8u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  if (((sint8)r_u8((uint32)(0x801F1FE4)) != 1))
-  {
-    if ((((sint8)r_u8((uint32)(0x801F1FE4)) >= 2) && ((sint8)r_u8((uint32)(0x801F1FE4)) == 2)))
-    {
-      gt_draft_unresolved_call(0x8008B7D8u, 0x8008D2C0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-      w_u32((uint32)(0x80092274u), (uint32)((sint32)(0u - (uint32)(2146705088))));
-      w_u8((uint32)(0x80092271u), (uint32)(0));
-      v0 = 5;
-      goto LABEL_28;
-    }
-    gt_draft_unresolved_call(0x8008B7D8u, 0x8008D2E8u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    v2 = (sint32)(0u - (uint32)(2146708388));
-    goto LABEL_27;
-  }
-  if ((((sint8)r_u8((uint32)(0x801F2034)) == 3) || ((sint8)r_u8((uint32)(0x801F2034)) != 4)))
-  {
-    gt_draft_unresolved_call(0x8008B7D8u, 0x8008D2D4u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    w_u32((uint32)(0x80092274u), (uint32)((sint32)(0u - (uint32)(2146712759))));
-    w_u8((uint32)(0x80092271u), (uint32)(2));
-    v0 = 15;
-  }
-  else
-  {
-    gt_draft_unresolved_call(0x8008B7D8u, 0x8008D2D4u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    w_u32((uint32)(0x80092274u), (uint32)((sint32)(0u - (uint32)(2146712743))));
-    w_u8((uint32)(0x80092271u), (uint32)(2));
-    v0 = 15;
-  }
-  LABEL_28:
-  w_u8((uint32)(0x80092288u), (uint32)(v0));
-
-  gt_draft_8003DC70(0, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  return 0;
+    w_u8(0x80092288u, caption);
+    (void)gtmain_menu_mode_dispatch(0);
+    return 0u;
 }
-

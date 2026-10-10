@@ -96,9 +96,8 @@ static void gtmain_packet_line(uint32 packet, uint32 color, sint32 x0, sint32 y0
     w_u16(packet + 12u, (uint16)x1); w_u16(packet + 14u, (uint16)y1);
 }
 
-uint32 gtmain_packet_outline(uint32 ordering_link, uint32 corners, uint32 color)
+static uint32 packet_outline_words(uint32 ordering_link, uint32 first, uint32 second, uint32 color)
 {
-    uint32 first = r_u32(corners), second = r_u32(corners + 4u);
     sint32 x0 = (sint16)first, y0 = (sint16)(first >> 16);
     sint32 x1 = (sint16)second, y1 = (sint16)(second >> 16), swap;
     uint32 packet, cursor, last;
@@ -129,6 +128,19 @@ uint32 gtmain_packet_outline(uint32 ordering_link, uint32 corners, uint32 color)
     gtmain_packet_link(ordering_link, packet, last);
     w_u32(0x800BFE4Cu, cursor);
     return last;
+}
+
+uint32 gtmain_packet_outline(uint32 ordering_link, uint32 corners, uint32 color)
+{
+    uint32 first = r_u32(corners), second = r_u32(corners + 4u);
+    return packet_outline_words(ordering_link, first, second, color);
+}
+
+uint32 gtmain_packet_outline_native(uint32 ordering_link, const sint16 *corners4, uint32 color)
+{
+    uint32 first = (uint16)corners4[0] | ((uint32)(uint16)corners4[1] << 16);
+    uint32 second = (uint16)corners4[2] | ((uint32)(uint16)corners4[3] << 16);
+    return packet_outline_words(ordering_link, first, second, color);
 }
 
 uint32 gtmain_packet_sprite(uint32 ordering_link, uint32 xy, uint32 uv_clut, uint32 wh, uint32 color)

@@ -1,10 +1,9 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
-#include "game_draft_agent3_support.h"
 
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_8001DCA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Unverified translation from complete pseudocode and original MIPS */
+uint32 gtmain_camera_selected_pose_prepare(uint32 camera)
 {
-  return gt_draft_8001DB0C((sint32)a0, (sint8)r_u8((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(256))))), 164, 0u, 0u, 0u, 0u, 0u);
+    uint32 mode = (uint32)(sint32)r_s8(camera + 256u);
+    return gtmain_camera_pose_prepare(camera, mode, 164);
 }
-

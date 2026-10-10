@@ -3,15 +3,17 @@
 /* Unverified draft translations */
 /* TODO Resolve unused call argument carriers during integration */
 
-uint32 gt_draft_8001D4AC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_camera_config_pose_prepare(uint32 camera)
 {
     uint32 config = r_u32(0x800B6400u);
-    return gt_draft_8001DB0C(a0, r_u16(config + 16), r_u16(config + 18), 0, 0, 0, 0, 0);
+    uint32 mode = r_u16(config + 16u);
+    sint32 distance = r_u16(config + 18u);
+    return gtmain_camera_pose_prepare(camera, mode, distance);
 }
 
 uint32 gt_draft_80019EE8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    if (r_u32(0x800B1BE4u)) gtmain_sound_voice_tick();
+    gtmain_sound_voice_tick_if_enabled();
     return gtmain_sound_sequence_tick();
 }
 
@@ -28,7 +30,7 @@ uint32 gt_draft_8001A008(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     gt_draft_unresolved_call(0x8006A150u, 0x800C4C00u, 0, 0, 0, 0, 0, 0, 0);
     gt_draft_unresolved_call(0x8007A694u, 0, 0, 0, 0, 0, 0, 0, 0);
     gt_draft_unresolved_call(0x800825DCu, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8007A754u, 0, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_input_stop_when_ready();
     gt_draft_unresolved_call(0x8007ED98u, 0, 0, 0, 0, 0, 0, 0, 0);
     gt_draft_unresolved_call(0x8007A7B8u, 0, 0, 0, 0, 0, 0, 0, 0);
     return gt_draft_unresolved_call(0x8008A33Cu, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -58,10 +60,14 @@ uint32 gt_draft_8004A998(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return 0;
 }
 
-uint32 gt_draft_8004635C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE:8004635C */
+uint32 gtmain_menu_table_sprite_draw(uint32 ordering, uint32 x, uint32 y,
+    uint32 index, uint32 color)
 {
-    uint32 table = 0x80092594u + a3 * 16u;
-    return gt_draft_unresolved_call(0x800706BCu, a0, (a1 & 0xFFFFu) | (a2 << 16), r_u32(table + 12), r_u32(table + 8), a4, 0, 0, 0);
+    uint32 table = 0x80092594u + (index << 4u);
+    uint32 uv_clut = r_u32(table + 12u);
+    uint32 wh = r_u32(table + 8u);
+    return gtmain_packet_sprite(ordering, (x & 0xFFFFu) | (y << 16u), uv_clut, wh, color);
 }
 
 uint32 gt_draft_80029DE4(void)
@@ -78,8 +84,7 @@ uint32 gt_draft_80029DE4(void)
 
 uint32 gt_draft_8002AD7C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    gt_draft_unresolved_call(0x80031710u, 0, 0, 0, 0, 0, 0, 0, 0);
-    return gt_draft_unresolved_call(0x800701E4u, 1, 0, 0, 0, 0, 0, 0, 0);
+    return (uint32)gtmain_race_audio_stop_wait();
 }
 
 uint32 gt_draft_80029E3C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -121,7 +126,7 @@ uint32 gt_draft_80029C28(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return 1;
 }
 
-uint32 gt_draft_80046AC4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_menu_transition_enter(uint32 a0)
 {
     w_u8(a0 + 12, 0);
     w_u8(a0 + 13, 12);

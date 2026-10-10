@@ -1,81 +1,71 @@
-#include "game_draft_registry.h"
 #include "game_first2_registry.h"
+#include "game_draft_registry.h"
+#include <stdio.h>
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80047F04(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static void saved_entry_log(uint32 format, sint32 value)
 {
-    sint32 v3 = 0;
-    sint32 v4 = 0;
-    sint32 v5 = 0;
-    sint32 result = 0;
-    sint32 v7 = 0;
-    sint32 v8 = 0;
-  v3 = -1;
-  v4 = r_u8(0x800B538Eu);
-  if ( r_u8(0x800B538Eu) > 0 )
-  {
-    w_u8(0x800B538Eu, r_u8(0x800B538Eu) - 1u);
-    v5 = -3;
-    if ( !((v4 - 1) << 24) )
+    printf((const char *)psx_addr(format, 1u), (int)value);
+}
+
+sint32 gtmain_menu_saved_entry_input(uint32 owner, uint32 input)
+{
+    sint32 countdown = (sint8)r_u8(0x800B538Eu);
+    sint32 selected, current, kind;
+    uint16 first_buttons, second_buttons;
+    uint32 buttons;
+    if (countdown > 0)
     {
-      gt_draft_unresolved_call(0x8008B7D8u, "delete<%d>\n", r_u8(0x80092E9Du), 0, 0, 0, 0, 0, 0);
-      gt_draft_80046F6C(a0, r_u8(0x80092E9Du), 0, 0, 0, 0, 0, 0);
-      gt_draft_unresolved_call(0x80047CA0u, a0, 0, 0, 0, 0, 0, 0, 0);
-    w_u8(0x800B538Du, 1);
-      return -3;
+        w_u8(0x800B538Eu, (uint8)(countdown - 1));
+        if (!(uint8)(countdown - 1))
+        {
+            selected = (sint8)r_u8(0x80092E9Du);
+            saved_entry_log(0x8008DBC0u, selected);
+            selected = (sint8)r_u8(0x80092E9Du);
+            gtmain_menu_saved_entry_delete(owner, selected);
+            /* TODO Bind unselected saved entry list refresh */
+            gt_draft_unresolved_call(0x80047CA0u, owner, 0, 0, 0, 0, 0, 0, 0);
+            w_u8(0x800B538Du, 1);
+        }
+        return -3;
     }
-    return v5;
-  }
     w_u8(0x800B538Du, 0);
     w_u8(0x800B538Eu, 0);
-  if ( (r_u16(a2 + 2u * (1)) & 0xC00) == 3072 )
-    w_u8(0x800B538Du, 1);
-  v7 = r_u8(0x80092E9Du);
-  if ( ((r_u16(a2 + 2u * (2)) | r_u16(a2 + 2u * (4))) & 0x100) != 0 )
-  {
-    gt_draft_unresolved_call(0x80035778u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gtmain_menu_list_select(0x80092E9Cu, v7 - 10);
-  }
-  else if ( ((r_u16(a2 + 2u * (2)) | r_u16(a2 + 2u * (4))) & 0x200) != 0 )
-  {
-    gt_draft_unresolved_call(0x80035778u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gtmain_menu_list_select(0x80092E9Cu, v7 + 10);
-  }
-  else
-  {
-    v3 = gt_draft_unresolved_call(0x8003B954u, 0x80092E9Cu, (sint32)a2, 0, 0, 0, 0, 0, 0);
-  }
-  if ( !(sint8)r_u8(0x800B538Du) )
-  {
-    if ( v3 != -2 )
+    if ((r_u16(input + 2u) & 0x0C00u) == 0x0C00u) w_u8(0x800B538Du, 1);
+    first_buttons = r_u16(input + 4u);
+    second_buttons = r_u16(input + 8u);
+    current = (sint8)r_u8(0x80092E9Du);
+    buttons = first_buttons | second_buttons;
+    selected = -1;
+    if (buttons & 0x0100u)
     {
-      result = -1;
-      if ( v3 == -1 )
-        return result;
-      if ( r_u8(r_u32(0x800B5388u) + v3) == 2 )
-        v5 = 120;
-      else
-        v5 = r_u32(8 * v3 + r_u32(0x800B5384u) + 4);
-      gt_draft_unresolved_call(0x8008B7D8u, "select %d\n", v5, 0, 0, 0, 0, 0, 0);
-      return v5;
+        gtmain_menu_sound(0);
+        gtmain_menu_list_select(0x80092E9Cu, current - 10);
     }
-    return -2;
-  }
-  if ( v3 == -2 )
-    return -2;
-  if ( v3 == -1 )
-    return -3;
-  v8 = (sint8)r_u8(r_u32(0x800B5388u) + v3);
-  if ( v8 == 2 )
-    return 120;
-  if ( v8 == 3 )
-  {
-    gt_draft_unresolved_call(0x80035778u, 6, 0, 0, 0, 0, 0, 0, 0);
-  }
-  else
-  {
-    w_u8(0x800B538Eu, 16);
-    gt_draft_unresolved_call(0x80035778u, 1, 0, 0, 0, 0, 0, 0, 0);
-  }
-  return -3;
+    else if (buttons & 0x0200u)
+    {
+        gtmain_menu_sound(0);
+        gtmain_menu_list_select(0x80092E9Cu, current + 10);
+    }
+    else selected = gtmain_menu_selector_input(0x80092E9Cu, input);
+    if ((sint8)r_u8(0x800B538Du))
+    {
+        if (selected == -2) return -2;
+        if (selected == -1) return -3;
+        kind = (sint8)r_u8(r_u32(0x800B5388u) + (uint32)selected);
+        if (kind == 2) return 120;
+        if (kind == 3) gtmain_menu_sound(6);
+        else
+        {
+            w_u8(0x800B538Eu, 16);
+            gtmain_menu_sound(1);
+        }
+        return -3;
+    }
+    if (selected == -2) return -2;
+    if (selected == -1) return -1;
+    kind = (sint8)r_u8(r_u32(0x800B5388u) + (uint32)selected);
+    if (kind == 2) selected = 120;
+    else selected = (sint32)r_u32(r_u32(0x800B5384u) + 8u * (uint32)selected + 4u);
+    saved_entry_log(0x8008DB20u, selected);
+    return selected;
 }

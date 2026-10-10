@@ -1,23 +1,24 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
-#include "game_draft_agent3_support.h"
+#include <stdio.h>
 
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_80044D50(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_menu_settings_initialize(void)
 {
-  w_u8((uint32)(0x800B5376), (uint32)(0));
-  gt_draft_unresolved_call(0x80043970u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  gt_draft_unresolved_call(0x8003B87Cu, 0x80092C28u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  w_u32((uint32)(0x80092C24u), (uint32)((sint32)(0u - (uint32)(2146709352))));
-  if (((sint8)r_u8((uint32)(0x800BEA24)) == 2))
-  {
-    w_u32((uint32)(0x80092C24u), (uint32)((sint32)(0u - (uint32)(2146710892))));
-    w_u8((uint32)(0x80092C29u), (uint32)(4));
-    gt_draft_unresolved_call(0x8003B91Cu, (sint32)(0x80092C28u), 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    gt_draft_unresolved_call(0x8003A27Cu, 16, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    gt_draft_8004AAB8(0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  }
-  gt_draft_unresolved_call(0x8008B7D8u, 0x8008D960u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  return 0;
+    sint32 mode;
+    w_u8(0x800B5376u, 0);
+    /* TODO Bind unselected setting initializer */
+    gt_draft_unresolved_call(0x80043970u, 0, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_menu_selector_reset(0x80092C28u);
+    mode = (sint8)r_u8(0x800BEA24u);
+    w_u32(0x80092C24u, 0x800BD098u);
+    if (mode == 2)
+    {
+        w_u32(0x80092C24u, 0x800BCA94u);
+        w_u8(0x80092C29u, 4);
+        gtmain_menu_state_capture(0x80092C28u);
+        gtmain_menu_asset_activate(16);
+        gtmain_menu_settings_masks_update();
+    }
+    fputs((const char *)psx_addr(0x8008D960u, 15u), stdout);
+    return 0;
 }
-

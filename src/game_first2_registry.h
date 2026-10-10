@@ -1,11 +1,18 @@
 #ifndef GT_GAME_FIRST2_REGISTRY_H
 #define GT_GAME_FIRST2_REGISTRY_H
 #include "psx.h"
+#include "game_spu_access.h"
 __declspec(noreturn) void gt_draft_failure(const char *boundary, uint32 address);
 uint32 gt_draft_unresolved_call(uint32 address, uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7);
 
 uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size);
 __declspec(noreturn) void gt_draft_exception(uint32 code);
+uint32 gtmain_menu_two_line_caption_draw(uint32 ordering, sint32 x, sint32 y, uint32 first_text, uint32 second_text, sint32 intensity);
+void gtmain_sound_voice_tick_if_enabled(void);
+uint32 gtmain_race_results_panel_draw(uint32 ordering, uint32 mode, uint32 show_hints);
+sint32 gtmain_menu_name_keyboard_panel_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+void gtmain_race_time_roster_draw(uint32 ordering, sint32 y, sint32 count);
+uint32 gtmain_menu_result_mode0_run(uint8 flags, sint16 index, uint32 first, uint32 second, uint32 metric, sint16 threshold, uint32 extra, uint8 panel);
 void gt_project_disc_toc_bind(void);
 
 uint32 gtmain_sound_tempo(uint32 tempo);
@@ -60,10 +67,13 @@ sint32 gtmain_input_button_repeat(uint32 counter, uint32 held);
 uint32 gtmain_input_scan(uint32 state);
 uint32 gtmain_input_port_update(uint32 state, uint32 port, uint32 slot);
 sint32 gtmain_input_connected(uint32 port);
+void gtmain_input_stop_when_ready(void);
 uint32 gtmain_input_rumble(uint32 slot, uint8 small, uint8 large);
 uint32 gtmain_model_translation(uint32 context, uint32 vector_nullable);
 uint32 gtmain_fixed_sqrt(uint32 value, uint32 fractional_bits);
+uint32 gtmain_vector_length10(const uint8 *vector);
 uint8 *gtmain_vector_lerp(uint8 *out, const uint8 *first, const uint8 *second, sint32 fraction);
+uint32 gtmain_vector_path_sample(uint32 path, uint32 output);
 sint32 gtmain_model_rotation(uint8 *matrix, sint16 x, sint16 y, sint16 z);
 sint32 gtmain_angles_lerp(uint8 *out, const uint8 *first, const uint8 *second, sint32 fraction);
 uint32 gtmain_model_rotate_vector(uint8 *out, const uint8 *matrix, const uint8 *vector);
@@ -81,6 +91,7 @@ void gtmain_text_position(sint16 x, sint16 y);
 void gtmain_text_advance(sint16 advance);
 uint32 gtmain_text_bind(uint32 ordering_link);
 void gtmain_text_draw(uint32 ordering_link, sint16 x, sint16 y, uint32 guest_string);
+void gtmain_race_signed_text_draw(uint32 guest_text);
 sint32 gtmain_text_font(sint32 index);
 uint32 gtmain_primitive_texture_page(uint32 context, uint32 ordering_link);
 sint32 gtmain_cd_stream_idle(void);
@@ -215,6 +226,7 @@ uint32 gtmain_packet_rectangle(uint32 ordering_link, uint32 corners, uint32 colo
 uint32 gtmain_packet_page(uint32 ordering_link, uint16 page);
 uint32 gtmain_packet_outline(uint32 ordering_link, uint32 corners, uint32 color);
 uint32 gtmain_packet_sprite(uint32 ordering_link, uint32 xy, uint32 uv_clut, uint32 wh, uint32 color);
+uint32 gtmain_menu_table_sprite_draw(uint32 ordering, uint32 x, uint32 y, uint32 index, uint32 color);
 uint32 gtmain_packet_buffer_select(uint32 index);
 uint32 gtmain_packet_buffers(uint32 first, uint32 second, uint32 bytes);
 sint32 gtmain_draw_background(uint8 enabled, uint8 red, uint8 green, uint8 blue);
@@ -258,6 +270,7 @@ uint32 gtmain_spu_transfer_address(uint32 address);
 uint32 gtmain_spu_transfer_mode(uint32 mode);
 uint32 gtmain_spu_control_bit(uint32 enabled);
 uint32 gtmain_data_checksum(uint32 data, uint32 bytes);
+sint32 gtmain_replay_payload_import(sint32 index, uint32 ghost);
 sint32 gtmain_audio_status(void);
 uint32 gtmain_music_file(void);
 uint32 gtmain_audio_buffer_end(uint32 index);
@@ -272,6 +285,9 @@ sint32 gtmain_text_width(sint32 font, uint32 text);
 uint32 gtmain_frame_ordering(uint32 alternate);
 
 sint32 gtmain_driver_mode_set(uint32 unused, uint32 driver, sint32 mode);
+uint32 gtmain_race_mode_record(void);
+uint32 gtmain_race_record_selection_prepare(void);
+uint32 gtmain_race_mode_vehicle_prepare(void);
 uint32 gtmain_driver_leader(void);
 sint32 gtmain_driver_assist(uint32 car);
 sint32 gtmain_driver_demo_active(void);
@@ -301,6 +317,11 @@ void gtmain_frame_tables_bind(uint32 *first, uint32 *second, uint32 count);
 void gtmain_frame_tables_clear(sint32 selection);
 void gtmain_ordering_clear(uint32 index);
 sint32 gtmain_frame_run(uint8 *context);
+uint32 gtmain_menu_frame_context_initialize(uint8 *context);
+uint32 gtmain_menu_input_context_initialize(uint32 context);
+sint32 gtmain_menu_frame_run(void);
+uint32 gtmain_menu_result_mode4_run(uint32 extra, sint16 index, uint32 first);
+uint32 gtmain_menu_result_mode4_alternate_run(uint32 extra, sint16 index, uint32 first);
 void gtmain_frame_vblank(void);
 void gtmain_frame_prepare(uint32 alternate);
 void gtmain_frame_display_begin(void);
@@ -453,6 +474,7 @@ uint32 gtmain_texture_records_load(uint32 guest_image);
 uint32 gtmain_race_sound_bank_load(uint32 guest_dest, uint32 spu_base, const uint8 *archive_table, uint32 sector, uint32 section_index);
 void gtmain_race_sound_banks_update(void);
 
+void gtmain_race_mode0_prepare(void);
 uint32 gtmain_race_rank_list_sort(void);
 void gtmain_race_player_positions(void);
 uint32 gtmain_race_player_positions_latch(void);
@@ -794,7 +816,7 @@ void gtmain_race_wheel_contacts_apply(uint32 cars, sint32 count);
 
 void gtmain_race_pose_update(uint32 cars, sint32 count);
 
-void gtmain_race_lap_groups_tick(uint32 cars);
+uint32 gtmain_race_lap_groups_tick(uint32 cars);
 
 void gtmain_race_clock_tick(void);
 
@@ -844,7 +866,7 @@ void gtmain_race_suspension_update(uint32 cars, sint32 count);
 
 void gtmain_race_velocity_publish(uint32 cars, sint32 count);
 
-void gtmain_race_lap_car_tick(uint32 car, sint32 rank);
+uint32 gtmain_race_lap_car_tick(uint32 car, sint32 rank);
 
 void gtmain_race_lap_difference_show(sint32 car_index, sint32 difference);
 
@@ -887,6 +909,7 @@ uint32 gtmain_menu_row_transition(uint32 ordering, sint32 x, sint32 y, uint32 gu
 uint32 gtmain_menu_footer_draw(uint32 ordering, sint32 x, sint32 y, sint32 span);
 
 sint32 gtmain_font_text_draw(uint32 ordering_link, sint32 x, sint32 y, uint32 guest_string);
+uint32 gtmain_menu_status_text_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
 
 sint32 gtmain_race_curve16(uint32 curve, sint32 value);
 
@@ -909,6 +932,7 @@ void gtmain_race_control_latch(uint32 car, uint8 value, uint32 hold);
 void gtmain_race_input_record(uint32 object, uint32 state);
 
 uint32 gtmain_menu_palette_color(sint32 palette, sint32 intensity);
+uint32 gtmain_menu_rank_bar_draw(uint32 ordering, sint32 value, sint32 maximum, sint32 x, sint32 y, sint32 intensity, uint32 full_height);
 
 uint32 gtmain_menu_gray(uint8 intensity);
 
@@ -917,6 +941,7 @@ uint32 gtmain_menu_text_draw(uint32 ordering, sint32 x, sint32 y, uint32 guest_t
 uint32 gtmain_menu_text_wave(uint32 ordering, sint32 x, sint32 y, uint32 guest_text);
 
 uint32 gtmain_menu_text_width(sint32 font, uint32 guest_text, sint32 spacing);
+uint32 gtmain_menu_vehicle_course_labels_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
 
 sint32 gtmain_matrix_scale_axes(uint8 *out, const uint8 *matrix, const uint8 *scales);
 
@@ -930,6 +955,7 @@ uint32 gtmain_view_plane_intersections_native(uint8 *view, const uint8 *plane);
 sint32 gtmain_model_orientation_native(uint8 *view, uint32 reference_nullable);
 
 sint32 gtmain_course_name_find(uint32 name);
+sint32 gtmain_course_selection_apply(sint32 mode);
 
 sint32 gtmain_course_count(void);
 
@@ -963,7 +989,7 @@ void gtmain_race_input_record_flush(uint32 object);
 
 void gtmain_race_controls_ai_update(uint32 car, sint32 index);
 
-void gtmain_race_course_events(uint32 car, sint32 current, sint32 previous);
+uint32 gtmain_race_course_events(uint32 car, sint32 current, sint32 previous);
 
 uint32 gtmain_menu_callback(uint32 token);
 sint32 gtmain_menu_effect_context_bind(uint32 context, uint32 descriptor);
@@ -1006,11 +1032,11 @@ void gtmain_race_ai_segment_update(uint32 car);
 
 sint32 gtmain_race_behavior_set(uint32 car, sint32 behavior);
 
-void gtmain_race_wheel_surface_reset(uint32 car);
+uint32 gtmain_race_wheel_surface_reset(uint32 car);
 
 void gtmain_race_vehicle_reset(uint32 car);
 
-void gtmain_race_finish_mark(uint32 car);
+uint32 gtmain_race_finish_mark(uint32 car);
 
 sint32 gtmain_race_ai_distance(uint32 parameters, sint32 speed);
 
@@ -1069,6 +1095,9 @@ uint32 gtmain_menu_number_tail(uint32 guest_destination, sint32 value, uint32 gu
 
 uint32 gtmain_menu_text_digits(uint32 ordering, sint32 x, sint32 y, uint32 guest_text);
 
+uint32 gtmain_menu_status_input(void);
+uint32 gtmain_menu_item_transition_draw(uint32 output, uint32 ordering, uint32 selector, sint32 x, sint32 y, sint32 intensity, uint32 flags);
+uint32 gtmain_menu_item_center_draw(uint32 ordering, uint32 descriptor, sint32 x, sint32 y, sint32 intensity);
 uint32 gtmain_menu_sprite(uint32 guest_descriptor, uint32 ordering, uint16 x, sint32 y, uint8 intensity);
 
 uint32 gtmain_menu_panel_callback(uint32 token, uint32 ordering, sint32 x, sint32 y, uint32 display_y, uint32 fade);
@@ -1140,6 +1169,7 @@ uint32 gtmain_race_engine_tuning_initialize(void);
 uint32 gtmain_race_assist_preset(uint32 preset);
 
 sint32 gtmain_race_vehicle_initialization_finish(void);
+sint32 gtmain_race_selected_vehicle_initialize(void);
 
 sint32 gtmain_race_aero_force(uint32 car, sint32 speed);
 
@@ -1224,12 +1254,16 @@ sint32 gtmain_race_steering_curve(uint32 curve, sint32 angle);
 void gtmain_race_top_speed_initialize(uint32 parameters);
 
 uint32 gtmain_menu_result_prepare(void);
+uint32 gtmain_menu_result_tail_prepare(sint32 competitor);
 
 uint32 gtmain_menu_lap_results_prepare(void);
+uint32 gtmain_menu_lap_results_tail_prepare(uint32 record_flags);
 
 uint32 gtmain_menu_lap_results_draw(uint32 ordering, sint32 x, sint32 y, uint32 descriptor_mode, sint32 intensity);
+uint32 gtmain_menu_lap_results_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 initial_mode);
 
 uint32 gtmain_menu_result_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+uint32 gtmain_menu_result_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 mode, sint32 competitor);
 
 sint32 gtmain_race_engine_torque(uint32 car);
 
@@ -1268,6 +1302,14 @@ uint32 gtmain_race_controls_commit(uint32 car, uint8 *controls, uint32 output, s
 uint32 gtmain_menu_mode_setup(sint32 mode);
 
 void gtmain_menu_selector_reset(uint32 guest_selector);
+sint32 gtmain_menu_selector_input(uint32 selector, uint32 input);
+sint32 gtmain_menu_saved_slot_select(uint32 input);
+sint32 gtmain_menu_save_slot_select(uint32 input);
+sint32 gtmain_menu_roster_item_select(uint32 input);
+sint32 gtmain_menu_angle_selector_tick(void);
+sint32 gtmain_menu_parameter_selector_input(uint32 selector, uint32 input);
+sint32 gtmain_menu_parameter_page_tick(void);
+sint32 gtmain_menu_overlay_tick(void);
 
 uint32 gtmain_menu_indicator_draw(uint32 ordering, sint32 x, sint32 y, sint32 phase, uint32 flags, uint32 descriptor_index, uint32 style, uint32 page);
 
@@ -1392,6 +1434,13 @@ uint32 gtmain_race_frame_finish(void);
 
 uint32 gtmain_camera_mode_update(uint32 camera);
 uint32 gtmain_camera_projection_set(uint32 camera, sint32 distance);
+uint32 gtmain_camera_pose_prepare(uint32 camera, uint32 mode, sint32 distance);
+uint32 gtmain_camera_direction_matrix(uint8 *matrix, const uint8 *vector);
+uint32 gtmain_vector_path_dispatch(uint32 output, uint32 path);
+uint32 gtmain_camera_path_distance_update(uint32 camera);
+uint32 gtmain_camera_path_phase_update(uint32 camera);
+uint32 gtmain_camera_config_pose_prepare(uint32 camera);
+uint32 gtmain_camera_selected_pose_prepare(uint32 camera);
 uint32 gtmain_camera_follow_update(uint32 camera);
 uint32 gtmain_camera_follow_controls(uint32 camera);
 
@@ -1454,9 +1503,115 @@ uint32 gtmain_race_choice_boxes_draw(void);
 
 uint32 gtmain_menu_name_text_set(uint32 request, uint32 text);
 sint32 gtmain_menu_name_edit(uint32 request, uint32 controls);
-void gtmain_menu_name_request_prepare(uint32 owner, sint32 index);
+uint32 gtmain_menu_name_request_prepare(uint32 owner, sint32 index, uint32 unchanged_result);
 
 uint32 gtmain_menu_machine_context_bind(uint8 kind, uint32 owner, uint32 resource, uint8 state, uint32 value, uint32 text);
 uint32 gtmain_menu_entry_name_request_prepare(void);
 
 sint32 gtmain_menu_range_index(sint32 start, sint32 end, sint32 value, sint32 count);
+
+uint32 gtmain_menu_text_fit(uint32 text, sint32 width);
+void gtmain_menu_stream_check(void);
+uint32 gtmain_menu_any_button_accept(void);
+
+uint32 gtmain_menu_race_caption_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, uint32 course_line);
+
+uint32 gtmain_menu_quick_end_initialize(void);
+sint32 gtmain_menu_quick_end_run(uint32 selector, uint8 disabled, uint32 first, uint32 second, uint8 style);
+sint32 gtmain_menu_quick_end_mode3(uint8 disabled);
+uint32 gtmain_menu_end_panel_initialize(void);
+uint32 gtmain_menu_result_name_request_initialize(void);
+sint32 gtmain_menu_name_keyboard_draw(uint32 ordering, uint32 request, sint32 x, sint32 y, sint32 intensity);
+uint32 gtmain_menu_name_slots_draw(uint32 ordering, uint32 request, sint32 x, sint32 y, sint32 intensity);
+uint32 gtmain_menu_result_name_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+uint32 gtmain_menu_reveal_input_tick(void);
+
+sint32 gtmain_race_audio_stop_wait(void);
+
+uint32 gtmain_menu_player_indicator_draw(uint32 ordering, sint32 x, sint32 y);
+
+sint32 gtmain_replay_header_check(uint32 data);
+
+uint32 gtmain_menu_result_panel_run(uint8 flags, sint16 index, uint32 first, uint32 second, uint32 metric, sint16 threshold, uint32 extra, uint8 mode, uint8 style, uint8 panel);
+
+uint32 gtmain_menu_result_mode7_run(uint8 flags, uint32 first, uint32 second, uint32 metric, sint16 threshold, uint32 extra);
+
+uint32 gtmain_menu_result_mode8_run(uint8 flags, uint32 first, uint32 second, uint32 metric, sint16 threshold, uint32 extra);
+
+uint32 gtmain_race_result_snapshot_store(void);
+
+uint32 gtmain_menu_result_reveal_tick(void);
+uint32 gtmain_menu_result_plateau_tick(void);
+uint32 gtmain_menu_result_plateau_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+
+uint32 gtmain_menu_replay_caption_initialize(void);
+
+uint32 gtmain_menu_selection_snapshot_initialize(void);
+
+uint32 gtmain_menu_end_panel_tick(void);
+uint32 gt_draft_800380AC(void);
+
+uint32 gtmain_menu_pose_model_draw(uint32 pose, uint32 ordering, sint32 x, sint32 y, uint32 arg4, uint32 arg5, uint32 arg6, uint32 arg7, uint32 arg8, uint32 arg9, uint32 arg10, uint32 arg11, uint32 arg12);
+
+uint32 gtmain_menu_end_panel_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+
+uint32 gtmain_menu_race_list_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+uint32 gtmain_menu_race_roster_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+sint32 gtmain_menu_race_selection_tick(void);
+
+sint32 gtmain_menu_name_commit_tick(void);
+
+sint32 gtmain_menu_reward_tick(void);
+
+uint32 gtmain_menu_reward_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+
+sint32 gtmain_menu_result_list_tick(void);
+
+sint32 gtmain_menu_roster_slot_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, uint32 slot);
+
+uint32 gtmain_menu_roster_panel_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
+
+uint32 gtmain_menu_progress_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 selection, uint32 show_pending);
+
+uint32 gtmain_bios_critical_enter(void);
+uint32 gtmain_bios_critical_exit_result(void);
+
+uint32 gtmain_race_meter_panel_draw(uint32 ordering, uint32 x, uint32 y, uint32 source);
+
+uint32 gtmain_resource_sections_load(uint32 path, uint32 destination, uint32 requested_bytes);
+
+uint32 gtmain_menu_transition_enter(uint32 descriptor);
+
+uint32 gtmain_menu_transition_exit(uint32 descriptor);
+
+uint32 gtmain_menu_mode_dispatch(sint32 mode);
+
+uint32 gtmain_menu_record_header_prepare(void);
+uint32 gtmain_menu_record_labels_prepare(void);
+
+uint32 gtmain_menu_record_screen_draw(uint32 ordering, sint32 x, sint32 y, uint32 carried_argument, sint32 intensity);
+
+uint32 gtmain_menu_choice_transition_draw(uint32 ordering, uint32 descriptor, sint32 x, sint32 y, sint32 intensity, uint32 publish, uint32 reverse, uint32 lower_title);
+uint32 gtmain_packet_outline_native(uint32 ordering, const sint16 *corners4, uint32 color);
+
+uint32 gtmain_menu_device_selection_input(void);
+uint32 gtmain_menu_saved_entry_commit(uint32 owner, sint32 index);
+
+sint32 gtmain_menu_saved_entry_input(uint32 owner, uint32 input);
+uint32 gtmain_menu_saved_entry_delete(uint32 owner, sint32 index);
+
+uint32 gtmain_menu_decimal_draw(uint32 ordering, sint32 x, sint32 y, sint32 value, sint32 precision, uint32 suffix, uint8 intensity, uint32 style);
+
+sint32 gtmain_menu_entry_type_input(uint32 input);
+
+uint32 gtmain_menu_machine_status_initialize(void);
+uint32 gtmain_menu_settings_initialize(void);
+
+uint32 gtmain_menu_settings_mask(uint32 table, sint32 count);
+uint32 gtmain_menu_settings_masks_update(void);
+
+uint32 gtmain_menu_settings_rows_draw(uint32 ordering, sint32 x, sint32 y, sint32 unused, sint32 intensity);
+uint32 gtmain_menu_settings_row_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 entry, sint32 row);
+
+sint32 gtmain_menu_part_check(uint32 target, sint32 part_type);
+sint32 gtmain_menu_parts_check(uint32 target);

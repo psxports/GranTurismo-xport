@@ -1,65 +1,22 @@
 #include "game_first2_registry.h"
-#include "game_draft_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80047054(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_menu_saved_entry_commit(uint32 owner, sint32 index)
 {
-    sint32 v3 = 0;
-    uint32 v4 = 0;
-    uint32 v5 = 0;
-    sint32 v6 = 0;
-    sint32 v7 = 0;
-    sint32 v8 = 0;
-    sint32 v9 = 0;
-    sint32 v10 = 0;
-    sint32 v11 = 0;
-    sint32 v12 = 0;
-    sint32 v13 = 0;
-    sint32 v14 = 0;
-    sint32 v15 = 0;
-    sint32 result = 0;
-  v3 = a0 + 512;
-  v4 = (uint32)r_u32(0x800BEA64u);
-  v5 = (uint32)(116 * a1 + a0 + 512 + 18);
-  if ( ((r_u32(0x800BEA64u) | (uint8)(116 * a1 + a0 + 18)) & 3) != 0 )
-  {
-    v6 = r_u32(0x800BEA64u) + 96;
-    do
+    uint32 entry = owner + 512u + 116u * (uint32)index;
+    uint32 source = r_u32(0x800BEA64u), destination = entry + 18u;
+    uint32 offset;
+    for (offset = 0; offset != 96u; offset += 16u)
     {
-      v7 = r_u32(v4 + 4u * (1));
-      v8 = r_u32(v4 + 4u * (2));
-      v9 = r_u32(v4 + 4u * (3));
-    w_u32(v5, r_u32(v4));
-    w_u32(v5 + 4u * (1), v7);
-    w_u32(v5 + 4u * (2), v8);
-    w_u32(v5 + 4u * (3), v9);
-      v4 += 16;
-      v5 += 16;
+        uint32 first = r_u32(source + offset);
+        uint32 second = r_u32(source + offset + 4u);
+        uint32 third = r_u32(source + offset + 8u);
+        uint32 fourth = r_u32(source + offset + 12u);
+        w_u32(destination + offset, first);
+        w_u32(destination + offset + 4u, second);
+        w_u32(destination + offset + 8u, third);
+        w_u32(destination + offset + 12u, fourth);
     }
-    while ( v4 != (uint32)v6 );
-    v10 = 8 * a1;
-  }
-  else
-  {
-    v11 = r_u32(0x800BEA64u) + 96;
-    do
-    {
-      v12 = r_u32(v4 + 4u * (1));
-      v13 = r_u32(v4 + 4u * (2));
-      v14 = r_u32(v4 + 4u * (3));
-    w_u32(v5, r_u32(v4));
-    w_u32(v5 + 4u * (1), v12);
-    w_u32(v5 + 4u * (2), v13);
-    w_u32(v5 + 4u * (3), v14);
-      v4 += 16;
-      v5 += 16;
-    }
-    while ( v4 != (uint32)v11 );
-    v10 = 8 * a1;
-  }
-  v15 = v3 + 4 * (4 * (v10 - a1) + a1);
-  gtmain_string_copy(v15, -2146741356);
-  result = 1;
-    w_u16(v15 + 114, 1);
-  return result;
+    gtmain_string_copy(entry, 0x800B5394u);
+    w_u16(entry + 114u, 1);
+    return 1;
 }

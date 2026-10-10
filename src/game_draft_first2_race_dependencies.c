@@ -197,7 +197,7 @@ void gtmain_race_license_result_tick(void)
     result = race_dependency(0x80057180u, 0x800B6878u, 0, 0);
     if (!result) return;
     thresholds = gt_draft_8002A3CC(0, 0, 0, 0, 0, 0, 0, 0);
-    record = gt_draft_80029A74(0, 0, 0, 0, 0, 0, 0, 0);
+    record = gtmain_race_mode_record();
     second = r_u32(thresholds + 40u);
     third = r_u32(thresholds + 12u);
     first = r_u32(record + 4u);

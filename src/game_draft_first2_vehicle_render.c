@@ -14,7 +14,6 @@ static sint32 vehicle_asr(uint32 value, uint32 shift)
 
 static uint32 vehicle_lz(uint32 value, uint32 address)
 {
-    (void)address;
     xport_gte_write_data(30u, value);
     return xport_gte_read_data(31u);
 }
@@ -22,7 +21,6 @@ static uint32 vehicle_lz(uint32 value, uint32 address)
 static uint32 vehicle_flags(uint32 address)
 {
     PsxGteSnapshot state;
-    (void)address;
     psx_gte_snapshot(&state);
     return (uint32)state.flag;
 }

@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
 /* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
@@ -48,7 +49,7 @@ LABEL_10:
     w_u8(a0 + 255, 0);
   if ( v6 == 1 )
   {
-    gt_draft_unresolved_call(0x8001CB64u, a0, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_camera_interval_update(a0);
   }
   else if ( v6 >= 2 && v6 == 2 )
   {

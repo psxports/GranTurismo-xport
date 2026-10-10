@@ -1,4 +1,6 @@
 #include "game_startup.h"
+#include "psx.h"
+#include "game_spu_access.h"
 
 /* Original PsyQ graph type storage */
 const uint32 xport_gpu_graph_type_address = 0x800B24B4u;
@@ -77,5 +79,6 @@ void gtmain_startup(GTMainStartupState *state)
 
 void xport_main(void)
 {
+    gt_native_spu_bind_mmio();
     gtmain_native_main();
 }

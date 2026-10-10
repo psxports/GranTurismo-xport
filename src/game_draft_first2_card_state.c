@@ -3,7 +3,6 @@
 static uint32 card_bios(uint32 service, uint32 argument)
 {
     /* TODO Bind actual BIOS service data and meaningful result */
-    (void)argument;
     gt_draft_failure("Native card BIOS service adapter", service);
 }
 uint32 gtmain_card_init_result(uint32 mode)

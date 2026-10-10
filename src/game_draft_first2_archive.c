@@ -110,5 +110,4 @@ void gtmain_sound_bank_load_original(uint32 destination, uint32 spu_base, uint32
     gtmain_sound_instrument_relocate(image, spu_base);
     gtmain_sound_instrument_relocate(destination, spu_base);
     gtmain_sound_sample_upload(r_u32(destination + 12u), r_u32(image + 20u), r_u32(image + 16u));
-    (void)capacity;
 }

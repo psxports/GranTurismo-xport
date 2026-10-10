@@ -9,9 +9,9 @@ uint32 gtmain_race_standard_hud_draw(void)
         gt_draft_8003011C(ordering, 68u, 0x00808080u, 1u, 0u, 0u, 0u, 0u);
     else if (mode >= 8 && mode < 10)
     {
-        /* TODO Bind the selected 800214C8 native text owner */
-        gt_draft_unresolved_call(0x800214C8u, ordering, 68u,
-            (uint32)((sint32)((uint32)r_u16(0x800B63DAu) << 16) >> 19), 0u, 0u, 0u, 0u, 0u);
+        /* TODO Native time roster adapters remain unresolved */
+        gtmain_race_time_roster_draw(ordering, 68,
+            (sint32)((uint32)r_u16(0x800B63DAu) << 16) >> 19);
         gt_draft_800308D0(ordering, 15u, 112u, 0u, 0u, 0u, 0u, 0u);
         gtmain_race_screen_rectangle(ordering);
         return 1u;

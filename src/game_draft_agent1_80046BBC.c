@@ -1,108 +1,73 @@
-#include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80046BBC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static sint32 choice_add(sint32 a, sint32 b)
 {
-    sint32 v15 = 0;
-    sint32 v16 = 0;
-    sint32 v17 = 0;
-    sint32 v18 = 0;
-    sint32 v19 = 0;
-    sint32 v20 = 0;
-    sint32 v21 = 0;
-    sint32 v22 = 0;
-    sint32 v23 = 0;
-    sint32 v24 = 0;
-    sint32 v25 = 0;
-    sint32 v26 = 0;
-    sint16 v27 = 0;
-    sint16 v28 = 0;
-    uint8 v29 = 0;
-    sint32 v30 = 0;
-    sint32 v32 = 0;
-    sint32 v33 = 0;
-    sint32 v34 = 0;
-    sint32 v35 = 0;
-    sint32 v36 = 0;
-    sint16 v37 = 0;
-    sint16 v38 = 0;
-    sint16 v39 = 0;
-  if ( r_u32(a2 + 52u) > 0 )
-    w_u32(a2 + 52u, r_u32(a2 + 52u)-1u);
-  if ( a6 )
-    v15 = a2 - 160 * r_u32(a2 + 52u) / 12;
-  else
-    v15 = a2 + 160 * r_u32(a2 + 52u) / 12;
-  v36 = (a4 >> 1) * (12 - r_u32(a2 + 52u)) / 12;
-  v16 = gt_draft_unresolved_call(0x80035458u, v36, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006C874u, v16, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006C790u, 1, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006C860u, 0, 0, 0, 0, 0, 0, 0, 0);
-  v17 = (sint32)r_u32(a2);
-  v18 = gt_draft_unresolved_call(0x8006C900u, 1, (sint32)r_u32(a2), 0, 0, 0, 0, 0, 0);
-  if ( a7 )
-    v19 = a3 + 20;
-  else
-    v19 = a3 - 12;
-  gt_draft_unresolved_call(0x8006CA10u, a0, (sint16)v15 - (v18 >> 1), v19, v17, 0, 0, 0, 0);
-  v37 = v15 - 96;
-  v38 = v15 - 1;
-  v20 = (sint32)r_u32(a2 + 4u * (1));
-  v39 = v15 + 95;
-  v21 = gt_draft_unresolved_call(0x8006C900u, 1, v20, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006CA10u, a0, (sint16)v15 - ((v21 + 96) >> 1), a3 + 3, v20, 0, 0, 0, 0);
-  v22 = (sint32)r_u32(a2 + 4u * (2));
-  v23 = gt_draft_unresolved_call(0x8006C900u, 1, v22, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006CA10u, a0, (sint16)v15 + ((96 - v23) >> 1), a3 + 3, v22, 0, 0, 0, 0);
-    v34 = (v34 & 0x0000FFFFu) | (((uint32)(a3) & 0xFFFFu) << 16);
-    v35 = (v35 & 0x0000FFFFu) | (((uint32)(a3 + 15) & 0xFFFFu) << 16);
-    v34 = (v34 & 0xFFFF0000u) | (((uint32)(v15 - 96) & 0xFFFFu) << 0);
-  v24 = (51 * v36) >> 7;
-    v35 = (v35 & 0xFFFF0000u) | (((uint32)(v15 - 1) & 0xFFFFu) << 0);
-  v32 = v34;
-  v33 = v35;
-  v25 = gt_draft_unresolved_call(0x80035458u, v24, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006F624u, a0, gt_draft_buffer_address(&v32, sizeof(v32)) /* TODO Adapter lifecycle */, v25, 0, 0, 0, 0, 0);
-    v34 = (v34 & 0xFFFF0000u) | (((uint32)(v15) & 0xFFFFu) << 0);
-    v34 = (v34 & 0x0000FFFFu) | (((uint32)(a3) & 0xFFFFu) << 16);
-    v35 = (v35 & 0x0000FFFFu) | (((uint32)(a3 + 15) & 0xFFFFu) << 16);
-    v35 = (v35 & 0xFFFF0000u) | (((uint32)(v39) & 0xFFFFu) << 0);
-  v32 = v34;
-  v33 = v35;
-  v26 = gt_draft_unresolved_call(0x80035458u, v24, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006F624u, a0, gt_draft_buffer_address(&v32, sizeof(v32)) /* TODO Adapter lifecycle */, v26, 0, 0, 0, 0, 0);
-  v27 = v15 - 96;
-  if ( !r_u32(a2 + 52u) )
-  {
-    if ( r_u32(a2 + 48u) )
+    return (sint32)((uint32)a + (uint32)b);
+}
+
+static sint32 choice_sub(sint32 a, sint32 b)
+{
+    return (sint32)((uint32)a - (uint32)b);
+}
+
+uint32 gtmain_menu_choice_transition_draw(uint32 ordering, uint32 descriptor,
+    sint32 x, sint32 y, sint32 intensity, uint32 publish, uint32 reverse,
+    uint32 lower_title)
+{
+    sint32 step = (sint8)r_u8(descriptor + 13u);
+    sint32 offset, center, fade, width, title_y, text_y, center16, outline_intensity;
+    sint16 left, middle_left, right, corners[4];
+    uint32 text, color;
+    if (step > 0) w_u8(descriptor + 13u, (uint8)(step - 1));
+    step = (sint8)r_u8(descriptor + 13u);
+    offset = 160 * step / 12;
+    center = reverse ? choice_sub(x, offset) : choice_add(x, offset);
+    step = (sint8)r_u8(descriptor + 13u);
+    fade = (sint32)((uint32)(intensity >> 1) * (uint32)(12 - step)) / 12;
+    gtmain_text_color(gtmain_menu_gray((uint8)fade));
+    gtmain_text_font(1);
+    gtmain_text_flags(0);
+    text = r_u32(descriptor);
+    width = gtmain_text_width(1, text);
+    title_y = (sint16)y + (lower_title ? 20 : -12);
+    center16 = (sint16)center;
+    gtmain_font_text_draw(ordering, choice_sub(center16, width >> 1), title_y, text);
+    left = (sint16)choice_add(center, -96);
+    middle_left = (sint16)choice_add(center, -1);
+    text = r_u32(descriptor + 4u);
+    right = (sint16)choice_add(center, 95);
+    width = gtmain_text_width(1, text);
+    text_y = (sint16)y + 3;
+    gtmain_font_text_draw(ordering, choice_sub(center16, choice_add(width, 96) >> 1), text_y, text);
+    text = r_u32(descriptor + 8u);
+    width = gtmain_text_width(1, text);
+    gtmain_font_text_draw(ordering, choice_add(center16, choice_sub(96, width) >> 1), text_y, text);
+    outline_intensity = (sint32)((uint32)fade * 51u) >> 7;
+    corners[0] = left; corners[1] = (sint16)y;
+    corners[2] = middle_left; corners[3] = (sint16)choice_add(y, 15);
+    color = gtmain_menu_gray((uint8)outline_intensity);
+    gtmain_packet_outline_native(ordering, corners, color);
+    corners[0] = (sint16)center; corners[1] = (sint16)y;
+    corners[2] = right; corners[3] = (sint16)choice_add(y, 15);
+    color = gtmain_menu_gray((uint8)outline_intensity);
+    gtmain_packet_outline_native(ordering, corners, color);
+    if (!(sint8)r_u8(descriptor + 13u))
     {
-      v28 = v39;
-    v34 = (v34 & 0xFFFF0000u) | (((uint32)(v15) & 0xFFFFu) << 0);
+        if ((sint8)r_u8(descriptor + 12u))
+        {
+            corners[0] = (sint16)center; corners[2] = right;
+        }
+        else
+        {
+            corners[0] = left; corners[2] = middle_left;
+        }
+        corners[1] = (sint16)y; corners[3] = (sint16)choice_add(y, 15);
+        color = (uint32)gtmain_menu_pulse_component(2, intensity) & 255u;
+        if (publish == 1u) color <<= 16;
+        gtmain_packet_rectangle_native(ordering, corners, color);
     }
-    else
-    {
-    v34 = (v34 & 0xFFFF0000u) | (((uint32)(v37) & 0xFFFFu) << 0);
-      v28 = v38;
-    }
-    v34 = (v34 & 0x0000FFFFu) | (((uint32)(a3) & 0xFFFFu) << 16);
-    v35 = (v35 & 0x0000FFFFu) | (((uint32)(a3 + 15) & 0xFFFFu) << 16);
-    v35 = (v35 & 0xFFFF0000u) | (((uint32)(v28) & 0xFFFFu) << 0);
-    v32 = v34;
-    v33 = v35;
-    v29 = gt_draft_unresolved_call(0x80035608u, 2, a4, 0, 0, 0, 0, 0, 0);
-    if ( a5 == 1 )
-      v30 = v29 << 16;
-    else
-      v30 = v29;
-    gt_draft_unresolved_call(0x8006F4F0u, a0, gt_draft_buffer_address(&v32, sizeof(v32)) /* TODO Adapter lifecycle */, v30, 0, 0, 0, 0, 0);
-    v27 = v15 - 96;
-  }
-    v34 = (v34 & 0xFFFF0000u) | (((uint32)(v27) & 0xFFFFu) << 0);
-    v34 = (v34 & 0x0000FFFFu) | (((uint32)(a3) & 0xFFFFu) << 16);
-    v35 = (v35 & 0xFFFF0000u) | (((uint32)(v15 + 95) & 0xFFFFu) << 0);
-    v35 = (v35 & 0x0000FFFFu) | (((uint32)(a3 + 15) & 0xFFFFu) << 16);
-  v32 = v34;
-  v33 = v35;
-  gt_draft_unresolved_call(0x8006F4F0u, a0, gt_draft_buffer_address(&v32, sizeof(v32)) /* TODO Adapter lifecycle */, 0x2000000, 0, 0, 0, 0, 0);
-  return gt_draft_unresolved_call(0x8006F590u, a0, 512, 0, 0, 0, 0, 0, 0);
+    corners[0] = (sint16)choice_add(center, -96); corners[1] = (sint16)y;
+    corners[2] = (sint16)choice_add(center, 95); corners[3] = (sint16)choice_add(y, 15);
+    gtmain_packet_rectangle_native(ordering, corners, 0x02000000u);
+    return gtmain_packet_page(ordering, 512);
 }

@@ -7,11 +7,6 @@ static uint32 race_tick_call(uint32 owner, uint32 a0, uint32 a1)
     return gt_draft_unresolved_call(owner, a0, a1, 0, 0, 0, 0, 0, 0);
 }
 
-static void race_sound_callbacks_bind(uint32 first, uint32 second, uint32 third)
-{
-    gtmain_race_sound_callbacks_apply(first, second, third);
-}
-
 /* GTMAIN.EXE 800290C8 */
 void gtmain_race_input_poll(void)
 {
@@ -195,13 +190,30 @@ void gtmain_race_pause_blink(void)
 /* GTMAIN.EXE 80031668 */
 void gtmain_race_sound_callbacks_active(void)
 {
-    race_sound_callbacks_bind(0x800315A8u, 0x800315C8u, 0x800315E8u);
+    sint32 index = 0;
+    uint32 car = 0x800B6850u;
+    while (index < (sint16)r_u16(0x800BC1A6u)) {
+        sint32 kind = (sint16)r_u16(car + 26u);
+        if (kind == 1) gtmain_race_sound_car_primary(car);
+        else if (kind == 2) gtmain_race_sound_car_secondary(car);
+        else gtmain_race_sound_car_init(car);
+        ++index;
+        car += 3380u;
+    }
 }
 
 /* GTMAIN.EXE 80031710 */
 void gtmain_race_sound_callbacks_stopped(void)
 {
-    race_sound_callbacks_bind(0x8003169Cu, 0x8003169Cu, 0x8003169Cu);
+    sint32 index = 0;
+    uint32 car = 0x800B6850u;
+    while (index < (sint16)r_u16(0x800BC1A6u)) {
+        /* All three original callback identities select the same stop body */
+        (void)r_u16(car + 26u);
+        gtmain_race_sound_car_stop(car);
+        ++index;
+        car += 3380u;
+    }
 }
 
 /* GTMAIN.EXE 8002D874 */

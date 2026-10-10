@@ -1,10 +1,9 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
-#include "game_draft_agent3_support.h"
 
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_8004AB98(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+sint32 gtmain_menu_part_check(uint32 target, sint32 part_type)
 {
-  return gt_draft_8004ABA0(0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+    uint32 context = r_u32(0x800BEA64u);
+    /* TODO Bind unselected continuation with the loaded context */
+    return (sint32)gt_draft_unresolved_call(0x8004ABA0u, target, (uint32)part_type, context, 0, 0, 0, 0, 0);
 }
-

@@ -1,50 +1,92 @@
-#include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
-/* Unverified decimal formatting draft derived from the existing full pseudocode */
-uint32 gt_draft_80043CB0(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint32 a5,uint32 a6,uint32 a7)
+static void decimal_put(char buffer[64], sint32 at, uint8 value)
 {
-    char buffer[40]={0};
-    sint32 cursor=24,count=0,precision=(sint32)a4;
-    sint32 value=(sint32)a3,quotient;
-    uint32 guest_text,table_index=0,x,color,result;
-    while(precision<0) {
-        value=(sint32)((uint32)value*10u);
+    /* TODO Resolve storage contract for precision exceeding native buffer */
+    if (at < 0 || at >= 63) gt_draft_failure("Menu decimal native storage", 0x80043CB0u);
+    buffer[at] = (char)value;
+}
+
+static sint32 decimal_width(uint32 style, const char *text)
+{
+    /* TODO Bind original style width to native string storage */
+    gt_draft_failure("Menu decimal style width", 0x80035FC0u);
+}
+
+static void decimal_draw(uint32 ordering, sint32 x, sint32 y, const char *text, uint32 style)
+{
+    /* TODO Bind original five-argument style draw to native string storage */
+    gt_draft_failure("Menu decimal style draw", 0x80036068u);
+}
+
+uint32 gtmain_menu_decimal_draw(uint32 ordering, sint32 x, sint32 y,
+    sint32 value, sint32 precision, uint32 suffix, uint8 intensity, uint32 style)
+{
+    char buffer[64];
+    sint32 at = 62, count = 0, quotient, draw_x;
+    uint32 descriptor = 0, icon_x = (uint32)x;
+    uint32 color = intensity | ((uint32)intensity << 8) | ((uint32)intensity << 16) | 0x01000000u;
+    buffer[63] = 0;
+    while (precision < 0)
+    {
+        value = (sint32)((uint32)value * 10u);
         ++precision;
     }
-    quotient=value/10;
-    do {
-        char digit=(char)((uint32)value+48u);
-        value/=10;
+    quotient = value / 10;
+    do
+    {
+        uint8 digit = (uint8)((uint32)value + 48u - 10u * (uint32)quotient);
+        value /= 10;
         --precision;
-        buffer[cursor]=(char)(digit-10*quotient);
-        quotient=value/10;
-        if(!precision) {--cursor;++count;buffer[cursor]='.';}
-        if(!value)break;
-        ++count;--cursor;
-    } while(count<16);
-    while(precision>0) {
-        ++count;--precision;--cursor;buffer[cursor]='0';
-        if(!precision) {--cursor;++count;buffer[cursor]='.';}
+        decimal_put(buffer, at, digit);
+        quotient = value / 10;
+        if (!precision)
+        {
+            --at; ++count;
+            decimal_put(buffer, at, '.');
+        }
+        if (!value) break;
+        ++count; --at;
+    } while (count < 16);
+    if (precision > 0)
+    {
+        at = 62 - count - 1;
+        do
+        {
+            ++count; --precision;
+            decimal_put(buffer, at, '0');
+            if (!precision)
+            {
+                --at; ++count;
+                decimal_put(buffer, at, '.');
+            }
+            --at;
+        } while (precision > 0);
     }
-    if(!precision) {++count;buffer[24-count]='0';}
-    guest_text=gt_draft_buffer_address(&buffer[24-count],(uint32)(count+2));
-    x=a1;
-    if(a7!=1) x-=gt_draft_unresolved_call(0x80035FC0u,a7,guest_text,0,0,0,0,0,0);
-    /* TODO Callee inferred extra stack arguments are absent from this callsite */
-    gt_draft_unresolved_call9(0x80036068u,a0,x,a2,guest_text,a7,0,0,0,0);
-    gt_draft_buffer_release(guest_text);
-    switch(a5) {
-    case 1:x=a1-4u;table_index=12;break;
-    case 2:x=a1-6u;table_index=13;break;
-    case 3:x=a1-6u;table_index=14;break;
-    case 4:x=a1-4u;table_index=15;break;
-    case 5:x=a1-6u;table_index=16;break;
-    default:break;
+    if (!precision)
+    {
+        ++count;
+        decimal_put(buffer, 62 - count, '0');
     }
-    if(table_index) {
-        color=(a6&255u);color=color|(color<<8)|(color<<16)|0x01000000u;
-        gt_draft_unresolved_call(0x800706BCu,a0,(x&65535u)|(a2<<16),r_u32(0x80092334u+16u*table_index+12u),r_u32(0x80092334u+16u*table_index+8u),color,0,0,0);
+    draw_x = x;
+    if (style != 1u)
+        draw_x = (sint32)((uint32)x - (uint32)decimal_width(style, buffer + 62 - count));
+    decimal_draw(ordering, draw_x, y, buffer + 62 - count, style);
+    switch (suffix)
+    {
+    case 1: icon_x -= 4u; descriptor = 12; break;
+    case 2: icon_x -= 6u; descriptor = 13; break;
+    case 3: icon_x -= 6u; descriptor = 14; break;
+    case 4: icon_x -= 4u; descriptor = 15; break;
+    case 5: icon_x -= 6u; descriptor = 16; break;
+    default: break;
     }
-    result=gt_draft_unresolved_call(0x8006F590u,a0,552,0,0,0,0,0,0);
-    return result;
+    if (descriptor)
+    {
+        uint32 record = 0x80092334u + 16u * descriptor;
+        uint32 texture = r_u32(record + 12u);
+        uint32 dimensions = r_u32(record + 8u);
+        gtmain_packet_sprite(ordering, (icon_x & 65535u) | ((uint32)y << 16), texture, dimensions, color);
+    }
+    return gtmain_packet_page(ordering, 552);
 }

@@ -3,7 +3,6 @@
 static uint32 stop_bios(uint32 owner, uint32 argument)
 {
     /* TODO Bind the actual BIOS event or critical-return service */
-    (void)argument;
     gt_draft_failure("Native SPU stop BIOS adapter", owner);
 }
 uint32 gtmain_spu_driver_stop(void)

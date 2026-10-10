@@ -1,11 +1,9 @@
-#include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80046AD4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE 80046AD4 */
+uint32 gtmain_menu_transition_exit(uint32 descriptor)
 {
-    sint32 result = 0;
-    w_u8(a0 + 12, 1);
-  result = 12;
-    w_u8(a0 + 13, 12);
-  return result;
+    w_u8(descriptor + 12u, 1u);
+    w_u8(descriptor + 13u, 12u);
+    return 12u;
 }

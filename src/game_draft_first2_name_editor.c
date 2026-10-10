@@ -108,10 +108,10 @@ reject:
 }
 
 /* GTMAIN.EXE 80048448 */
-/* TODO Legacy3DC70 caller return carrier integration */
-void gtmain_menu_name_request_prepare(uint32 owner, sint32 index)
+uint32 gtmain_menu_name_request_prepare(uint32 owner, sint32 index, uint32 unchanged_result)
 {
     uint32 entries = owner + 512u;
     gtmain_menu_resource_request_initialize(0x80092EACu, 17, 256, 0x800B5394u);
-    if (index >= 0) gtmain_menu_name_text_set(0x80092EACu, entries + 116u * (uint32)index);
+    if (index >= 0) return gtmain_menu_name_text_set(0x80092EACu, entries + 116u * (uint32)index);
+    return unchanged_result;
 }

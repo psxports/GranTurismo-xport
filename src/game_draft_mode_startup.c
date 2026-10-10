@@ -62,36 +62,27 @@ static uint32 gtmain_mode_prepare(void)
     return 0x800BC160u;
 }
 
-static uint32 gtmain_mode_defaults(void)
+static uint32 gtmain_mode_menu_session(void)
 {
-    uint32 a = r_u32(0x80099490u), b = r_u32(0x80099494u);
-    w_u32(0x800BFF80u, a);
-    w_u32(0x800BFF84u, b);
-    a = r_u32(0x80099498u); b = r_u32(0x8009949Cu);
-    w_u32(0x800BFF88u, a);
-    w_u32(0x800BFF8Cu, b);
-    w_u32(0x800BFF90u, r_u32(0x800994A0u));
-    if (!r_u16(0x800CB758u)) w_u16(0x800CB758u, 214u);
-    w_u32(0x800B6318u, 2u);
-    w_u8(0x800B6310u, 0u);
-    w_u8(0x800B63BFu, 0u);
-    w_u8(0x800B63BEu, 6u);
-    return 6u;
+    /* TODO Unselected mode2 session remains typed fail-fast */
+    gt_draft_failure("GTMAIN mode2 session", 0x80027E18u);
 }
 
+/* GTMAIN.EXE:8002881C */
 uint32 gtmain_mode_init(void)
 {
     uint32 mode;
+    /* TODO Native bootstrap and sound setup adapters remain partial */
     gtmain_heap_reset();
     gtmain_mode_prepare();
-    gtmain_mode_defaults();
+    gtmain_menu_status_reset();
     gtmain_sound_bank_load(0x800B49ECu, 0x1010u, 0x801BB70Cu, 0x500u, 0u);
     mode = r_u8(0x800CB7F4u);
     w_u32(0x800B6390u, 0x8008BE68u);
     w_u8(0x800B63DCu, 0u);
     if (mode == 2u) {
         w_u32(0x800B6390u, 0x8008BE74u);
-        return gt_draft_unresolved_call(0x80027E18u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+        return gtmain_mode_menu_session();
     }
     if (mode == 3u || mode == 4u) {
         if (mode == 4u) w_u8(0x800B63DCu, 1u);

@@ -6,8 +6,8 @@ static uint32 pc_mul(sint32 a, sint32 b) { return (uint32)((sint64)a * b / 4096)
 static uint32 pc_abs(uint32 a) { return (sint32)a < 0 ? 0u - a : a; }
 static sint32 pc_div(uint32 a, uint32 b)
 {
-    if (!b) gt_draft_failure("GTMAIN pair impulses BREAK7", 0x800649A4u);
-    if (a == 0x80000000u && b == 0xFFFFFFFFu) gt_draft_failure("GTMAIN pair impulses BREAK6", 0x800649A4u);
+    if (!b) gt_draft_exception(7u);
+    if (a == 0x80000000u && b == 0xFFFFFFFFu) gt_draft_exception(6u);
     return (sint32)a / (sint32)b;
 }
 static sint32 pc_range(uint32 a, uint32 radius)
@@ -147,7 +147,7 @@ void gtmain_race_pair_impulses_update(uint32 cars, sint32 count)
                 uint32 px = r_u32(record);
                 if ((sint32)px >= half || -half >= (sint32)px) continue;
                 uint32 pz = r_u32(record + 4u);
-                if ((sint32)pz >= front || -back >= (sint32)pz) continue;
+                if ((sint32)pz >= front || (sint32)(0u - (uint32)back) >= (sint32)pz) continue;
                 any = 1; x[k] = px; z[k] = pz; valid[k] = 1;
             }
             if (!any) { ++slot; continue; }
@@ -179,15 +179,11 @@ void gtmain_race_pair_impulses_update(uint32 cars, sint32 count)
             }
             if (!penetration) { ++slot; continue; }
             sint32 normal[2];
-            switch (side) {
-            case 0: normal[0] = -sine; normal[1] = cosine; break;
-            case 1: normal[0] = sine; normal[1] = -cosine; break;
-            case 2: normal[0] = -cosine; normal[1] = -sine; break;
-            case 3: normal[0] = cosine; normal[1] = sine; break;
-            default:
-                /* TODO Original impossible side leaves normal components undefined */
-                gt_draft_failure("GTMAIN pair impulse undefined normal", 0x800649A4u); return;
-            }
+            /* Nonzero penetration selects exactly one of sides 0 through 3 */
+            if (side == 0) { normal[0] = -sine; normal[1] = cosine; }
+            else if (side == 1) { normal[0] = sine; normal[1] = -cosine; }
+            else if (side == 2) { normal[0] = -cosine; normal[1] = -sine; }
+            else { normal[0] = cosine; normal[1] = sine; }
             uint32 magnitude = penetration + 2048u;
             if ((sint32)magnitude >= 4097) magnitude = 4096;
             magnitude = pc_mul(313601, (sint32)magnitude);

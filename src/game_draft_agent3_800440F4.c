@@ -1,3 +1,4 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 #include "game_draft_agent3_support.h"
 
@@ -30,7 +31,7 @@ uint32 gt_draft_800440F4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
       if (v6)
       goto LABEL_16;
       gt_draft_unresolved_call(0x80035778u, 5, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-      gt_draft_80046AC4(r_u32((uint32)(0x80092C68u)), 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+      gtmain_menu_transition_enter(r_u32((uint32)(0x80092C68u)));
       w_u8((uint32)(0x800B5304), (uint32)(2));
       return 0;
 
@@ -105,14 +106,14 @@ uint32 gt_draft_800440F4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
         gt_draft_unresolved_call(0x80035778u, 5, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
         v7 = 0x80092C78u;
         LABEL_25:
-      gt_draft_80046AD4(v7, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+      gtmain_menu_transition_exit(v7);
 
         return v1;
 
       case 1:
         gt_draft_unresolved_call(0x80035778u, 5, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
         w_u8((uint32)(0x800B5304), (uint32)(3));
-        gt_draft_80046AC4(r_u32((uint32)(0x80092C68u)), 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+        gtmain_menu_transition_enter(r_u32((uint32)(0x80092C68u)));
         return 0;
 
       case 2:

@@ -14,7 +14,6 @@ static void pad_callback(uint32 token, uint32 port)
 static void pad_timer_snapshot(uint32 value)
 {
     /* TODO Bind original timer1 counter read and snapshot service */
-    (void)value;
     gt_draft_failure("Native pad timer snapshot", 0x80081E98u);
 }
 

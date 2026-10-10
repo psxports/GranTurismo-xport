@@ -18,22 +18,33 @@ uint32 gt_draft_8002C944(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_race_meter_rectangle_draw(a0, (sint16)a1, (sint16)a2, (sint32)a3);
 }
 
-uint32 gt_draft_8003CC54(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE 8003CC54 */
+uint32 gtmain_menu_status_input(void)
 {
-    uint32 device = r_u32(0x800BDD08u);
-    gt_draft_unresolved_call(0x8003A304u, 0, 0, 0, 0, 0, 0, 0, 0);
-    if (!r_u8(device)) return 0;
-    uint32 status = r_u32(0x800B52FCu);
-    w_u8(status + 8, r_u8(status + 8) + 1);
-    status = r_u32(0x800B52FCu);
-    w_u8(status + 8, r_u8(status + 8) & 1u);
-    status = r_u32(0x800B52FCu);
-    if (r_u8(status) != 60) { w_u8(status, r_u8(status) + 1); return 0; }
-    if (!(r_u16(device + 6) & 0xFF0Fu)) return 0;
-    gt_draft_unresolved_call(0x80035778u, 4, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x800352DCu, r_u32(r_u32(0x800B52FCu) + 4), 0, 0, 0, 0, 0, 0, 0);
-    if (r_u8(r_u32(0x800B52FCu) + 1)) gt_draft_unresolved_call(0x8003A2DCu, 0, 0, 0, 0, 0, 0, 0, 0);
-    return 3;
+    uint32 input = r_u32(0x800BDD08u), context;
+    sint32 phase;
+    gtmain_menu_stream_check();
+    if (!(sint8)r_u8(input)) return 0u;
+    context = r_u32(0x800B52FCu);
+    w_u8(context + 8u, r_u8(context + 8u) + 1u);
+    context = r_u32(0x800B52FCu);
+    w_u8(context + 8u, r_u8(context + 8u) & 1u);
+    context = r_u32(0x800B52FCu);
+    phase = (sint8)r_u8(context);
+    if (phase != 60) {
+        w_u8(context, (uint32)phase + 1u);
+        return 0u;
+    }
+    if (!(r_u16(input + 6u) & 0xFF0Fu)) return 0u;
+    (void)gtmain_menu_sound(4);
+    context = r_u32(0x800B52FCu);
+    (void)gtmain_menu_push(r_u32(context + 4u));
+    context = r_u32(0x800B52FCu);
+    if ((sint8)r_u8(context + 1u)) {
+        /* TODO Bind unrecorded original menu asset cleanup */
+        (void)gt_draft_unresolved_call(0x8003A2DCu, 0, 0, 0, 0, 0, 0, 0, 0);
+    }
+    return 3u;
 }
 
 uint32 gt_draft_80041FE0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)

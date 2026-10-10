@@ -1,37 +1,26 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80044A48(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_menu_settings_rows_draw(uint32 ordering, sint32 x, sint32 y, sint32 unused, sint32 intensity)
 {
-    sint32 v12 = 0;
-    sint32 v13 = 0;
-    sint32 v14 = 0;
-    sint32 v15 = 0;
-  uint32 vars0=0; /* TODO Pseudocode phantom stack local */ // [sp+18h] [+0h]
-  uint32 vars4=0; /* TODO Pseudocode phantom stack local */ // [sp+1Ch] [+4h]
-  uint32 vars8=0; /* TODO Pseudocode phantom stack local */ // [sp+20h] [+8h]
-  uint32 varsC=0; /* TODO Pseudocode phantom stack local */ // [sp+24h] [+Ch]
-  v12 = 0;
-  v13 = 48;
-  do
-  {
-    v14 = v12;
-    if ( (sint8)r_u8(0x800BEA24u) )
+    sint32 row, offset = 48;
+    for (row = 0; row < 6; ++row)
     {
-      v14 = 0;
-      v15 = -2146736528;
-      do
-      {
-        if ( r_u8(v15 + 3) == v12 )
-          break;
-        ++v14;
-        v15 += 76;
-      }
-      while ( v14 < 6 );
+        sint32 entry = row;
+        if ((sint8)r_u8(0x800BEA24u))
+        {
+            uint32 record = 0x800B6670u;
+            entry = 0;
+            do
+            {
+                if (r_u8(record + 3u) == (uint32)row) break;
+                ++entry;
+                record += 76u;
+            } while (entry < 6);
+        }
+        gtmain_menu_settings_row_draw(ordering, (sint32)((uint32)x + 32u),
+            (sint32)((uint32)y + (uint32)offset), intensity >> 1, entry, row);
+        offset += 26;
     }
-    gt_draft_800446DC(a0, a1 + 32, a2 + v13, a4 >> 1, v14, v12++, 0, 0 /* TODO Retained callee carriers */);
-    v13 += 26;
-  }
-  while ( v12 < 6 );
-  return 0;
+    return 0;
 }

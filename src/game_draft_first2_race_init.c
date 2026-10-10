@@ -284,7 +284,7 @@ select:
     if (selection == 1) { value = 3; goto done; }
     if (selection > 2) { value = 4; goto done; }
     RACE_CALL0(0x8001ECA8u); gtmain_race_track_load(r_u8(0x800B63BCu));
-    RACE_CALL0(0x80031F18u); RACE_CALL0(0x8001ECDCu); gtmain_race_updates_reset(); gtmain_race_overlay_textures_load();
+    RACE_CALL0(0x80031F18u); gtmain_race_selected_vehicle_initialize(); gtmain_race_updates_reset(); gtmain_race_overlay_textures_load();
     mode = r_u8(0x800CB7F5u);
     if (mode == 1u || mode == 5u) { RACE_CALL0(0x800205D0u); goto restart; }
     goto frame;

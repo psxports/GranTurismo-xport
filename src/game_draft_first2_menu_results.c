@@ -13,7 +13,6 @@ static void result_format_native(char output[32], sint32 number)
 static sint32 result_native_width(const char label[32])
 {
     /* TODO Preserve native string provenance at the width service */
-    (void)label;
     gt_draft_failure("Native result label width", 0x8006C900u);
 }
 static void result_native_transition(uint32 ordering, sint32 x, sint32 y, const char label[32], sint32 intensity, sint32 phase, sint32 palette)
@@ -22,13 +21,11 @@ static void result_native_transition(uint32 ordering, sint32 x, sint32 y, const 
     (void)ordering; (void)x; (void)y; (void)label; (void)intensity; (void)phase; (void)palette;
     gt_draft_failure("Native result label transition", 0x800323A0u);
 }
-static void result_descriptor(uint32 ordering, sint32 x, sint32 y, uint32 mode, sint32 intensity, uint8 output[152])
+static void result_descriptor(uint32 ordering, sint32 x, sint32 y, sint32 intensity, uint8 output[152])
 {
-    /* The original fifth argument is unread by the descriptor owner */
-    (void)mode;
     (void)gtmain_menu_descriptor_draw(ordering,0x801D3AECu,x,y,intensity,1,output,152);
 }
-static sint32 result_descriptor_lookup(const uint8 descriptor[152], sint32 selector, uint32 *value)
+static sint32 result_descriptor_lookup(const uint8 descriptor[152], sint32 selector, uint32 *value, uint32 *has_value)
 {
     uint32 i = 0;
     sint32 key = (sint8)descriptor[2];
@@ -40,6 +37,7 @@ static sint32 result_descriptor_lookup(const uint8 descriptor[152], sint32 selec
             if (offset + 1u >= 152u || i + 26u >= 152u)
                 gt_draft_failure("Native result descriptor extent", 0x800324C4u);
             *value = descriptor[i + 26u];
+            *has_value = 1u;
             return (sint16)(uint16)(descriptor[offset] | ((uint16)descriptor[offset + 1u] << 8));
         }
         ++i;
@@ -63,7 +61,13 @@ static void result_label(uint32 ordering, sint32 x, sint32 y, uint32 label, cons
 }
 uint32 gtmain_menu_result_prepare(void)
 {
-    sint32 competitor = (sint16)r_u16(0x801D2FEEu), mode;
+    return gtmain_menu_result_tail_prepare((sint16)r_u16(0x801D2FEEu));
+}
+
+/* GTMAIN.EXE 800335F4 receives the competitor predicate in v0 */
+uint32 gtmain_menu_result_tail_prepare(sint32 competitor)
+{
+    sint32 mode;
     uint32 name;
     w_u32(0x800919B8u, 0x800BC9C3u);
     if (competitor >= 0) w_u32(0x800919B8u, 0x800BC9CDu);
@@ -81,7 +85,13 @@ uint32 gtmain_menu_result_prepare(void)
 }
 uint32 gtmain_menu_lap_results_prepare(void)
 {
-    uint32 active = r_u8(0x801D2FEDu) & 1u, record = 0, flag, name, course, i = 0, offset = 332;
+    return gtmain_menu_lap_results_tail_prepare(r_u8(0x801D2FEDu));
+}
+
+/* GTMAIN.EXE 80032D24 receives record flags in v0 */
+uint32 gtmain_menu_lap_results_tail_prepare(uint32 record_flags)
+{
+    uint32 active = record_flags & 1u, record = 0, flag, name, course, i = 0, offset = 332;
     sint32 laps, mode;
     if (active) {
         mode = (sint8)r_u8(0x801D2FECu);
@@ -112,7 +122,14 @@ uint32 gtmain_menu_lap_results_prepare(void)
 }
 uint32 gtmain_menu_result_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
-    sint32 competitor = (sint16)r_u16(0x801D2FEEu), mode = (sint8)r_u8(0x801D2FECu);
+    sint32 competitor = (sint16)r_u16(0x801D2FEEu);
+    sint32 mode = (sint8)r_u8(0x801D2FECu);
+    return gtmain_menu_result_tail_draw(ordering, x, y, intensity, mode, competitor);
+}
+
+/* GTMAIN.EXE 80033340 receives mode and competitor in v0 and v1 */
+uint32 gtmain_menu_result_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 mode, sint32 competitor)
+{
     uint32 alternate = mode == 3, present = competitor >= 0, label;
     sint32 row_x, palette;
     char formatted[32]; const char *native_label = 0;
@@ -140,8 +157,17 @@ uint32 gtmain_menu_result_draw(uint32 ordering, sint32 x, sint32 y, sint32 inten
 }
 uint32 gtmain_menu_lap_results_draw(uint32 ordering, sint32 x, sint32 y, uint32 descriptor_mode, sint32 intensity)
 {
-    sint32 mode = (sint8)r_u8(0x801D2FECu), vertical_a = 0, vertical_b = 0, competitor, palette, list_x, scroll_x;
+    sint32 initial_mode = r_s8(0x801D2FECu);
+    /* The descriptor owner does not read this original argument */
+    return gtmain_menu_lap_results_tail_draw(ordering, x, y, intensity, initial_mode);
+}
+
+/* GTMAIN.EXE 800328B4 receives its initial mode in v1 */
+uint32 gtmain_menu_lap_results_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 initial_mode)
+{
+    sint32 mode = initial_mode, vertical_a = 0, vertical_b = 0, competitor, palette, list_x, scroll_x;
     uint32 label, flag, animated, i = 0, offset = 332;
+    uint32 descriptor_value, has_descriptor_value = 0u;
     char formatted[32]; uint8 descriptor[152]; const char *native_label = 0;
     if (mode >= 7 && mode < 9) { vertical_a = 24; vertical_b = 16; }
     competitor = (sint16)r_u16(0x801D2FEEu);
@@ -157,7 +183,7 @@ uint32 gtmain_menu_lap_results_draw(uint32 ordering, sint32 x, sint32 y, uint32 
     list_x = result_add(x, (flag & 1u) ? 100 : 148);
     scroll_x = result_add(x, (flag & 1u) ? 164 : 176);
     if (result_phase() != 127) scroll_x = result_add(x,-256);
-    result_descriptor(ordering,scroll_x,result_add(y,168-vertical_b),descriptor_mode,intensity,descriptor);
+    result_descriptor(ordering,scroll_x,result_add(y,168-vertical_b),intensity,descriptor);
     (void)gtmain_text_font(1); gtmain_text_flags(0);
     (void)gtmain_menu_footer_draw(ordering,result_add(x,160),result_add(y,48),intensity);
     (void)gtmain_text_font(2);
@@ -168,13 +194,20 @@ uint32 gtmain_menu_lap_results_draw(uint32 ordering, sint32 x, sint32 y, uint32 
     if (result_phase() >= 102) (void)gtmain_menu_row_transition(ordering,result_add(x,32),result_add(y,152-vertical_b),0x800BCA08u,intensity,result_phase()-102,3);
     if ((sint16)r_u16(0x801D2FDCu) >= 0) (void)gtmain_menu_row_draw(ordering,result_add(x,animated ? 100 : 148),result_add(y,130-vertical_a),0x801D3118u,intensity,(sint16)r_u16(0x801D2FDCu),animated,-1,0);
     if ((sint16)r_u16(0x801D2FE2u) > 0) do {
-        uint32 value;
-        sint32 row = 0, position = (sint16)result_descriptor_lookup(descriptor,(sint32)i,&value);
+        sint32 row = 0, position = (sint16)result_descriptor_lookup(descriptor,
+            (sint32)i, &descriptor_value, &has_descriptor_value);
         if ((sint32)i == (sint16)r_u16(0x801D2FE2u)-1) {
             row = (sint16)r_u16(0x801D2FDEu);
             if (row) position = result_add(position,(sint16)(uint16)(descriptor[0] | ((uint16)descriptor[1] << 8)));
         }
-        if (position != -256) (void)gtmain_menu_row_draw(ordering,list_x,position,0x801D2FDCu+offset,(sint32)(value*2u),row,(uint32)(sint32)(sint8)r_u8(0x801D3768u+i),(sint32)i+1,0);
+        if (position != -256) {
+            /* TODO Recover original untouched output provenance after an initial miss */
+            if (!has_descriptor_value)
+                gt_draft_failure("Lap result descriptor output provenance", 0x800328B4u);
+            (void)gtmain_menu_row_draw(ordering,list_x,position,0x801D2FDCu+offset,
+                (sint32)(descriptor_value*2u),row,
+                (uint32)(sint32)(sint8)r_u8(0x801D3768u+i),(sint32)i+1,0);
+        }
         ++i; offset += 16u;
     } while ((sint32)i < (sint16)r_u16(0x801D2FE2u));
     mode = (sint8)r_u8(0x801D2FECu);

@@ -1,12 +1,13 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include <stdio.h>
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_800452D0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_menu_machine_status_initialize(void)
 {
-
-  gt_draft_unresolved_call(0x8008B7D8u, 0x8008D970u, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8004B24Cu, r_u32(0x8009303Cu), 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8004B24Cu, r_u32(0x80092780u), 0, 0, 0, 0, 0, 0, 0);
+    fputs((const char *)psx_addr(0x8008D970u, 21u), stdout);
+    /* TODO Bind unselected reset of actual record fields */
+    gt_draft_unresolved_call(0x8004B24Cu, 0x8009303Cu, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_unresolved_call(0x8004B24Cu, 0x80092780u, 0, 0, 0, 0, 0, 0, 0);
     w_u8(0x800B5304u, 0);
-  return 0;
+    return 0;
 }

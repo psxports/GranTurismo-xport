@@ -2,10 +2,10 @@
 #include "game_draft_registry.h"
 #include <string.h>
 
-/* TODO Bind remaining recorded physics dependencies */
-static uint32 physics_call(uint32 owner, uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5)
+/* TODO Implement unrecorded GTMAIN.EXE 800521A4 only for an observed native blocker */
+static void physics_controls_hud_clear(uint32 car)
 {
-    return gt_draft_unresolved_call(owner, a0, a1, a2, a3, a4, a5, 0, 0);
+    gt_draft_unresolved_call(0x800521A4u, car, 0, 0, 0, 0, 0, 0, 0);
 }
 
 static uint32 physics_mul(uint32 a, uint32 b)
@@ -31,14 +31,6 @@ static uint32 physics_abs(uint32 value)
 static void physics_controls_read(uint8 *controls, uint32 source, uint32 player, uint32 object)
 {
     gtmain_race_controls_decode(controls, source, (sint32)player, object);
-}
-
-static void physics_controls_apply(uint32 owner, uint32 car, const uint8 *controls, sint32 index)
-{
-    if (owner == 0x80056D04u) gtmain_race_controls_ai(car, controls, index);
-    else if (owner == 0x80065C6Cu) gtmain_race_controls_drive(car, controls, index);
-    else if (owner == 0x80052094u) gtmain_race_controls_hud(car, controls);
-    else gt_draft_failure("GTMAIN unknown native physics control consumer", owner);
 }
 
 /* GTMAIN.EXE 800521AC */
@@ -112,17 +104,18 @@ void gtmain_race_physics_prepare(uint32 cars, sint32 count)
         w_u32(0x1F800000u, r_u32(car + 44u));
         state = r_s8(car + 1729u);
         if (state == 2) {
-            physics_controls_apply(0x80056D04u, car + 40u, NULL, index);
+            gtmain_race_controls_ai(car + 40u, NULL, index);
             gtmain_race_controls_hud_ai(car + 40u);
-        } else if (state == 4) physics_call(0x800521A4u, car + 40u, 0, 0, 0, 0, 0);
+        } else if (state == 4) physics_controls_hud_clear(car + 40u);
         else if (!state) {
+            uint32 ai_route = r_u8(car + 1736u) && !r_u16(car + 52u);
+            if (ai_route) gtmain_race_controls_ai(car + 40u, controls, index);
             if (!controls_valid) {
-                /* TODO Resolve the original first default route's uninitialized control bytes */
+                /* TODO Resolve original controls at the first drive or HUD read without a producer */
                 gt_draft_failure("GTMAIN undefined initial physics controls", 0x800521ACu);
             }
-            if (r_u8(car + 1736u) && !r_u16(car + 52u)) physics_controls_apply(0x80056D04u, car + 40u, controls, index);
-            else physics_controls_apply(0x80065C6Cu, car + 40u, controls, index);
-            physics_controls_apply(0x80052094u, car + 40u, controls, index);
+            if (!ai_route) gtmain_race_controls_drive(car + 40u, controls, index);
+            gtmain_race_controls_hud(car + 40u, controls);
         }
     }
     gtmain_race_simulation_step(cars, count);
@@ -200,7 +193,6 @@ void gtmain_race_wheel_contacts_query(uint32 unused_cars, sint32 count)
 {
     sint32 index;
     uint32 wheel;
-    (void)unused_cars;
     for (index = 0; index < count; ++index)
         for (wheel = 0; wheel < 4u; ++wheel)
             gtmain_collision_query((uint8 *)psx_addr(0x1F800004u + 96u * (uint32)index + 24u * wheel, 24u));
@@ -301,32 +293,39 @@ void gtmain_race_pose_update(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 80057DB8 */
-void gtmain_race_lap_groups_tick(uint32 cars)
+uint32 gtmain_race_lap_groups_tick(uint32 cars)
 {
-    sint32 index, group;
+    sint32 index, group = 0;
     for (index = 0; index < r_s16(0x800BC1A6u); ++index) {
         sint32 rank = r_s8(0x800BFE40u + (uint32)index);
         gtmain_race_lap_car_tick(cars + 3380u * (uint32)rank + 40u, rank);
     }
-    for (group = 0; group < (sint32)(r_u32(r_u32(0x800BC1B0u) + 28u) + 1u); ++group) {
+    uint32 limit = r_u32(r_u32(0x800BC1B0u) + 28u) + 1u;
+    if ((sint32)limit <= 0) return limit;
+    do {
         uint32 slot = 4u * (uint32)group;
         sint32 old_count = r_s32(0x800B54C0u + slot), new_count = r_s32(0x800B54A0u + slot);
-        if (old_count == new_count) continue;
-        if (old_count < new_count) {
-            index = old_count;
-            do {
-                uint32 offset = 24u * (uint32)group, item = 4u * (uint32)index;
-                uint32 resource = r_u32(0x800B54E0u + offset + item);
-                if (index) {
-                    uint32 current = r_u32(0x800B53C0u + offset + item);
-                    uint32 first = r_u32(0x800B53C0u + offset);
-                    gtmain_race_lap_difference_show((sint32)resource, (sint32)(current - first));
-                }
-                ++index;
-            } while (index < r_s32(0x800B54A0u + slot));
+        if (old_count != new_count) {
+            if (old_count < new_count) {
+                index = old_count;
+                do {
+                    uint32 offset = 24u * (uint32)group, item = 4u * (uint32)index;
+                    uint32 resource = r_u32(0x800B54E0u + offset + item);
+                    if (index) {
+                        uint32 current = r_u32(0x800B53C0u + offset + item);
+                        uint32 first = r_u32(0x800B53C0u + offset);
+                        gtmain_race_lap_difference_show((sint32)resource, (sint32)(current - first));
+                    }
+                    new_count = r_s32(0x800B54A0u + slot);
+                    ++index;
+                } while (index < new_count);
+            }
+            w_u32(0x800B54C0u + slot, r_u32(0x800B54A0u + slot));
         }
-        w_u32(0x800B54C0u + slot, r_u32(0x800B54A0u + slot));
-    }
+        limit = r_u32(r_u32(0x800BC1B0u) + 28u) + 1u;
+        ++group;
+    } while (group < (sint32)limit);
+    return 4u * (uint32)group;
 }
 
 /* GTMAIN.EXE 80057F7C */
@@ -342,13 +341,12 @@ void gtmain_race_clock_tick(void)
 sint32 gtmain_race_pad_axis_value(sint32 mapping, uint32 unused_state, uint32 packet, uint32 range, uint32 analog)
 {
     sint32 value, minimum, maximum;
-    (void)unused_state;
     if (mapping < 16) return 0;
     value = r_u8(packet + ((uint32)mapping & 15u) + 4u);
     minimum = r_u8(range); maximum = r_u8(range + 1u);
     if (value < minimum) value = minimum;
     else if (maximum < value) value = maximum;
-    if (maximum == minimum) gt_draft_failure("GTMAIN original pad axis division by zero", 0x80028BA8u);
+    if (maximum == minimum) gt_draft_failure("Original MIPS BREAK7 pad axis division by zero", 0x80028C08u);
     value = 15 * (value - minimum) / (maximum - minimum);
     if (analog && maximum < 128) value = 15 - value;
     return value;

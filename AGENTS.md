@@ -44,3 +44,9 @@ Resolve `[XPORT_ROOT]` from `xport-project.json` and read `[XPORT_ROOT]/AGENTS.m
 - Project adapter contracts and reviewed shared identities: `status/function-coverage/first2/native-disc-toc-adapter.json`, `native-cd-async-adapter.json`, `native-timer1-binding.json` and `gte-lz-native-binding.json` under the same status directory; fail-fast missing BIOS/SDK/adapter boundaries remain authorized and unverified
 - Native race context and actual DRAM ordering bindings: `status/function-coverage/first2/native-race-context-adapter.json` and `native-ordering-dram-adapter.json`; native arrays outside DRAM and remaining frame callback adapters are unresolved
 - Native TIM workspaces and retained static-image source spans: `status/function-coverage/first2/native-tim-workspace-adapter.json`; nonstatic compressed resource containers remain unresolved
+
+## Native audio adapter
+
+- Translated SPU register accesses use project `src/game_spu_access.h` and `src/game_draft_spu_access.c`, which route to existing native PsyQ/SPU APIs; ordinary guest memory and shared IRQ binding retain the existing contract
+- Adapter scope, explicit unsupported operations, build logs and Arcade model detail observations: `status/function-coverage/first2/audio-lod-repair.json`
+- Cold native launch restores reviewed SCUS sound/controller defaults once; GTMAIN SDK shutdown retains SPU sample RAM so GAMESTATUS survives EXE transitions; garage initialization remains TODO in `src/game_draft_boot_snapshot.c`

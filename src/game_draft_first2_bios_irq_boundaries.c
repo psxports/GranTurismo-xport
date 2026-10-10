@@ -3,13 +3,11 @@
 void gtmain_bios_gpu_link(uint32 guest_link)
 {
     /* TODO Bind the original A0:49 BIOS GPU link service */
-    (void)guest_link;
     gt_draft_failure("Native BIOS GPU link adapter", 0x8008B608u);
 }
 void gtmain_bios_exception_hook(uint32 guest_context)
 {
     /* TODO Bind the original B0:19 BIOS exception hook service */
-    (void)guest_context;
     gt_draft_failure("Native BIOS exception hook adapter", 0x8008B628u);
 }
 void gtmain_bios_cd_remove(void)

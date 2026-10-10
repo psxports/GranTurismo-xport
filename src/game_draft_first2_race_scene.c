@@ -168,7 +168,7 @@ void gtmain_race_camera_tick(uint32 camera)
     w_u32(camera + 208u, x); w_u32(camera + 212u, y); w_u32(camera + 216u, z);
     kind = r_s16(camera + 246u);
     w_u8(camera + 254u, 0); w_u8(camera + 255u, 0);
-    if (kind == 1) scene_call(0x8001CB64u, camera, 0, 0, 0, 0);
+    if (kind == 1) gtmain_camera_interval_update(camera);
     else if (kind == 2) gtmain_camera_mode_update(camera);
     gtmain_model_orientation(camera, 0x800BFF80u);
     gtmain_vector_subtract((uint8 *)psx_addr(camera + 220u, 12u), (const uint8 *)psx_addr(camera + 120u, 12u), (const uint8 *)psx_addr(camera + 208u, 12u));
@@ -194,8 +194,8 @@ void gtmain_race_split_screen_update(void)
     if (mode == 1) { height = 120; width = 52; }
     w_u16(0x800B6416u, height); w_u16(0x800B641Au, width);
     w_u16(0x800B652Au, height); w_u16(0x800B652Eu, width);
-    scene_call(0x8006B3E0u, 0x800B6410u, 0, 0, 0, 0);
-    scene_call(0x8006B3E0u, 0x800B6524u, 0, 0, 0, 0);
+    gtmain_view_projection_prepare(0x800B6410u);
+    gtmain_view_projection_prepare(0x800B6524u);
 }
 
 /* GTMAIN.EXE 8002E690 */
@@ -270,7 +270,7 @@ void gtmain_race_player_hud_draw(sint32 player, uint32 source)
     scene_call(0x8002FCD4u, link, 16u, 16u - top, source, 0);
     scene_call(0x8002FBA8u, link, 64u, 16u - top, player ? 0x800912B4u : 0x800912BCu, source);
     scene_call(0x8002C318u, link, 238u, lower + 30u, source, 0);
-    scene_call(0x8002C994u, link, 16u, lower + 72u, source, 0);
+    (void)gtmain_race_meter_panel_draw(link, 16u, lower + 72u, source);
 }
 
 /* GTMAIN.EXE 8002B6CC */

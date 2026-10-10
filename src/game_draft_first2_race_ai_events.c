@@ -100,71 +100,104 @@ void gtmain_race_input_record_flush(uint32 object)
 }
 
 /* GTMAIN.EXE 80055068 */
-void gtmain_race_course_events(uint32 car, sint32 current, sint32 previous)
+static uint32 events_control_latch(uint32 car, uint8 value, uint32 hold, uint32 previous_result)
 {
-    uint32 table = r_u32(r_u32(0x800BF51Cu) + 24u), rows, count, flags, type, wheel, contacts, surface;
+    if (hold) {
+        w_u8(car + 1964u, value); w_u8(car + 1965u, (uint8)hold);
+        return previous_result;
+    }
+    uint32 result = r_u8(car + 1965u);
+    if (!result) { w_u8(car + 1964u, value); w_u8(car + 1965u, 0); }
+    return result;
+}
+uint32 gtmain_race_course_events(uint32 car, sint32 current, sint32 previous)
+{
+    uint32 state = r_u32(0x800BF51Cu), table = r_u32(state + 24u);
+    uint32 rows, count, flags, type, wheel, contacts, surface, result, finished = 0;
     sint32 length, current_normal = current, previous_normal = previous, lap_limit, target, first, second;
-    uint32 finished = 0;
-    if (!table) return;
+    if (!table) return state;
     length = r_s32(r_u32(0x800BC1A8u)); count = r_u32(table); rows = table + 4u;
     if (current < length / 2) current_normal = (sint32)((uint32)current + (uint32)length);
     if (previous < length / 2) previous_normal = (sint32)((uint32)previous + (uint32)length);
     if (r_u16(car + 12u)) gtmain_race_control_latch(car, 11, 0);
     flags = r_u8(car + 58u);
     if (flags & 1u) {
-        if (r_s8(car + 1689u) == 2 || r_u8(car + 1696u) || !(flags & 16u)) return;
-        if (r_s32(rows + 140u) >= current_normal || current_normal >= r_s32(rows + 40u * count - 60u)) return;
+        if (r_s8(car + 1689u) == 2) return 2;
+        type = r_u8(car + 1696u); result = flags & 16u;
+        if (type || !result) return result;
+        target = r_s32(rows + 140u);
+        if (target >= current_normal) return count * 4u;
+        target = r_s32(rows + 40u * count - 60u);
+        result = current_normal < target;
+        if (!result) return result;
         target = r_s32(rows + 40u * count - 100u);
         if (target < previous_normal && target >= current_normal) {
-            gtmain_race_behavior_set(car, 4); gtmain_race_control_latch(car, 12, 2u * r_u32(0x800BF518u)); return;
+            result = (uint32)gtmain_race_behavior_set(car, 4);
+            return events_control_latch(car, 12, 2u * r_u32(0x800BF518u), result);
         }
-        if ((r_u32(car + 1724u) + 5690u >= 0x2C75u || r_u32(car + 1728u) + 5690u >= 0x2C75u) && !r_u8(car + 1698u))
-            gtmain_race_control_latch(car, 2, 0);
-        return;
+        result = r_u32(car + 1724u) + 5690u < 0x2C75u;
+        if (result) {
+            result = r_u32(car + 1728u) + 5690u < 0x2C75u;
+            if (result) return result;
+        }
+        result = r_u8(car + 1698u);
+        if (result) return result;
+        return events_control_latch(car, 2, 0, 0);
     }
-    if (r_s8(car + 1689u) && !(r_u8(car + 58u) & 8u)) return;
+    if (r_s8(car + 1689u)) {
+        result = r_u8(car + 58u) & 8u;
+        if (!result) return result;
+    }
     lap_limit = r_s16(0x800B634Cu);
     if (lap_limit) {
+        uint32 progress = r_u32(car + 1804u), half = r_u32(r_u32(0x800BC1A8u)) >> 1;
         sint32 lap = r_s16(car + 56u);
-        uint32 half = r_u32(r_u32(0x800BC1A8u)) >> 1;
-        if (r_u32(car + 1804u) >= half ? lap >= lap_limit : lap >= lap_limit + 1)
+        if (progress >= half ? lap >= lap_limit : lap >= lap_limit + 1)
             if (!(r_u8(car + 58u) & 2u)) finished = 1;
     }
     type = r_u8(car + 1696u);
     if (type == 3u) {
         if (r_u16(car + 12u)) {
-            if (r_u16(car + 12u) == r_u32(0x800BF518u)) gtmain_race_wheel_surface_reset(car);
-            return;
+            uint32 hold = r_u16(car + 12u);
+            result = r_u32(0x800BF518u);
+            if (hold == result) return gtmain_race_wheel_surface_reset(car);
+            return result;
         }
         contacts = 0; surface = r_u32(0x80093E3Cu);
         for (wheel = 0; wheel < 4u; ++wheel) if (r_u32(car + 168u + 68u * wheel) != surface) ++contacts;
         target = r_s32(rows + 40u * (uint32)r_s8(car + 1695u) + 20u);
         if (contacts && previous_normal < target && current_normal >= target) {
             gtmain_race_vehicle_reset(car);
-            if (r_s8(0x800B6310u)) w_u16(car + 12u, 1);
-            else { w_u16(car + 12u, (uint16)(5u * r_u32(0x800BF518u))); gtmain_race_control_latch(car, 11, 0); }
-        } else if (current_normal >= (sint32)((uint32)target + 0x10000u)) {
-            gtmain_race_behavior_set(car, 4); w_u8(car + 58u, (uint8)(r_u8(car + 58u) & 251u));
+            if (r_s8(0x800B6310u)) { w_u16(car + 12u, 1); return 1; }
+            w_u16(car + 12u, (uint16)(5u * r_u32(0x800BF518u)));
+            return events_control_latch(car, 11, 0, 0);
         }
-        return;
+        result = current_normal < (sint32)((uint32)target + 0x10000u);
+        if (result) return result;
+        gtmain_race_behavior_set(car, 4);
+        result = r_u8(car + 58u) & 251u;
+        w_u8(car + 58u, (uint8)result);
+        return result;
     }
     if (type == 2u) {
         if (finished || !r_u32(0x80093E30u)) {
-            gtmain_race_behavior_set(car, 4); gtmain_race_control_latch(car, finished ? 8 : 9, 2u * r_u32(0x800BF518u)); return;
+            result = (uint32)gtmain_race_behavior_set(car, 4);
+            return events_control_latch(car, finished ? 8 : 9, 2u * r_u32(0x800BF518u), result);
         }
         target = (sint32)(r_u32(rows + 40u * (uint32)r_s8(car + 1695u) + 20u) - 1310720u);
         if (previous_normal < target && current_normal >= target) {
-            if (r_s32(car + 1724u) > 125179) {
-                gtmain_race_behavior_set(car, 4);
-                if (!finished) gtmain_race_control_latch(car, 7, 2u * r_u32(0x800BF518u));
-            } else gtmain_race_behavior_set(car, 3);
-            return;
+            if (r_s32(car + 1724u) <= 125179) return (uint32)gtmain_race_behavior_set(car, 3);
+            result = (uint32)gtmain_race_behavior_set(car, 4);
+            if (!finished) return events_control_latch(car, 7, 2u * r_u32(0x800BF518u), result);
+            return result;
         }
         if (!finished && r_u32(0x80093E30u)) gtmain_race_control_latch(car, 10, 0);
-        if (!r_s8(car + 1689u) && !(r_u8(car + 58u) & 16u)) {
-            gtmain_race_behavior_set(car, 0); gtmain_race_control_latch(car, 0, 0);
-        }
-        return;
+        result = (uint32)(sint32)r_s8(car + 1689u);
+        if (result) return result;
+        result = r_u8(car + 58u) & 16u;
+        if (result) return result;
+        gtmain_race_behavior_set(car, 0);
+        return events_control_latch(car, 0, 0, 0);
     }
     if (type == 4u) {
         if (!r_s8(car + 1689u) && !(r_u8(car + 58u) & 16u) && current_normal < length) {
@@ -175,26 +208,43 @@ void gtmain_race_course_events(uint32 car, sint32 current, sint32 previous)
         } else { first = r_s32(rows + 40u * count - 60u); second = r_s32(rows + 40u * count - 100u); }
         if (previous_normal < first && current_normal >= first) {
             if (r_u8(car + 1960u)) gtmain_race_finish_mark(car);
-            else { gtmain_race_behavior_set(car, 0); if (!finished) gtmain_race_control_latch(car, 6, 2u * r_u32(0x800BF518u)); }
-            w_u8(car + 58u, (uint8)(r_u8(car + 58u) & 247u)); return;
+            else {
+                result = (uint32)gtmain_race_behavior_set(car, 0);
+                if (!finished) events_control_latch(car, 6, 2u * r_u32(0x800BF518u), result);
+            }
+            result = r_u8(car + 58u) & 247u;
+            w_u8(car + 58u, (uint8)result);
+            return result;
         }
-        if (current_normal >= second) {
-            if (!finished) gtmain_race_control_latch(car, (r_u8(car + 1966u) & 15u) == 15u ? 5 : 4, 0);
-        } else if (!finished && r_u32(0x80093E30u)) gtmain_race_control_latch(car, 10, 0);
-        return;
+        result = current_normal < second;
+        if (!result) {
+            if (finished) return result;
+            return events_control_latch(car, (r_u8(car + 1966u) & 15u) == 15u ? 5 : 4, 0, 0);
+        }
+        if (finished) return result;
+        result = r_u32(0x80093E30u);
+        if (!result) return result;
+        return events_control_latch(car, 10, 0, 0);
     }
-    if (r_s8(car + 1689u)) {
-        if (finished) return;
+    result = (uint32)(sint32)r_s8(car + 1689u);
+    if (result) {
+        if (finished) return result;
         if (r_s8(car + 1689u)) target = r_s32(rows + 20u);
         else target = r_s32(rows + 60u);
     } else {
-        if (!(r_u8(car + 58u) & 16u)) return;
+        result = r_u8(car + 58u) & 16u;
+        if (!result) return result;
         target = r_s32(rows + 60u);
     }
-    if (previous_normal < target && current_normal >= target) { gtmain_race_behavior_set(car, 2); return; }
-    if (!(r_u8(car + 58u) & 16u) || !r_s8(car + 1689u)) return;
+    if (previous_normal < target && current_normal >= target) return (uint32)gtmain_race_behavior_set(car, 2);
+    result = r_u8(car + 58u) & 16u;
+    if (!result) return result;
+    result = (uint32)(sint32)r_s8(car + 1689u);
+    if (!result) return result;
     target = r_s32(rows + 60u);
-    if (previous_normal < target && current_normal >= target) gtmain_race_behavior_set(car, 2);
+    result = current_normal < target;
+    if (previous_normal >= target || result) return result;
+    return (uint32)gtmain_race_behavior_set(car, 2);
 }
 
 /* GTMAIN.EXE 80055D50 */
@@ -209,13 +259,15 @@ void gtmain_race_controls_ai_update(uint32 car, sint32 index)
     if (r_u8(car + 1912u) != 4u) gtmain_race_ai_segment_update(car);
     if (r_s8(car + 1690u) || r_u32(0x80093D78u) < 6000u) { drive = 1; goto steering_publish; }
     table_index = r_u16(car + 1790u) & 4095u;
+    type = r_u8(car + 1696u);
     sine = -r_s16(0x8009423Cu + 2u * table_index); cosine = r_s16(0x80094A3Cu + 2u * table_index);
-    if (r_u8(car + 1696u) == 3u) distance = 0x80000u;
+    if (type == 3u) distance = 0x80000u;
     else if (r_u8(car + 1696u) == 4u && r_u8(car + 1967u)) distance = 0xA0000u;
     else distance = (uint32)gtmain_race_ai_distance(r_u32(car + 1708u), r_s32(car + 1724u));
     gtmain_race_ai_direction(car, (sint32)distance, &direction_x, &direction_z);
-    angle = gtmain_race_angle_delta(gtmain_angle_atan_wide((sint32)(0u - (uint32)direction_x), direction_z), r_s16(car + 1790u));
-    absolute_angle = angle < 0 ? -angle : angle; mode = r_u8(car + 1780u);
+    angle = gtmain_angle_atan_wide((sint32)(0u - (uint32)direction_x), direction_z);
+    angle = gtmain_race_angle_delta(angle, r_s16(car + 1790u));
+    absolute_angle = angle < 0 ? (sint32)(0u - (uint32)angle) : angle; mode = r_u8(car + 1780u);
     if (mode == 1) {
         if (absolute_angle >= 341) { if (r_u8(car + 33u) & 12u) w_u8(car + 1780u, 2); }
         else if (r_s32(car + 1724u) < 5691) w_u8(car + 1780u, 2);
@@ -256,10 +308,11 @@ void gtmain_race_controls_ai_update(uint32 car, sint32 index)
         if (r_s32(car + 1724u) >= 0) force = (sint32)(0u - (uint32)force);
         coefficient = 0;
         if ((force > 0 && force >= r_s32(car + 1792u)) || (force < 0 && r_s32(car + 1792u) >= force)) {
-            coefficient = (sint32)ai_fp((uint32)force - r_u32(car + 1792u), (uint32)r_s16(r_u32(car + 1708u) + 8u));
+            row = r_u32(car + 1708u); numerator = r_u32(car + 1792u);
+            coefficient = (sint32)ai_fp((uint32)force - numerator, (uint32)r_s16(row + 8u));
             limit = r_s16(car + 496u);
             if (force > 0 && coefficient > limit) {
-                oversteer = ai_div((uint32)coefficient << 12, limit); coefficient = r_s16(car + 496u);
+                oversteer = ai_div((uint32)coefficient << 12, limit); coefficient = limit;
             } else if (force < 0 && coefficient < -limit) {
                 oversteer = ai_div((0u - (uint32)coefficient) << 12, limit); coefficient = -limit;
             }
@@ -305,26 +358,32 @@ steering_publish:
         gtmain_race_brake_assist(car); goto oversteer_apply;
     }
     allow_changes = 0;
-    if (r_u32(car + 1724u) + 1137u >= 0x8E3u)
-        gtmain_race_angle_delta(gtmain_angle_atan_wide((sint32)(0u - r_u32(car + 1712u)), r_s32(car + 1716u)), r_s16(car + 1790u));
+    if (r_u32(car + 1724u) + 1137u >= 0x8E3u) {
+        direction_x = r_s32(car + 1712u); direction_z = r_s32(car + 1716u);
+        angle = gtmain_angle_atan_wide((sint32)(0u - (uint32)direction_x), direction_z);
+        gtmain_race_angle_delta(angle, r_s16(car + 1790u));
+    }
     ai_mode = r_u8(car + 1912u); w_u8(car + 1967u, 0);
     if (ai_mode == 4u) { first_speed = second_speed = 22760; control_mode = 3; w_u8(car + 1967u, 1); }
     else if (r_u8(car + 1912u) != 3u) {
         allow_changes = 1; first_speed = r_s32(car + 1916u); second_speed = r_s32(car + 1920u); control_mode = r_u8(car + 1914u);
     } else {
         sint32 progress = r_s32(car + 1804u), course_length;
-        row = r_u32(r_u32(0x800BF51Cu) + 24u); rows = row + 4u; course_length = r_s32(r_u32(0x800BC1A8u)); count = r_u32(row);
+        row = r_u32(0x800BF51Cu); numerator = r_u32(0x800BC1A8u);
+        row = r_u32(row + 24u); course_length = r_s32(numerator);
+        rows = row + 4u; count = r_u32(row);
         if (progress < course_length / 2) progress = (sint32)((uint32)progress + (uint32)course_length);
         target = r_s16(0x800B634Cu);
         if (target) {
-            uint32 progress_raw = r_u32(car + 1804u), half = r_u32(r_u32(0x800BC1A8u)) >> 1;
+            uint32 length_address = r_u32(0x800BC1A8u), progress_raw = r_u32(car + 1804u);
+            uint32 half = r_u32(length_address) >> 1;
             sint32 lap = r_s16(car + 56u);
             if ((progress_raw >= half ? lap >= target : lap >= target + 1) && !(r_u8(car + 58u) & 2u)) goto ordinary_speed;
         }
         if (r_u32(0x80093E30u)) {
             if (progress < r_s32(rows + 60u)) {
-                first_speed = 138836; if (r_s32(car + 1916u) < first_speed) first_speed = r_s32(car + 1916u);
-                second_speed = 138836; if (r_s32(car + 1920u) < second_speed) second_speed = r_s32(car + 1920u);
+                next = r_s32(car + 1916u); first_speed = next < 138836 ? next : 138836;
+                next = r_s32(car + 1920u); second_speed = next < 138836 ? next : 138836;
                 control_mode = 4; goto speed_ready;
             }
             if (progress < r_s32(rows + 100u) || progress < r_s32(rows + 40u * count - 100u)) {
@@ -356,7 +415,6 @@ speed_ready:
     }
     if (r_u32(car + 1808u)) {
         if (!allow_changes) goto controls_publish;
-        ai_mode = r_u8(car + 1912u);
         if (!r_s8(car + 1813u)) {
             change = (sint32)(uint32)gtmain_race_ai_mode_right((sint32)ai_mode); if (change != -1) goto change_mode;
         }
@@ -391,7 +449,8 @@ oversteer_apply:
         if (coefficient < 0) coefficient = 0;
         next = (sint32)ai_fp((uint32)coefficient, (uint32)r_s16(car + 18u)); row = r_u32(car + 1708u);
         w_u16(car + 18u, (uint16)next); w_u16(car + 16u, (uint16)next);
-        next = (sint32)(r_u16(car + 22u) + ai_fp((uint32)r_s16(row + 12u), (uint32)delta));
+        numerator = ai_fp((uint32)r_s16(row + 12u), (uint32)delta);
+        next = (sint32)(r_u16(car + 22u) + numerator);
         w_u16(car + 22u, (uint16)next); if ((sint16)next >= 4097) w_u16(car + 22u, 4096);
         next = r_u16(car + 22u); w_u16(car + 20u, (uint16)next); w_u16(car + 24u, (uint16)next); gtmain_race_brake_assist(car);
     }

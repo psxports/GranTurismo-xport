@@ -4,7 +4,7 @@
 uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size);
 void xport_bind_native_spu_transfer(void);
 
-static void gtmain_spu_dma_callback(uint8 status, uint8 *result)
+static void gtmain_spu_dma_callback(void)
 {
     gtmain_spu_dma_complete();
 }
@@ -106,13 +106,14 @@ uint32 gtmain_data_checksum(uint32 address, uint32 size)
     return (sum << 16) | (crc & 0xFFFFu);
 }
 
+/* GTMAIN.EXE:80069F54 */
 uint32 gtmain_sound_saved_data_init(uint32 buffer)
 {
-    uint32 checksum;
+    uint32 checksum, header, stored;
     w_u32(0x800B235Cu, 0x2000u >> 3);
     w_u32(0x800B23B4u, 0u);
     w_u32(0x800B2360u, 0u);
-    /* Read the actual native SPU RAM without a BIOS DMA event */
+    /* TODO Preserve original read and wait state through the native SPU adapter */
     w_u16(r_u32(0x800B2344u) + 422u, r_u16(0x800B235Cu));
     w_u32(0x800B2394u, 1u);
     w_u32(0x800B2398u, buffer);
@@ -121,12 +122,14 @@ uint32 gtmain_sound_saved_data_init(uint32 buffer)
         gt_draft_unresolved_call(0x800862B0u, buffer, 0xB3C0u, 0u, 0u, 0u, 0u, 0u, 0u);
     gtmain_spu_dma_complete();
     checksum = gtmain_data_checksum(buffer, 0xB398u);
-    if (r_u32(buffer) != 0x47546F73u || r_u32(buffer + 0xB398u) != checksum) {
-        sub_8007BD58(buffer, 0u, 0xB3C0u);
-        w_u32(buffer, 0x47546F73u);
-        return 0x47546F73u;
+    header = r_u32(buffer);
+    if (header == 0x47546F73u) {
+        stored = r_u32(buffer + 0xB398u);
+        if (stored == checksum) return stored;
     }
-    return r_u32(buffer + 0xB398u);
+    sub_8007BD58(buffer, 0u, 0xB3C0u);
+    w_u32(buffer, 0x47546F73u);
+    return 0x47546F73u;
 }
 
 void gtmain_sound_sequence_init(void)

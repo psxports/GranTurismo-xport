@@ -10,8 +10,6 @@ static sint32 gtmain_native_pad_info_act(uint32 port, sint32 index, sint32 term)
         PadGetState((sint32)port) == 6 && PadInfoMode((sint32)port, 1, 0) == 4)
         return 0;
     /* TODO Bind other native pad capability descriptors */
-    (void)index;
-    (void)term;
     gt_draft_failure("PadInfoAct native actuator descriptor", 0x8008028Cu);
 }
 

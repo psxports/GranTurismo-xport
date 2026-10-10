@@ -1,35 +1,37 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include <stdio.h>
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_8004ACB8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+sint32 gtmain_menu_parts_check(uint32 target)
 {
-    sint32 v2 = 0;
-    sint32 result = 0;
-    uint32 i = 0;
-    sint32 v5 = 0;
-  gt_draft_unresolved_call(0x8008B7D8u, 0x8008DD98u, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8008B7D8u, "\tcurrent car num <%d>    target car <%d>\n", r_u32(r_u32(0x800BEA64u)) & 0xFFF, r_u16(a1) & 0xFFF, 0, 0, 0, 0, 0);
-  v2 = 1;
-  if ( (r_u32(r_u32(0x800BEA64u)) & 0xFFF) != (r_u16(a1) & 0xFFF) )
-    return -1;
-  for ( i = r_u32(0x800935A4u); (sint16)r_u16(i) >= 0; i = (uint32)((uint32)i + 2) )
-  {
-    result = gt_draft_8004AB98(0, 0, 0, 0, 0, 0, 0, 0);
-    if ( result )
-      return result;
-  }
-  if ( r_u16(a1 + 2u * (15)) != r_u16(r_u32(0x800BEA64u) + 30) )
-    v2 = 0;
-  if ( r_u16(a1 + 2u * (17)) != r_u16(r_u32(0x800BEA64u) + 34) )
-    v2 = 0;
-  if ( r_u16(a1 + 2u * (2)) != r_u16(r_u32(0x800BEA64u) + 4) )
-    v2 = 0;
-  if ( r_u16(a1 + 2u * (6)) != r_u16(r_u32(0x800BEA64u) + 12) )
-    v2 = 0;
-  if ( r_u16(a1 + 2u * (8)) != r_u16(r_u32(0x800BEA64u) + 16) )
-    v2 = 0;
-  v5 = v2 ^ 1;
-  if ( r_u16(a1 + 2u * (12)) != r_u16(r_u32(0x800BEA64u) + 24) )
-    v5 = 1;
-  return -v5 & 0xFFFFFFFE;
+    static const uint8 fields[6] = { 30, 34, 4, 12, 16, 24 };
+    uint32 context, table, target_number, current_number, i;
+    sint32 type, result, equal = 1;
+    fputs((const char *)psx_addr(0x8008DD98u, 23u), stdout);
+    context = r_u32(0x800BEA64u);
+    target_number = r_u16(target);
+    current_number = r_u16(context);
+    printf((const char *)psx_addr(0x8008DDB0u, 42u),
+        (int)(current_number & 4095u), (int)(target_number & 4095u));
+    context = r_u32(0x800BEA64u);
+    current_number = r_u16(context);
+    target_number = r_u16(target);
+    if ((current_number & 4095u) != (target_number & 4095u)) return -1;
+    table = 0x800935A4u;
+    for (;;)
+    {
+        type = (sint16)r_u16(table);
+        if (type < 0) break;
+        result = gtmain_menu_part_check(target, type);
+        table += 2u;
+        if (result) return result;
+    }
+    for (i = 0; i < 6u; ++i)
+    {
+        context = r_u32(0x800BEA64u);
+        target_number = r_u16(target + fields[i]);
+        current_number = r_u16(context + fields[i]);
+        if (target_number != current_number) equal = 0;
+    }
+    return equal ? 0 : -2;
 }

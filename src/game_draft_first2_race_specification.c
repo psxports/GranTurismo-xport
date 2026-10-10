@@ -69,7 +69,6 @@ static void specification_suspension_curve(uint32 destination, uint32 source, ui
     w_u32(destination + 56u, (uint32)specification_fp32(16056400u, r_u8(source + 2u)));
     w_u32(destination + 60u, r_u8(source + 3u));
     w_u32(destination + 64u, (uint32)((sint32)(160564u * r_u8(source + 3u)) / 16384));
-    (void)base;
 }
 
 /* GTMAIN.EXE 8004F030 */

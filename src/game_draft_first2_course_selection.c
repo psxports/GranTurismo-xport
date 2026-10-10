@@ -1,5 +1,38 @@
 #include "game_first2_registry.h"
 
+/* GTMAIN.EXE 80022AA4 */
+sint32 gtmain_course_selection_apply(sint32 mode)
+{
+    uint32 row = 0x8008F500u + 24u * r_u8(0x800CB7F8u);
+    uint32 names = r_u32(row);
+    uint32 name = r_u32(names + 4u * r_u8(0x800CB7F9u));
+    uint32 single_course = r_u32(names + 4u) == 0u;
+    sint32 course;
+    w_u8(0x800B3914u, (uint8)single_course);
+    if (!name) return 1;
+    course = gtmain_course_name_find(name);
+    if (course >= 0) gtmain_race_arcade_track((uint32)course);
+    else course = 0;
+    w_u8(0x800B6310u, 0u);
+    w_u8(0x800B63BCu, (uint8)course);
+    w_u8(0x800CB7F6u, (uint8)mode);
+    if (mode == 1) {
+        uint16 count;
+        gtmain_race_cars_invalidate();
+        count = r_u16(row + 20u);
+        w_u8(0x800B6394u, 6u);
+        w_u16(0x800B634Cu, count);
+    } else if (mode == 2) {
+        w_u8(0x800B6310u, 1u);
+        w_u8(0x800B6394u, 1u);
+        w_u16(0x800B634Cu, 0u);
+    } else if (mode == 0) {
+        w_u8(0x800B6394u, 1u);
+        w_u16(0x800B634Cu, 1u);
+    }
+    return 0;
+}
+
 static sint32 gtmain_course_dot_delta(const uint8 *position, uint32 segment, uint32 reverse)
 {
     uint8 vector[12];

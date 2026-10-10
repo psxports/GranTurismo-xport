@@ -46,7 +46,6 @@ static void race_format_native(char *buffer, uint32 capacity, uint32 first, uint
 static sint32 race_text_width_native(const char *text)
 {
     /* TODO Bind native formatted text to the original width algorithm */
-    (void)text;
     gt_draft_failure("GTMAIN native race menu text width", 0x8006C900u);
 }
 
@@ -133,7 +132,7 @@ void gtmain_race_mode_prepare(void)
         gtmain_race_player_positions_latch();
     }
     switch (r_u8(0x800CB7F5u)) {
-    case 0: race_call(0x80025E54u, 0, 0, 0); break;
+    case 0: gtmain_race_mode0_prepare(); break;
     case 1: race_call(0x8002633Cu, 0, 0, 0); break;
     case 2: race_call(0x800264D0u, 0, 0, 0); break;
     case 3: race_call(0x80022FE8u, 0, 0, 0); break;
