@@ -97,25 +97,53 @@ sint32 gtmain_format_decimal(sint32 (*emit)(sint8), uint8 flags, sint32 width, s
     return format_number_native(emit, flags, width, precision, (uint8)sign, 0, digits, (sint32)length, 10);
 }
 
+static uint32 format_argument_peek(GTMainFormatArguments *arguments, uint32 width)
+{
+    uint32 index = arguments->index;
+    if (arguments->words || !arguments->guest_address) {
+        uint32 value;
+        if (index >= arguments->count) gt_draft_failure("Native formatter argument bound", 0x8007CAE4u);
+        value = arguments->words[index];
+        return width == 1u ? value & 255u : width == 2u ? value & 65535u : value;
+    }
+    if (width == 1u) return r_u8(arguments->guest_address + 4u * index);
+    if (width == 2u) return r_u16(arguments->guest_address + 4u * index);
+    return r_u32(arguments->guest_address + 4u * index);
+}
+
 static uint32 format_argument(GTMainFormatArguments *arguments)
 {
-    uint32 index = arguments->index++;
-    if (arguments->words || !arguments->guest_address) {
-        if (index >= arguments->count) { gt_draft_failure("Native formatter argument bound", 0x8007CAE4u); return 0; }
-        return arguments->words[index];
-    }
-    return r_u32(arguments->guest_address + 4u * index);
+    uint32 value = format_argument_peek(arguments, 4u);
+    ++arguments->index;
+    return value;
 }
 
 static sint32 format_cursor_decimal(uint32 *cursor)
 {
-    uint32 value = r_u8(*cursor), result = 0;
+    uint32 position = *cursor, value = r_u8(position), result = 0;
     while (value - 48u < 10u) {
-        ++*cursor;
-        result = 10u * result - 48u + value;
-        value = r_u8(*cursor);
+        uint32 digit = value;
+        value = r_u8(++position);
+        result = 10u * result - 48u + digit;
     }
+    *cursor = position;
     return (sint32)result;
+}
+
+/* TODO Implement the independent unselected octal formatter when required */
+static sint32 format_octal_missing(sint32 (*emit)(sint8), uint8 flags, sint32 width,
+    sint32 precision, uint32 low, uint32 high, sint8 sign)
+{
+    gt_draft_failure("Unrecorded octal formatter", 0x8007C8F4u);
+    return -1;
+}
+
+/* TODO Implement the independent unselected hexadecimal formatter when required */
+static sint32 format_hex_missing(sint32 (*emit)(sint8), uint8 flags, sint32 width,
+    sint32 precision, uint32 low, uint32 high, sint8 letter)
+{
+    gt_draft_failure("Unrecorded hexadecimal formatter", 0x8007C9B4u);
+    return -1;
 }
 
 /* GTMAIN.EXE 8007CAE4 */
@@ -123,12 +151,13 @@ sint32 gtmain_format_engine(sint32 (*emit)(sint8), uint32 format, GTMainFormatAr
 {
     uint32 count = 0, cursor = format;
     for (;;) {
-        uint8 character = r_u8(cursor++);
+        uint8 character = r_u8(cursor++), lookahead;
         uint32 spec_start, modifier = 0;
         uint8 flags = 0;
         sint32 width = -1, precision = -1, added = 0;
         if (!character) return (sint32)count;
-        if ((sint8)character != 37 || (sint8)r_u8(cursor) == 37) {
+        lookahead = r_u8(cursor);
+        if ((sint8)character != 37 || (sint8)lookahead == 37) {
             if ((sint8)character == 37) ++cursor;
             if (emit((sint8)character)) return -1;
             ++count; continue;
@@ -144,10 +173,15 @@ sint32 gtmain_format_engine(sint32 (*emit)(sint8), uint32 format, GTMainFormatAr
             else break;
             ++cursor;
         }
-        if ((uint32)character - 48u < 10u) width = format_cursor_decimal(&cursor);
-        else if ((sint8)character == 42) { width = (sint32)format_argument(arguments); ++cursor; }
-        if ((sint8)r_u8(cursor) == 46) {
-            ++cursor; character = r_u8(cursor);
+        if ((uint32)character - 48u < 10u) {
+            width = format_cursor_decimal(&cursor);
+            character = r_u8(cursor);
+        } else if ((sint8)character == 42) {
+            width = (sint32)format_argument(arguments);
+            character = r_u8(++cursor);
+        }
+        if ((sint8)character == 46) {
+            character = r_u8(++cursor);
             if ((uint32)character - 48u < 10u) precision = format_cursor_decimal(&cursor);
             else if ((sint8)character == 42) { width = (sint32)format_argument(arguments); ++cursor; }
         }
@@ -159,30 +193,38 @@ sint32 gtmain_format_engine(sint32 (*emit)(sint8), uint32 format, GTMainFormatAr
         character = r_u8(cursor++);
         switch (character) {
         case 'd': case 'i': case 'u': case 't': case 'o': case 'x': case 'X': {
-            uint32 low = format_argument(arguments), high, magnitude_low, magnitude_high;
+            uint32 low, high, magnitude_low, magnitude_high;
             sint8 sign = 0;
-            if (modifier == 1) { low = (uint32)(sint32)(sint16)low; high = (uint32)((sint32)low >> 31); magnitude_low = low & 65535u; magnitude_high = 0; }
-            else if (modifier == 3) { high = format_argument(arguments); magnitude_low = low; magnitude_high = high; }
-            else { high = (uint32)((sint32)low >> 31); magnitude_low = low; magnitude_high = 0; }
+            if (modifier == 1) {
+                low = (uint32)(sint32)(sint16)format_argument_peek(arguments, 2u);
+                ++arguments->index;
+                high = (uint32)((sint32)low >> 31); magnitude_low = low & 65535u; magnitude_high = 0;
+            } else {
+                low = format_argument(arguments);
+                if (modifier == 3) { high = format_argument(arguments); magnitude_low = low; magnitude_high = high; }
+                else { high = (uint32)((sint32)low >> 31); magnitude_low = low; magnitude_high = 0; }
+            }
             if ((sint32)high < 0 && (character == 'd' || character == 'i' || character == 't')) {
                 magnitude_low = 0u - low; magnitude_high = 0u - high - (magnitude_low != 0); sign = 45;
             }
-            if (character == 'o' || character == 'i') {
-                /* TODO Translate unrecorded octal formatting dependency */
-                gt_draft_failure("Unrecorded octal formatter", 0x8007C8F4u); return -1;
-            }
-            if (character == 'x' || character == 'X') {
-                /* TODO Translate unrecorded hexadecimal formatting dependency */
-                gt_draft_failure("Unrecorded hexadecimal formatter", 0x8007C9B4u); return -1;
-            }
-            added = gtmain_format_decimal(emit, flags, width, precision, magnitude_low, magnitude_high, sign, character == 't');
+            if (character == 'o' || character == 'i')
+                added = format_octal_missing(emit, flags, width, precision, magnitude_low, magnitude_high, sign);
+            else if (character == 'x' || character == 'X')
+                added = format_hex_missing(emit, flags, width, precision, magnitude_low, magnitude_high, (sint8)character);
+            else added = gtmain_format_decimal(emit, flags, width, precision, magnitude_low, magnitude_high, sign, character == 't');
             break;
         }
         case 'E': case 'G': case 'e': case 'f': case 'g':
             arguments->index += modifier < 2 ? 1u : 2u; break;
         case 'n': case 'p': ++arguments->index; break;
-        case 'c': if (emit((sint8)format_argument(arguments)) < 0) return -1; added = 1; break;
-        case 's': added = gtmain_format_string(emit, flags, width, precision, format_argument(arguments)); break;
+        case 'c':
+            added = emit((sint8)format_argument_peek(arguments, 1u));
+            ++arguments->index;
+            if (added < 0) return -1;
+            added = 1; break;
+        case 's':
+            added = gtmain_format_string(emit, flags, width, precision, format_argument_peek(arguments, 4u));
+            ++arguments->index; break;
         default: cursor = spec_start; break;
         }
         if (added < 0) return -1;

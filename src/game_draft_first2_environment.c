@@ -15,7 +15,6 @@ static void stream_alternate_sync(uint8 status, uint8 *response)
 static void stream_alternate_ready(uint8 status, uint8 *response)
 {
     /* TODO Bind the translated alternate stream ready callback */
-    (void)status; (void)response;
     gt_draft_failure("GTMAIN alternate stream ready callback", 0x8006FDA4u);
 }
 

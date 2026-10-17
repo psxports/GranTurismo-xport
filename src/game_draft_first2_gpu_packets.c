@@ -17,7 +17,6 @@ static void gpu_word_write(uint32 address, uint32 value)
 static uint32 gpu_missing(uint32 token, uint32 a0, uint32 a1)
 {
     /* TODO Bind actual native device callback and its meaningful result */
-    (void)a0; (void)a1;
     gt_draft_failure("Native GPU device callback adapter", token);
 }
 static uint32 gpu_callback(uint32 token, uint32 data, uint32 argument)
@@ -32,7 +31,11 @@ static uint32 gpu_callback(uint32 token, uint32 data, uint32 argument)
 static void gpu_control(uint32 command)
 {
     uint32 table = r_u32(0x800B24ACu);
-    (void)gpu_callback(r_u32(table + 16u), command, 0);
+    uint32 token = r_u32(table + 16u);
+    if (token == 0x80088790u) { gtmain_gpu_control_write(command); return; }
+    if (token == 0x80088808u) { gtmain_gpu_dma_submit(command); return; }
+    /* TODO Bind unknown one-argument control callbacks */
+    gt_draft_failure("Native GPU control callback", token);
 }
 static void gpu_log_environment(uint32 format, uint32 argument)
 {
@@ -81,13 +84,13 @@ uint32 gtmain_gpu_clip_begin(sint16 x, sint16 y) { return gpu_clip(0xE3000000u, 
 uint32 gtmain_gpu_clip_end(sint16 x, sint16 y) { return gpu_clip(0xE4000000u, x, y); }
 uint32 gtmain_gpu_timeout_begin(void)
 {
-    uint32 value = gpu_missing(0x8008A908u, (uint32)-1, 0) + 240u;
+    uint32 value = (uint32)VSync(-1) + 240u;
     w_u32(0x800B25C0u, value); w_u32(0x800B25C4u, 0);
     return value;
 }
 sint32 gtmain_gpu_timeout_poll(void)
 {
-    uint32 now = gpu_missing(0x8008A908u, (uint32)-1, 0), old, result;
+    uint32 now = (uint32)VSync(-1), old, result;
     if ((sint32)r_u32(0x800B25C0u) >= (sint32)now) {
         old = r_u32(0x800B25C4u); w_u32(0x800B25C4u, old + 1u);
         if ((sint32)old <= 983040) return 0;
@@ -104,7 +107,7 @@ sint32 gtmain_gpu_timeout_poll(void)
         (void)discarded;
         printf("GPU timeout:que=%d,stat=%08x,chcr=%08x,madr=%08x,", (int)((head-tail)&3u), (unsigned)status, (unsigned)chcr, (unsigned)madr);
     }
-    result = gpu_missing(0x8008A3C4u, 0, 0);
+    result = gtmain_interrupt_mask_exchange(0);
     w_u32(0x800B25B0u, 0);
     old = r_u32(0x800B25B0u);
     w_u32(0x800B25BCu, result); w_u32(0x800B25ACu, old);
@@ -112,7 +115,7 @@ sint32 gtmain_gpu_timeout_poll(void)
     old = r_u32(0x800B25A8u); gpu_word_write(old, gpu_word_read(old) | 0x800u);
     gpu_word_write(r_u32(0x800B258Cu), 0x02000000u);
     gpu_word_write(r_u32(0x800B258Cu), 0x01000000u);
-    (void)gpu_missing(0x8008A3C4u, r_u32(0x800B25BCu), 0);
+    (void)gtmain_interrupt_mask_exchange((uint16)r_u32(0x800B25BCu));
     return -1;
 }
 static uint32 gpu_transfer_shape(uint32 rectangle, uint32 *blocks, uint32 *remainder)
@@ -195,15 +198,28 @@ sint32 gtmain_gpu_pixels_read(uint32 rectangle, uint32 destination)
     }
     return 0;
 }
+static void gpu_queue_pump_missing(void)
+{
+    /* TODO Bind the unselected zero-argument queue pump */
+    gt_draft_failure("GTMAIN GPU queue pump", 0x80088B54u);
+}
+static void gpu_queue_callback_install_missing(uint32 index, uint32 token)
+{
+    /* TODO Bind the unselected DMA registration table adapter */
+    gt_draft_failure("GTMAIN GPU queue callback registration", 0x8008A2A8u);
+}
 sint32 gtmain_gpu_command_enqueue(uint32 callback_token, uint32 data, sint32 copy_bytes, uint32 argument)
 {
     uint32 head, tail, mask, table, index, pointer;
     (void)gtmain_gpu_timeout_begin();
-    while (((r_u32(0x800B25ACu) + 1u) & 3u) == r_u32(0x800B25B0u)) {
+    for (;;) {
+        head = r_u32(0x800B25ACu);
+        tail = r_u32(0x800B25B0u);
+        if (((head + 1u) & 3u) != tail) break;
         if (gtmain_gpu_timeout_poll()) return -1;
-        (void)gpu_missing(0x80088B54u, 0, 0);
+        gpu_queue_pump_missing();
     }
-    mask = gpu_missing(0x8008A3C4u, 0, 0); w_u32(0x800B25B4u, mask);
+    mask = gtmain_interrupt_mask_exchange(0); w_u32(0x800B25B4u, mask);
     { uint32 enabled = r_u8(0x800B24B5u); w_u32(0x800B24BCu, 1);
       if (enabled) {
         head = r_u32(0x800B25ACu); tail = r_u32(0x800B25B0u);
@@ -215,10 +231,10 @@ sint32 gtmain_gpu_command_enqueue(uint32 callback_token, uint32 data, sint32 cop
     pointer = r_u32(0x800B258Cu);
     while (!(gpu_word_read(pointer) & 0x04000000u)) {}
     (void)gpu_callback(callback_token, data, argument);
-    (void)gpu_missing(0x8008A3C4u, r_u32(0x800B25B4u), 0);
+    (void)gtmain_interrupt_mask_exchange((uint16)r_u32(0x800B25B4u));
     return 0;
 queued:
-    (void)gpu_missing(0x8008A2A8u, 2, 0x80088B54u);
+    gpu_queue_callback_install_missing(2, 0x80088B54u);
     if (copy_bytes) {
         pointer = data; index = 0;
         while ((sint32)index < copy_bytes / 4) {
@@ -233,8 +249,8 @@ queued:
     w_u32(0x800B6140u + 96u * r_u32(0x800B25ACu), callback_token);
     head = r_u32(0x800B25ACu); mask = r_u32(0x800B25B4u);
     w_u32(0x800B25ACu, (head + 1u) & 3u);
-    (void)gpu_missing(0x8008A3C4u, mask, 0);
-    (void)gpu_missing(0x80088B54u, 0, 0);
+    (void)gtmain_interrupt_mask_exchange((uint16)mask);
+    gpu_queue_pump_missing();
     head = r_u32(0x800B25ACu); tail = r_u32(0x800B25B0u);
     return (sint32)((head - tail) & 3u);
 }
@@ -290,12 +306,28 @@ uint32 gtmain_gpu_draw_packet(uint32 packet, uint32 environment)
     }
     value = length - 1u; w_u8(packet + 3u, (uint8)value); return value;
 }
+static uint16 gpu_clear_dimension(sint32 dimension, uint16 bits, uint32 limit_address)
+{
+    sint32 limit;
+    uint32 limit_bits;
+    if (dimension < 0) return 0;
+    limit = r_s16(limit_address) - 1;
+    limit_bits = r_u16(limit_address) - 1u;
+    return (uint16)(limit < dimension ? limit_bits : bits);
+}
+static uint32 gpu_drawing_register_missing(uint32 index)
+{
+    /* TODO Bind the unselected one-argument drawing register readback */
+    gt_draft_failure("GTMAIN GPU drawing register readback", 0x80088850u);
+}
 sint32 gtmain_gpu_clear_packet(uint32 rectangle, uint32 packed_color)
 {
+    sint32 dimension = r_s16(rectangle + 4u);
     uint16 width = r_u16(rectangle + 4u), height;
-    width = gpu_dimension(width, 0x800B24B8u);
+    width = gpu_clear_dimension(dimension, width, 0x800B24B8u);
+    dimension = r_s16(rectangle + 6u);
     height = r_u16(rectangle + 6u); w_u16(rectangle + 4u, width);
-    height = gpu_dimension(height, 0x800B24BAu);
+    height = gpu_clear_dimension(dimension, height, 0x800B24BAu);
     { uint32 x = r_u16(rectangle) & 63u; w_u16(rectangle + 6u, height);
       if (x || (r_u16(rectangle + 4u) & 63u)) {
         uint32 status;
@@ -312,9 +344,9 @@ sint32 gtmain_gpu_clear_packet(uint32 rectangle, uint32 packed_color)
         w_u32(0x800B5F90u, (status & 0x7FFu) | ((packed_color >> 31) << 10) | 0xE1000000u);
         w_u32(0x800B5F98u, r_u32(rectangle));
         { uint32 wh = r_u32(rectangle + 4u); w_u32(0x800B5FA4u, 0x03FFFFFFu); w_u32(0x800B5F9Cu, wh); }
-        w_u32(0x800B5FA8u, gpu_missing(0x80088850u, 3, 0) | 0xE3000000u);
-        w_u32(0x800B5FACu, gpu_missing(0x80088850u, 4, 0) | 0xE4000000u);
-        w_u32(0x800B5FB0u, gpu_missing(0x80088850u, 5, 0) | 0xE5000000u);
+        w_u32(0x800B5FA8u, gpu_drawing_register_missing(3) | 0xE3000000u);
+        w_u32(0x800B5FACu, gpu_drawing_register_missing(4) | 0xE4000000u);
+        w_u32(0x800B5FB0u, gpu_drawing_register_missing(5) | 0xE5000000u);
       } else {
         uint32 status;
         w_u32(0x800B5F7Cu, 0x05FFFFFFu); w_u32(0x800B5F80u, 0xE6000000u);
@@ -329,7 +361,7 @@ sint32 gtmain_gpu_clear_packet(uint32 rectangle, uint32 packed_color)
 }
 uint32 gtmain_gpu_display_environment(uint32 environment)
 {
-    uint32 mode = 0x08000000u, command, changed, index;
+    uint32 mode = 0x08000000u, command, changed, index, cached_word, input_word;
     sint32 start_x, end_x, start_y, end_y, value;
     if (r_u8(0x800B24B6u) >= 2u) gpu_log_environment(0x8008F08Cu, environment);
     {
@@ -377,7 +409,9 @@ uint32 gtmain_gpu_display_environment(uint32 environment)
         gpu_control(0x06000000u | ((uint32)end_x & 4095u) << 12 | ((uint32)start_x & 4095u));
         gpu_control(0x07000000u | ((uint32)end_y & 1023u) << 10 | ((uint32)start_y & 1023u));
     }
-    changed = r_u32(0x800B2530u) != r_u32(environment + 16u);
+    cached_word = r_u32(0x800B2530u);
+    input_word = r_u32(environment + 16u);
+    changed = cached_word != input_word;
     if (!changed) for (index = 0; index < 4u; ++index) {
         sint16 cached = (sint16)r_u16(0x800B2520u + 2u * index);
         sint16 input = (sint16)r_u16(environment + 2u * index);

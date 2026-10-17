@@ -2,6 +2,33 @@
 #include "game_draft_registry.h"
 #include "game_draft_agent3_support.h"
 
+/* Preserve the addressed byte lanes and capture the old tag before either store */
+static void phase_polygon_link(uint32 head, uint32 packet)
+{
+    uint32 head_end = head + 2u;
+    uint32 head_base = head_end & ~3u;
+    uint32 head_count = (head_end & 3u) + 1u;
+    uint32 head_shift = (4u - head_count) * 8u;
+    uint32 old_link = 0x80008000u;
+    uint32 new_link = packet << 8u;
+    uint32 packet_end = packet + 2u;
+    uint32 packet_base = packet_end & ~3u;
+    uint32 packet_count = (packet_end & 3u) + 1u;
+    uint32 packet_shift = (4u - packet_count) * 8u;
+    uint32 i;
+
+    for (i = 0; i < head_count; ++i)
+    {
+        uint32 shift = head_shift + i * 8u;
+        uint32 value = r_u8(head_base + i);
+        old_link = (old_link & ~(0xFFu << shift)) | (value << shift);
+    }
+    for (i = 0; i < head_count; ++i)
+        w_u8(head_base + i, new_link >> (head_shift + i * 8u));
+    for (i = 0; i < packet_count; ++i)
+        w_u8(packet_base + i, old_link >> (packet_shift + i * 8u));
+}
+
 static sint32 polygon_gte_flags(void)
 {
     PsxGteSnapshot state;
@@ -10,10 +37,9 @@ static sint32 polygon_gte_flags(void)
 }
 
 /* Unverified draft from complete exported pseudocode with guest address operations */
-/* Continued from the existing first and second renderer group fragments */
+/* Eight primitive groups retain independent counts, lookahead and clipping paths */
 /* GTE operations use the live shared services in original order */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_8001A758(uint32 a0, uint32 a1)
 {
   sint32 gte_a0;
   sint32 gte_a1;
@@ -55,9 +81,6 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   sint32 v37;
   sint32 v38;
   uint32 v42;
-  sint8 v43;
-  sint8 v44;
-  sint8 v45;
   sint32 v46;
   sint32 v47;
   uint32 v48;
@@ -90,9 +113,6 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   sint32 v87;
   sint32 v88;
   uint32 v92;
-  sint8 v93;
-  sint8 v94;
-  sint8 v95;
   sint32 v96;
   uint32 v97;
   sint32 v98;
@@ -118,9 +138,6 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   sint32 v126;
   sint32 v127;
   uint32 v131;
-  sint8 v132;
-  sint8 v133;
-  sint8 v134;
   sint32 v135;
   sint32 v136;
   uint32 v137;
@@ -153,9 +170,6 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   sint32 v176;
   sint32 v177;
   uint32 v181;
-  sint8 v182;
-  sint8 v183;
-  sint8 v184;
   sint32 v185;
   uint32 v186;
   sint32 v187;
@@ -183,9 +197,6 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   uint32 v217;
   uint32 v218;
   uint32 v222;
-  sint8 v223;
-  sint8 v224;
-  sint8 v225;
   sint32 v226;
   sint32 v227;
   uint32 v228;
@@ -221,9 +232,6 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   uint32 v270;
   sint32 v271;
   uint32 v275;
-  sint8 v276;
-  sint8 v277;
-  sint8 v278;
   sint32 v279;
   uint32 v280;
   sint32 v281;
@@ -251,9 +259,6 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   uint32 v311;
   uint32 v312;
   uint32 v316;
-  sint8 v317;
-  sint8 v318;
-  sint8 v319;
   sint32 v320;
   uint32 v321;
   sint32 v322;
@@ -288,30 +293,35 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
   uint32 v363;
   sint32 v364;
   uint32 v368;
-  sint8 v369;
-  sint8 v370;
-  sint8 v371;
   sint32 v372;
+  uint32 initial_cursor;
+  uint32 initial_word0;
+  uint32 initial_word1;
+  uint32 next_word1;
+  sint32 viewport_extent;
   result = (sint8)r_u8((uint32)(0x8008FBE0u));
-  if (!(sint8)r_u8((uint32)(0x8008FBE0u)))
+  if (!result)
   {
     v372 = r_u32((uint32)(0x8008F220u));
     gtmain_model_translation(a0, 0);
     gtmain_model_matrix_bind(a0, psx_addr(a0 + 64u, 20u));
-    v5 = r_u32((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(24)))));
-    w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))), (uint32)(r_u32((uint32)(0x800BFE4C))));
+    initial_cursor = r_u32(0x800BFE4Cu);
+    v5 = r_u32((uint32)v372 + 24u);
+    w_u32(a0 + 780u, initial_cursor);
     w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))), (uint32)(v5));
     v6 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)((uint32)((sint32)((uint32)(4) * (uint32)((sint32)a1))) + (uint32)(v372))) + (uint32)(28)))));
     v7 = r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(40)))));
     v8 = v6;
-    if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(40))))))
+    if (v7)
     {
       v9 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
-      gte_s6 = ((uint32)(v9) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)(v6)) & 0xFFF)))));
-      gte_s5 = ((uint32)(v9) + (uint32)((((uint32)(r_u32((uint32)(v6))) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-      gte_s4 = ((uint32)(v9) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v6 + 4u * (uint32)(1)))) & 0xFFF)))));
-      v13 = (((uint32)(r_u32((uint32)(v6))) >> 24u) & 0xFFu);
-      if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(40))))))
+      initial_word0 = r_u32(v6);
+      initial_word1 = r_u32(v6 + 4u);
+      gte_s6 = v9 + (initial_word0 & 0xFFFu) * 8u;
+      gte_s5 = v9 + ((initial_word0 >> 9u) & 0x7FF8u);
+      gte_s4 = v9 + (initial_word1 & 0xFFFu) * 8u;
+      v13 = initial_word0 >> 24u;
+      if (v7)
       {
         do
         {
@@ -326,14 +336,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           (v7 -= 1u);
           xport_gte_execute(0x280030);
           v16 = r_u32((uint32)((v8 + 4u * (uint32)(7))));
+          next_word1 = r_u32(v8 + 32u);
           v17 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
           gte_s6 = ((uint32)(v17) + (uint32)(((uint32)(8) * (uint32)((v16 & 0xFFF)))));
           gte_s5 = ((uint32)(v17) + (uint32)((((uint32)(v16) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-          gte_s4 = ((uint32)(v17) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v8 + 4u * (uint32)(8)))) & 0xFFF)))));
+          gte_s4 = ((uint32)(v17) + (uint32)(((uint32)(8) * (uint32)((next_word1 & 0xFFF)))));
           v13 = (((uint32)(v16) >> 24u) & 0xFFu);
           gte_a1 = (sint32)gte_read_h();
           gte_t0 = polygon_gte_flags();
-          v20 = ((sint32)(gte_a1) >> ((uint32)(1) & 31u));
+          v20 = (sint32)((uint32)gte_a1 >> 1u);
           v21 = ((uint32)gte_a1 < 0x400u);
           if ((gte_t0 >= 0))
             goto LABEL_28;
@@ -357,14 +368,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               v28 = v25;
               v29 = (v25 < v26);
               if ((v26 < v25))
-                v25 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+                v25 = v26;
               if (v29)
-                v28 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+                v28 = v26;
               if ((v27 < v25))
-                v25 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+                v25 = v27;
               if ((v28 < v27))
-                v28 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
-              if (((v28 <= 0) || (v25 >= (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(4))))))))
+                v28 = v27;
+              viewport_extent = (sint16)r_u16(a0 + 4u);
+              if ((v28 <= 0) || (v25 >= viewport_extent))
                 goto LABEL_36;
               v30 = (gte_t0 | (sint32)((uint32)(1023) - (uint32)((sint32)((uint32)(v28) - (uint32)(v25)))));
               v31 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(334)))));
@@ -373,15 +385,16 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               v34 = v31;
               v35 = (v31 < v32);
               if ((v32 < v31))
-                v31 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+                v31 = v32;
               if (v35)
-                v34 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+                v34 = v32;
               v36 = (v34 < v33);
               if ((v33 < v31))
-                v31 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+                v31 = v33;
               if ((v34 < v33))
-                v34 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
-              if (((v34 <= 0) || (v31 >= (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(6))))))))
+                v34 = v33;
+              viewport_extent = (sint16)r_u16(a0 + 6u);
+              if ((v34 <= 0) || (v31 >= viewport_extent))
                 goto LABEL_36;
               if (((v30 | (sint32)((uint32)(511) - (uint32)((sint32)((uint32)(v34) - (uint32)(v31))))) >= 0))
               {
@@ -398,21 +411,14 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
                     v42 += 1u * (uint32)(4);
                   w_u32((uint32)((v8 + 4u * (uint32)(5))), (uint32)(gte_a3));
                   w_u32((uint32)((v8 + 4u * (uint32)(6))), (uint32)(gte_t0));
-                  v43 = (sint8)r_u8((uint32)(v42));
-                  v44 = (sint8)r_u8((uint32)((v42 + 1u * (uint32)(1))));
-                  v45 = (sint8)r_u8((uint32)((v42 + 1u * (uint32)(2))));
-                  w_u16((uint32)((uint32)(v42)), (uint32)((uint16)(v14)));
-                  w_u8((uint32)((v42 + 1u * (uint32)(2))), (uint32)(((uint32)(((uint32)((uint32)(v14)) << ((uint32)(8) & 31u))) >> ((uint32)(24) & 31u))));
-                  w_u8((uint32)(v14), (uint32)(v43));
-                  w_u8((uint32)(((uint32)(v8) + 1u * (uint32)(9))), (uint32)(v44));
-                  w_u8((uint32)(((uint32)(v8) + 1u * (uint32)(10))), (uint32)(v45));
+                  phase_polygon_link(v42, v14);
                 }
               }
               else
               {
                 v37 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))));
                 if (((v15 & 1) == 0))
-                  v37 = ((uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))))) + (uint32)(4));
+                  v37 = (sint32)((uint32)v37 + 4u);
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(168)))), (uint32)(v37));
                 v38 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))));
                 w_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(184)))), (uint32)(3));
@@ -424,7 +430,7 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x168)))), (uint32)(xport_gte_read_data(3u)));
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x184)))), (uint32)(xport_gte_read_data(4u)));
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x188)))), (uint32)(xport_gte_read_data(5u)));
-                gt_draft_unresolved_call(0x80068CB0u, (sint32)a0, v36, 0u, 0u, 0u, 0u, 0u, 0u);
+                gtmain_polygon_clip_flat(a0);
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))), (uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(180)))))));
               }
             }
@@ -440,15 +446,17 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     v46 = v372;
     v47 = r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(42)))));
     v48 = v6;
-    if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(42))))))
+    if (v47)
     {
-      v49 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
-      gte_fp = ((uint32)(v49) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)(v6)) & 0xFFF)))));
-      gte_s5 = ((uint32)(v49) + (uint32)((((uint32)(r_u32((uint32)(v6))) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-      gte_s4 = ((uint32)(v49) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v6 + 4u * (uint32)(1)))) & 0xFFF)))));
-      v53 = (uint32)(((uint32)(v49) + (uint32)((((uint32)(r_u32((uint32)((v6 + 4u * (uint32)(1))))) >> ((uint32)(9) & 31u)) & 0x7FF8))));
-      v54 = (((uint32)(r_u32((uint32)(v6))) >> 24u) & 0xFFu);
-      if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(42))))))
+      initial_word0 = r_u32(v6);
+      initial_word1 = r_u32(v6 + 4u);
+      v49 = r_u32(a0 + 776u);
+      gte_fp = (uint32)v49 + (initial_word0 & 0xFFFu) * 8u;
+      gte_s5 = (uint32)v49 + ((initial_word0 >> 9u) & 0x7FF8u);
+      gte_s4 = (uint32)v49 + (initial_word1 & 0xFFFu) * 8u;
+      v53 = (uint32)v49 + ((initial_word1 >> 9u) & 0x7FF8u);
+      v54 = initial_word0 >> 24u;
+      if (v47)
       {
         do
         {
@@ -465,6 +473,7 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v57 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
           xport_gte_execute(0x280030);
           v58 = r_u32((uint32)((v48 + 4u * (uint32)(8))));
+          next_word1 = r_u32(v48 + 36u);
           gte_v1 = (sint32)r_u32((uint32)(v53));
           gte_a0 = (sint32)r_u32((uint32)((v53 + 4u * (uint32)(1))));
           gte_fp = ((uint32)(v57) + (uint32)(((uint32)(8) * (uint32)((v58 & 0xFFF)))));
@@ -479,8 +488,8 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           (v47 -= 1u);
           xport_gte_execute(0x180001);
           gte_s5 = ((uint32)(v57) + (uint32)((((uint32)(v58) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-          gte_s4 = ((uint32)(v57) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v48 + 4u * (uint32)(9)))) & 0xFFF)))));
-          v53 = (uint32)(((uint32)(v57) + (uint32)((((uint32)(r_u32((uint32)((v48 + 4u * (uint32)(9))))) >> ((uint32)(9) & 31u)) & 0x7FF8))));
+          gte_s4 = ((uint32)(v57) + (uint32)(((uint32)(8) * (uint32)((next_word1 & 0xFFF)))));
+          v53 = (uint32)(((uint32)(v57) + (uint32)((((uint32)(next_word1) >> ((uint32)(9) & 31u)) & 0x7FF8))));
           gte_v0 = polygon_gte_flags();
           gte_v1 = (sint32)gte_read_h();
           v67 = (gte_a1 | gte_v0);
@@ -501,19 +510,19 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v72 = v70;
           v73 = (v70 < v71);
           if ((v71 < v70))
-            v70 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+            v70 = v71;
           v74 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
           if (v73)
-            v72 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+            v72 = v71;
           if ((v74 < v70))
-            v70 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+            v70 = v74;
           v75 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
           if ((v72 < v74))
-            v72 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+            v72 = v74;
           if ((v75 < v70))
-            v70 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
+            v70 = v75;
           if ((v72 < v75))
-            v72 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
+            v72 = v75;
           v76 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(4)))));
           if (((v72 <= 0) || (v70 >= v76)))
             goto LABEL_80;
@@ -523,19 +532,19 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v80 = v78;
           v81 = (v78 < v79);
           if ((v79 < v78))
-            v78 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+            v78 = v79;
           v82 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
           if (v81)
-            v80 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+            v80 = v79;
           if ((v82 < v78))
-            v78 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+            v78 = v82;
           v83 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
           if ((v80 < v82))
-            v80 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+            v80 = v82;
           if ((v83 < v78))
-            v78 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
+            v78 = v83;
           if ((v80 < v83))
-            v80 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
+            v80 = v83;
           v84 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(6)))));
           if (((v80 <= 0) || (v78 >= v84)))
             goto LABEL_80;
@@ -557,21 +566,14 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               w_u32((uint32)((v48 + 4u * (uint32)(5))), (uint32)(gte_a3));
               w_u32((uint32)((v48 + 4u * (uint32)(6))), (uint32)(gte_t0));
               w_u32((uint32)((v48 + 4u * (uint32)(7))), (uint32)(gte_t1));
-              v93 = (sint8)r_u8((uint32)(v92));
-              v94 = (sint8)r_u8((uint32)((v92 + 1u * (uint32)(1))));
-              v95 = (sint8)r_u8((uint32)((v92 + 1u * (uint32)(2))));
-              w_u16((uint32)((uint32)(v92)), (uint32)((uint16)(v55)));
-              w_u8((uint32)((v92 + 1u * (uint32)(2))), (uint32)(((uint32)(((uint32)((uint32)(v55)) << ((uint32)(8) & 31u))) >> ((uint32)(24) & 31u))));
-              w_u8((uint32)(v55), (uint32)(v93));
-              w_u8((uint32)(((uint32)(v48) + 1u * (uint32)(9))), (uint32)(v94));
-              w_u8((uint32)(((uint32)(v48) + 1u * (uint32)(10))), (uint32)(v95));
+              phase_polygon_link(v92, v55);
             }
           }
           else
           {
             v86 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))));
             if (((v56 & 1) == 0))
-              v86 = ((uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))))) + (uint32)(4));
+              v86 = (sint32)((uint32)v86 + 4u);
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(168)))), (uint32)(v86));
             v87 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))));
             w_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(184)))), (uint32)(4));
@@ -583,7 +585,7 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x168)))), (uint32)(xport_gte_read_data(3u)));
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x1A4)))), (uint32)(xport_gte_read_data(4u)));
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x1A8)))), (uint32)(xport_gte_read_data(5u)));
-            gt_draft_unresolved_call(0x80068CB0u, (sint32)a0, v85, 0u, 0u, 0u, 0u, 0u, 0u);
+            gtmain_polygon_clip_flat(a0);
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))), (uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(180)))))));
           }
           LABEL_80:
@@ -597,14 +599,16 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     }
     v96 = r_u16((uint32)((uint32)((sint32)((uint32)(v46) + (uint32)(44)))));
     v97 = v6;
-    if (r_u16((uint32)((uint32)((sint32)((uint32)(v46) + (uint32)(44))))))
+    if (v96)
     {
-      v98 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
-      gte_s6 = ((uint32)(v98) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)(v6)) & 0xFFF)))));
-      gte_s5 = ((uint32)(v98) + (uint32)((((uint32)(r_u32((uint32)(v6))) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-      gte_s4 = ((uint32)(v98) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v6 + 4u * (uint32)(1)))) & 0xFFF)))));
-      v102 = (((uint32)(r_u32((uint32)(v6))) >> 24u) & 0xFFu);
-      if (r_u16((uint32)((uint32)((sint32)((uint32)(v46) + (uint32)(44))))))
+      v98 = r_u32(a0 + 776u);
+      initial_word0 = r_u32(v6);
+      initial_word1 = r_u32(v6 + 4u);
+      gte_s6 = (uint32)v98 + (initial_word0 & 0xFFFu) * 8u;
+      gte_s5 = (uint32)v98 + ((initial_word0 >> 9u) & 0x7FF8u);
+      gte_s4 = (uint32)v98 + (initial_word1 & 0xFFFu) * 8u;
+      v102 = initial_word0 >> 24u;
+      if (v96)
       {
         do
         {
@@ -619,14 +623,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           (v96 -= 1u);
           xport_gte_execute(0x280030);
           v105 = r_u32((uint32)((v97 + 4u * (uint32)(9))));
+          next_word1 = r_u32(v97 + 40u);
           v106 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
           gte_s6 = ((uint32)(v106) + (uint32)(((uint32)(8) * (uint32)((v105 & 0xFFF)))));
           gte_s5 = ((uint32)(v106) + (uint32)((((uint32)(v105) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-          gte_s4 = ((uint32)(v106) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v97 + 4u * (uint32)(10)))) & 0xFFF)))));
+          gte_s4 = ((uint32)(v106) + (uint32)(((uint32)(8) * (uint32)((next_word1 & 0xFFF)))));
           v102 = (((uint32)(v105) >> 24u) & 0xFFu);
           gte_a1 = (sint32)gte_read_h();
           gte_t0 = polygon_gte_flags();
-          v109 = ((sint32)(gte_a1) >> ((uint32)(1) & 31u));
+          v109 = (sint32)((uint32)gte_a1 >> 1u);
           v110 = ((uint32)gte_a1 < 0x400u);
           if ((gte_t0 >= 0))
             goto LABEL_108;
@@ -650,14 +655,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               v117 = v114;
               v118 = (v114 < v115);
               if ((v115 < v114))
-                v114 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+                v114 = v115;
               if (v118)
-                v117 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+                v117 = v115;
               if ((v116 < v114))
-                v114 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+                v114 = v116;
               if ((v117 < v116))
-                v117 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
-              if (((v117 <= 0) || (v114 >= (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(4))))))))
+                v117 = v116;
+              viewport_extent = (sint16)r_u16(a0 + 4u);
+              if ((v117 <= 0) || (v114 >= viewport_extent))
                 goto LABEL_116;
               v119 = (gte_t0 | (sint32)((uint32)(1023) - (uint32)((sint32)((uint32)(v117) - (uint32)(v114)))));
               v120 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(334)))));
@@ -666,15 +672,16 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               v123 = v120;
               v124 = (v120 < v121);
               if ((v121 < v120))
-                v120 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+                v120 = v121;
               if (v124)
-                v123 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+                v123 = v121;
               v125 = (v123 < v122);
               if ((v122 < v120))
-                v120 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+                v120 = v122;
               if ((v123 < v122))
-                v123 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
-              if (((v123 <= 0) || (v120 >= (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(6))))))))
+                v123 = v122;
+              viewport_extent = (sint16)r_u16(a0 + 6u);
+              if ((v123 <= 0) || (v120 >= viewport_extent))
                 goto LABEL_116;
               if (((v119 | (sint32)((uint32)(511) - (uint32)((sint32)((uint32)(v123) - (uint32)(v120))))) >= 0))
               {
@@ -691,21 +698,14 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
                     v131 += 1u * (uint32)(4);
                   w_u32((uint32)((v97 + 4u * (uint32)(6))), (uint32)(gte_a3));
                   w_u32((uint32)((v97 + 4u * (uint32)(8))), (uint32)(gte_t0));
-                  v132 = (sint8)r_u8((uint32)(v131));
-                  v133 = (sint8)r_u8((uint32)((v131 + 1u * (uint32)(1))));
-                  v134 = (sint8)r_u8((uint32)((v131 + 1u * (uint32)(2))));
-                  w_u16((uint32)((uint32)(v131)), (uint32)((uint16)(v103)));
-                  w_u8((uint32)((v131 + 1u * (uint32)(2))), (uint32)(((uint32)(((uint32)((uint32)(v103)) << ((uint32)(8) & 31u))) >> ((uint32)(24) & 31u))));
-                  w_u8((uint32)(v103), (uint32)(v132));
-                  w_u8((uint32)(((uint32)(v97) + 1u * (uint32)(9))), (uint32)(v133));
-                  w_u8((uint32)(((uint32)(v97) + 1u * (uint32)(10))), (uint32)(v134));
+                  phase_polygon_link(v131, v103);
                 }
               }
               else
               {
                 v126 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))));
                 if (((v104 & 1) == 0))
-                  v126 = ((uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))))) + (uint32)(4));
+                  v126 = (sint32)((uint32)v126 + 4u);
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(168)))), (uint32)(v126));
                 v127 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))));
                 w_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(184)))), (uint32)(3));
@@ -720,7 +720,7 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x168)))), (uint32)(xport_gte_read_data(3u)));
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x184)))), (uint32)(xport_gte_read_data(4u)));
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x188)))), (uint32)(xport_gte_read_data(5u)));
-                gt_draft_unresolved_call(0x80069254u, (sint32)a0, v125, 0u, 0u, 0u, 0u, 0u, 0u);
+                gtmain_polygon_clip_gouraud(a0);
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))), (uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(180)))))));
               }
             }
@@ -736,15 +736,17 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     v135 = v372;
     v136 = r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(46)))));
     v137 = v6;
-    if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(46))))))
+    if (v136)
     {
-      v138 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
-      gte_fp = ((uint32)(v138) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)(v6)) & 0xFFF)))));
-      gte_s5 = ((uint32)(v138) + (uint32)((((uint32)(r_u32((uint32)(v6))) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-      gte_s4 = ((uint32)(v138) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v6 + 4u * (uint32)(1)))) & 0xFFF)))));
-      v142 = (uint32)(((uint32)(v138) + (uint32)((((uint32)(r_u32((uint32)((v6 + 4u * (uint32)(1))))) >> ((uint32)(9) & 31u)) & 0x7FF8))));
-      v143 = (((uint32)(r_u32((uint32)(v6))) >> 24u) & 0xFFu);
-      if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(46))))))
+      initial_word0 = r_u32(v6);
+      initial_word1 = r_u32(v6 + 4u);
+      v138 = r_u32(a0 + 776u);
+      gte_fp = (uint32)v138 + (initial_word0 & 0xFFFu) * 8u;
+      gte_s5 = (uint32)v138 + ((initial_word0 >> 9u) & 0x7FF8u);
+      gte_s4 = (uint32)v138 + (initial_word1 & 0xFFFu) * 8u;
+      v142 = (uint32)v138 + ((initial_word1 >> 9u) & 0x7FF8u);
+      v143 = initial_word0 >> 24u;
+      if (v136)
       {
         do
         {
@@ -761,6 +763,7 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v146 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
           xport_gte_execute(0x280030);
           v147 = r_u32((uint32)((v137 + 4u * (uint32)(11))));
+          next_word1 = r_u32(v137 + 48u);
           gte_v1 = (sint32)r_u32((uint32)(v142));
           gte_a0 = (sint32)r_u32((uint32)((v142 + 4u * (uint32)(1))));
           gte_fp = ((uint32)(v146) + (uint32)(((uint32)(8) * (uint32)((v147 & 0xFFF)))));
@@ -775,8 +778,8 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           (v136 -= 1u);
           xport_gte_execute(0x180001);
           gte_s5 = ((uint32)(v146) + (uint32)((((uint32)(v147) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-          gte_s4 = ((uint32)(v146) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v137 + 4u * (uint32)(12)))) & 0xFFF)))));
-          v142 = (uint32)(((uint32)(v146) + (uint32)((((uint32)(r_u32((uint32)((v137 + 4u * (uint32)(12))))) >> ((uint32)(9) & 31u)) & 0x7FF8))));
+          gte_s4 = ((uint32)(v146) + (uint32)(((uint32)(8) * (uint32)((next_word1 & 0xFFF)))));
+          v142 = (uint32)(((uint32)(v146) + (uint32)((((uint32)(next_word1) >> ((uint32)(9) & 31u)) & 0x7FF8))));
           gte_v0 = polygon_gte_flags();
           gte_v1 = (sint32)gte_read_h();
           v156 = (gte_a1 | gte_v0);
@@ -797,19 +800,19 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v161 = v159;
           v162 = (v159 < v160);
           if ((v160 < v159))
-            v159 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+            v159 = v160;
           v163 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
           if (v162)
-            v161 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+            v161 = v160;
           if ((v163 < v159))
-            v159 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+            v159 = v163;
           v164 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
           if ((v161 < v163))
-            v161 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+            v161 = v163;
           if ((v164 < v159))
-            v159 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
+            v159 = v164;
           if ((v161 < v164))
-            v161 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
+            v161 = v164;
           v165 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(4)))));
           if (((v161 <= 0) || (v159 >= v165)))
             goto LABEL_160;
@@ -819,19 +822,19 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v169 = v167;
           v170 = (v167 < v168);
           if ((v168 < v167))
-            v167 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+            v167 = v168;
           v171 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
           if (v170)
-            v169 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+            v169 = v168;
           if ((v171 < v167))
-            v167 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+            v167 = v171;
           v172 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
           if ((v169 < v171))
-            v169 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+            v169 = v171;
           if ((v172 < v167))
-            v167 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
+            v167 = v172;
           if ((v169 < v172))
-            v169 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
+            v169 = v172;
           v173 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(6)))));
           if (((v169 <= 0) || (v167 >= v173)))
             goto LABEL_160;
@@ -853,21 +856,14 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               w_u32((uint32)((v137 + 4u * (uint32)(6))), (uint32)(gte_a3));
               w_u32((uint32)((v137 + 4u * (uint32)(8))), (uint32)(gte_t0));
               w_u32((uint32)((v137 + 4u * (uint32)(10))), (uint32)(gte_t1));
-              v182 = (sint8)r_u8((uint32)(v181));
-              v183 = (sint8)r_u8((uint32)((v181 + 1u * (uint32)(1))));
-              v184 = (sint8)r_u8((uint32)((v181 + 1u * (uint32)(2))));
-              w_u16((uint32)((uint32)(v181)), (uint32)((uint16)(v144)));
-              w_u8((uint32)((v181 + 1u * (uint32)(2))), (uint32)(((uint32)(((uint32)((uint32)(v144)) << ((uint32)(8) & 31u))) >> ((uint32)(24) & 31u))));
-              w_u8((uint32)(v144), (uint32)(v182));
-              w_u8((uint32)(((uint32)(v137) + 1u * (uint32)(9))), (uint32)(v183));
-              w_u8((uint32)(((uint32)(v137) + 1u * (uint32)(10))), (uint32)(v184));
+              phase_polygon_link(v181, v144);
             }
           }
           else
           {
             v175 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))));
             if (((v145 & 1) == 0))
-              v175 = ((uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))))) + (uint32)(4));
+              v175 = (sint32)((uint32)v175 + 4u);
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(168)))), (uint32)(v175));
             v176 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))));
             w_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(184)))), (uint32)(4));
@@ -883,7 +879,7 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x168)))), (uint32)(xport_gte_read_data(3u)));
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x1A4)))), (uint32)(xport_gte_read_data(4u)));
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(0x1A8)))), (uint32)(xport_gte_read_data(5u)));
-            gt_draft_unresolved_call(0x80069254u, (sint32)a0, v174, 0u, 0u, 0u, 0u, 0u, 0u);
+            gtmain_polygon_clip_gouraud(a0);
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))), (uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(180)))))));
           }
           LABEL_160:
@@ -897,14 +893,16 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     }
     v185 = r_u16((uint32)((uint32)((sint32)((uint32)(v135) + (uint32)(48)))));
     v186 = v6;
-    if (r_u16((uint32)((uint32)((sint32)((uint32)(v135) + (uint32)(48))))))
+    if (v185)
     {
-      v187 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
-      gte_s6 = ((uint32)(v187) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)(v6)) & 0xFFF)))));
-      gte_s5 = ((uint32)(v187) + (uint32)((((uint32)(r_u32((uint32)(v6))) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-      gte_s4 = ((uint32)(v187) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v6 + 4u * (uint32)(1)))) & 0xFFF)))));
-      v191 = (((uint32)(r_u32((uint32)(v6))) >> 24u) & 0xFFu);
-      if (r_u16((uint32)((uint32)((sint32)((uint32)(v135) + (uint32)(48))))))
+      v187 = r_u32(a0 + 776u);
+      initial_word0 = r_u32(v6);
+      initial_word1 = r_u32(v6 + 4u);
+      gte_s6 = (uint32)v187 + (initial_word0 & 0xFFFu) * 8u;
+      gte_s5 = (uint32)v187 + ((initial_word0 >> 9u) & 0x7FF8u);
+      gte_s4 = (uint32)v187 + (initial_word1 & 0xFFFu) * 8u;
+      v191 = initial_word0 >> 24u;
+      if (v185)
       {
         do
         {
@@ -919,14 +917,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           (v185 -= 1u);
           xport_gte_execute(0x280030);
           v194 = r_u32((uint32)((v186 + 4u * (uint32)(10))));
+          next_word1 = r_u32(v186 + 44u);
           v195 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
           gte_s6 = ((uint32)(v195) + (uint32)(((uint32)(8) * (uint32)((v194 & 0xFFF)))));
           gte_s5 = ((uint32)(v195) + (uint32)((((uint32)(v194) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-          gte_s4 = ((uint32)(v195) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v186 + 4u * (uint32)(11)))) & 0xFFF)))));
+          gte_s4 = ((uint32)(v195) + (uint32)(((uint32)(8) * (uint32)((next_word1 & 0xFFF)))));
           v191 = (((uint32)(v194) >> 24u) & 0xFFu);
           gte_a1 = (sint32)gte_read_h();
           gte_t0 = polygon_gte_flags();
-          v198 = ((sint32)(gte_a1) >> ((uint32)(1) & 31u));
+          v198 = (sint32)((uint32)gte_a1 >> 1u);
           v199 = ((uint32)gte_a1 < 0x400u);
           if ((gte_t0 >= 0))
             goto LABEL_188;
@@ -950,14 +949,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               v206 = v203;
               v207 = (v203 < v204);
               if ((v204 < v203))
-                v203 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+                v203 = v204;
               if (v207)
-                v206 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+                v206 = v204;
               if ((v205 < v203))
-                v203 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+                v203 = v205;
               if ((v206 < v205))
-                v206 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
-              if (((v206 <= 0) || (v203 >= (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(4))))))))
+                v206 = v205;
+              viewport_extent = (sint16)r_u16(a0 + 4u);
+              if ((v206 <= 0) || (v203 >= viewport_extent))
                 goto LABEL_196;
               v208 = (gte_t0 | (sint32)((uint32)(1023) - (uint32)((sint32)((uint32)(v206) - (uint32)(v203)))));
               v209 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(334)))));
@@ -966,14 +966,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               v212 = v209;
               v213 = (v209 < v210);
               if ((v210 < v209))
-                v209 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+                v209 = v210;
               if (v213)
-                v212 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+                v212 = v210;
               if ((v211 < v209))
-                v209 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+                v209 = v211;
               if ((v212 < v211))
-                v212 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
-              if (((v212 <= 0) || (v209 >= (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(6))))))))
+                v212 = v211;
+              viewport_extent = (sint16)r_u16(a0 + 6u);
+              if ((v212 <= 0) || (v209 >= viewport_extent))
                 goto LABEL_196;
               if (((v208 | (sint32)((uint32)(511) - (uint32)((sint32)((uint32)(v212) - (uint32)(v209))))) >= 0))
               {
@@ -990,21 +991,14 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
                     v222 += 1u * (uint32)(4);
                   w_u32((uint32)((v186 + 4u * (uint32)(6))), (uint32)(gte_a3));
                   w_u32((uint32)((v186 + 4u * (uint32)(8))), (uint32)(gte_t0));
-                  v223 = (sint8)r_u8((uint32)(v222));
-                  v224 = (sint8)r_u8((uint32)((v222 + 1u * (uint32)(1))));
-                  v225 = (sint8)r_u8((uint32)((v222 + 1u * (uint32)(2))));
-                  w_u16((uint32)((uint32)(v222)), (uint32)((uint16)(v192)));
-                  w_u8((uint32)((v222 + 1u * (uint32)(2))), (uint32)(((uint32)(((uint32)((uint32)(v192)) << ((uint32)(8) & 31u))) >> ((uint32)(24) & 31u))));
-                  w_u8((uint32)(v192), (uint32)(v223));
-                  w_u8((uint32)(((uint32)(v186) + 1u * (uint32)(9))), (uint32)(v224));
-                  w_u8((uint32)(((uint32)(v186) + 1u * (uint32)(10))), (uint32)(v225));
+                  phase_polygon_link(v222, v192);
                 }
               }
               else
               {
                 v214 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))));
                 if (((v193 & 1) == 0))
-                  v214 = ((uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))))) + (uint32)(4));
+                  v214 = (sint32)((uint32)v214 + 4u);
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(168)))), (uint32)(v214));
                 v215 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))));
                 w_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(184)))), (uint32)(3));
@@ -1044,15 +1038,17 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     v226 = v372;
     v227 = r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(50)))));
     v228 = v6;
-    if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(50))))))
+    if (v227)
     {
-      v229 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
-      gte_fp = ((uint32)(v229) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)(v6)) & 0xFFF)))));
-      gte_s5 = ((uint32)(v229) + (uint32)((((uint32)(r_u32((uint32)(v6))) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-      gte_s4 = ((uint32)(v229) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v6 + 4u * (uint32)(1)))) & 0xFFF)))));
-      v233 = (uint32)(((uint32)(v229) + (uint32)((((uint32)(r_u32((uint32)((v6 + 4u * (uint32)(1))))) >> ((uint32)(9) & 31u)) & 0x7FF8))));
-      v234 = (((uint32)(r_u32((uint32)(v6))) >> 24u) & 0xFFu);
-      if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(50))))))
+      initial_word0 = r_u32(v6);
+      initial_word1 = r_u32(v6 + 4u);
+      v229 = r_u32(a0 + 776u);
+      gte_fp = (uint32)v229 + (initial_word0 & 0xFFFu) * 8u;
+      gte_s5 = (uint32)v229 + ((initial_word0 >> 9u) & 0x7FF8u);
+      gte_s4 = (uint32)v229 + (initial_word1 & 0xFFFu) * 8u;
+      v233 = (uint32)v229 + ((initial_word1 >> 9u) & 0x7FF8u);
+      v234 = initial_word0 >> 24u;
+      if (v227)
       {
         do
         {
@@ -1069,6 +1065,7 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v237 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
           xport_gte_execute(0x280030);
           v238 = r_u32((uint32)((v228 + 4u * (uint32)(12))));
+          next_word1 = r_u32(v228 + 52u);
           gte_v1 = (sint32)r_u32((uint32)(v233));
           gte_a0 = (sint32)r_u32((uint32)((v233 + 4u * (uint32)(1))));
           gte_fp = ((uint32)(v237) + (uint32)(((uint32)(8) * (uint32)((v238 & 0xFFF)))));
@@ -1083,8 +1080,8 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           (v227 -= 1u);
           xport_gte_execute(0x180001);
           gte_s5 = ((uint32)(v237) + (uint32)((((uint32)(v238) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-          gte_s4 = ((uint32)(v237) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v228 + 4u * (uint32)(13)))) & 0xFFF)))));
-          v233 = (uint32)(((uint32)(v237) + (uint32)((((uint32)(r_u32((uint32)((v228 + 4u * (uint32)(13))))) >> ((uint32)(9) & 31u)) & 0x7FF8))));
+          gte_s4 = ((uint32)(v237) + (uint32)(((uint32)(8) * (uint32)((next_word1 & 0xFFF)))));
+          v233 = (uint32)(((uint32)(v237) + (uint32)((((uint32)(next_word1) >> ((uint32)(9) & 31u)) & 0x7FF8))));
           gte_v0 = polygon_gte_flags();
           gte_v1 = (sint32)gte_read_h();
           v247 = (gte_a1 | gte_v0);
@@ -1105,19 +1102,19 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v252 = v250;
           v253 = (v250 < v251);
           if ((v251 < v250))
-            v250 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+            v250 = v251;
           v254 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
           if (v253)
-            v252 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+            v252 = v251;
           if ((v254 < v250))
-            v250 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+            v250 = v254;
           v255 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
           if ((v252 < v254))
-            v252 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+            v252 = v254;
           if ((v255 < v250))
-            v250 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
+            v250 = v255;
           if ((v252 < v255))
-            v252 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
+            v252 = v255;
           v256 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(4)))));
           if (((v252 <= 0) || (v250 >= v256)))
             goto LABEL_240;
@@ -1127,19 +1124,19 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v260 = v258;
           v261 = (v258 < v259);
           if ((v259 < v258))
-            v258 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+            v258 = v259;
           v262 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
           if (v261)
-            v260 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+            v260 = v259;
           if ((v262 < v258))
-            v258 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+            v258 = v262;
           v263 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
           if ((v260 < v262))
-            v260 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+            v260 = v262;
           if ((v263 < v258))
-            v258 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
+            v258 = v263;
           if ((v260 < v263))
-            v260 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
+            v260 = v263;
           v264 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(6)))));
           if (((v260 <= 0) || (v258 >= v264)))
             goto LABEL_240;
@@ -1160,21 +1157,14 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               w_u32((uint32)((v228 + 4u * (uint32)(6))), (uint32)(gte_a3));
               w_u32((uint32)((v228 + 4u * (uint32)(8))), (uint32)(gte_t0));
               w_u32((uint32)((v228 + 4u * (uint32)(10))), (uint32)(gte_t1));
-              v276 = (sint8)r_u8((uint32)(v275));
-              v277 = (sint8)r_u8((uint32)((v275 + 1u * (uint32)(1))));
-              v278 = (sint8)r_u8((uint32)((v275 + 1u * (uint32)(2))));
-              w_u16((uint32)((uint32)(v275)), (uint32)((uint16)(v235)));
-              w_u8((uint32)((v275 + 1u * (uint32)(2))), (uint32)(((uint32)(((uint32)((uint32)(v235)) << ((uint32)(8) & 31u))) >> ((uint32)(24) & 31u))));
-              w_u8((uint32)(v235), (uint32)(v276));
-              w_u8((uint32)(((uint32)(v228) + 1u * (uint32)(9))), (uint32)(v277));
-              w_u8((uint32)(((uint32)(v228) + 1u * (uint32)(10))), (uint32)(v278));
+              phase_polygon_link(v275, v235);
             }
           }
           else
           {
             v265 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))));
             if (((v236 & 1) == 0))
-              v265 = ((uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))))) + (uint32)(4));
+              v265 = (sint32)((uint32)v265 + 4u);
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(168)))), (uint32)(v265));
             v266 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))));
             w_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(184)))), (uint32)(4));
@@ -1215,14 +1205,16 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     }
     v279 = r_u16((uint32)((uint32)((sint32)((uint32)(v226) + (uint32)(52)))));
     v280 = v6;
-    if (r_u16((uint32)((uint32)((sint32)((uint32)(v226) + (uint32)(52))))))
+    if (v279)
     {
-      v281 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
-      gte_s6 = ((uint32)(v281) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)(v6)) & 0xFFF)))));
-      gte_s5 = ((uint32)(v281) + (uint32)((((uint32)(r_u32((uint32)(v6))) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-      gte_s4 = ((uint32)(v281) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v6 + 4u * (uint32)(1)))) & 0xFFF)))));
-      v285 = (((uint32)(r_u32((uint32)(v6))) >> 24u) & 0xFFu);
-      if (r_u16((uint32)((uint32)((sint32)((uint32)(v226) + (uint32)(52))))))
+      v281 = r_u32(a0 + 776u);
+      initial_word0 = r_u32(v6);
+      initial_word1 = r_u32(v6 + 4u);
+      gte_s6 = (uint32)v281 + (initial_word0 & 0xFFFu) * 8u;
+      gte_s5 = (uint32)v281 + ((initial_word0 >> 9u) & 0x7FF8u);
+      gte_s4 = (uint32)v281 + (initial_word1 & 0xFFFu) * 8u;
+      v285 = initial_word0 >> 24u;
+      if (v279)
       {
         do
         {
@@ -1237,14 +1229,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           (v279 -= 1u);
           xport_gte_execute(0x280030);
           v288 = r_u32((uint32)((v280 + 4u * (uint32)(12))));
+          next_word1 = r_u32(v280 + 52u);
           v289 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
           gte_s6 = ((uint32)(v289) + (uint32)(((uint32)(8) * (uint32)((v288 & 0xFFF)))));
           gte_s5 = ((uint32)(v289) + (uint32)((((uint32)(v288) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-          gte_s4 = ((uint32)(v289) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v280 + 4u * (uint32)(13)))) & 0xFFF)))));
+          gte_s4 = ((uint32)(v289) + (uint32)(((uint32)(8) * (uint32)((next_word1 & 0xFFF)))));
           v285 = (((uint32)(v288) >> 24u) & 0xFFu);
           gte_a1 = (sint32)gte_read_h();
           gte_t0 = polygon_gte_flags();
-          v292 = ((sint32)(gte_a1) >> ((uint32)(1) & 31u));
+          v292 = (sint32)((uint32)gte_a1 >> 1u);
           v293 = ((uint32)gte_a1 < 0x400u);
           if ((gte_t0 >= 0))
             goto LABEL_268;
@@ -1268,14 +1261,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               v300 = v297;
               v301 = (v297 < v298);
               if ((v298 < v297))
-                v297 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+                v297 = v298;
               if (v301)
-                v300 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+                v300 = v298;
               if ((v299 < v297))
-                v297 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+                v297 = v299;
               if ((v300 < v299))
-                v300 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
-              if (((v300 <= 0) || (v297 >= (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(4))))))))
+                v300 = v299;
+              viewport_extent = (sint16)r_u16(a0 + 4u);
+              if ((v300 <= 0) || (v297 >= viewport_extent))
                 goto LABEL_276;
               v302 = (gte_t0 | (sint32)((uint32)(1023) - (uint32)((sint32)((uint32)(v300) - (uint32)(v297)))));
               v303 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(334)))));
@@ -1284,14 +1278,15 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               v306 = v303;
               v307 = (v303 < v304);
               if ((v304 < v303))
-                v303 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+                v303 = v304;
               if (v307)
-                v306 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+                v306 = v304;
               if ((v305 < v303))
-                v303 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+                v303 = v305;
               if ((v306 < v305))
-                v306 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
-              if (((v306 <= 0) || (v303 >= (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(6))))))))
+                v306 = v305;
+              viewport_extent = (sint16)r_u16(a0 + 6u);
+              if ((v306 <= 0) || (v303 >= viewport_extent))
                 goto LABEL_276;
               if (((v302 | (sint32)((uint32)(511) - (uint32)((sint32)((uint32)(v306) - (uint32)(v303))))) >= 0))
               {
@@ -1308,21 +1303,14 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
                     v316 += 1u * (uint32)(4);
                   w_u32((uint32)((v280 + 4u * (uint32)(7))), (uint32)(gte_a3));
                   w_u32((uint32)((v280 + 4u * (uint32)(10))), (uint32)(gte_t0));
-                  v317 = (sint8)r_u8((uint32)(v316));
-                  v318 = (sint8)r_u8((uint32)((v316 + 1u * (uint32)(1))));
-                  v319 = (sint8)r_u8((uint32)((v316 + 1u * (uint32)(2))));
-                  w_u16((uint32)((uint32)(v316)), (uint32)((uint16)(v286)));
-                  w_u8((uint32)((v316 + 1u * (uint32)(2))), (uint32)(((uint32)(((uint32)((uint32)(v286)) << ((uint32)(8) & 31u))) >> ((uint32)(24) & 31u))));
-                  w_u8((uint32)(v286), (uint32)(v317));
-                  w_u8((uint32)(((uint32)(v280) + 1u * (uint32)(9))), (uint32)(v318));
-                  w_u8((uint32)(((uint32)(v280) + 1u * (uint32)(10))), (uint32)(v319));
+                  phase_polygon_link(v316, v286);
                 }
               }
               else
               {
                 v308 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))));
                 if (((v287 & 1) == 0))
-                  v308 = ((uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))))) + (uint32)(4));
+                  v308 = (sint32)((uint32)v308 + 4u);
                 w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(168)))), (uint32)(v308));
                 v309 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))));
                 w_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(184)))), (uint32)(3));
@@ -1364,15 +1352,17 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     }
     v320 = r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(54)))));
     v321 = v6;
-    if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(54))))))
+    if (v320)
     {
-      v322 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
-      gte_fp = ((uint32)(v322) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)(v6)) & 0xFFF)))));
-      gte_s5 = ((uint32)(v322) + (uint32)((((uint32)(r_u32((uint32)(v6))) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-      gte_s4 = ((uint32)(v322) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v6 + 4u * (uint32)(1)))) & 0xFFF)))));
-      v326 = (uint32)(((uint32)(v322) + (uint32)((((uint32)(r_u32((uint32)((v6 + 4u * (uint32)(1))))) >> ((uint32)(9) & 31u)) & 0x7FF8))));
-      v327 = (((uint32)(r_u32((uint32)(v6))) >> 24u) & 0xFFu);
-      if (r_u16((uint32)((uint32)((sint32)((uint32)(v372) + (uint32)(54))))))
+      initial_word0 = r_u32(v6);
+      initial_word1 = r_u32(v6 + 4u);
+      v322 = r_u32(a0 + 776u);
+      gte_fp = (uint32)v322 + (initial_word0 & 0xFFFu) * 8u;
+      gte_s5 = (uint32)v322 + ((initial_word0 >> 9u) & 0x7FF8u);
+      gte_s4 = (uint32)v322 + (initial_word1 & 0xFFFu) * 8u;
+      v326 = (uint32)v322 + ((initial_word1 >> 9u) & 0x7FF8u);
+      v327 = initial_word0 >> 24u;
+      if (v320)
       {
         do
         {
@@ -1389,6 +1379,7 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v330 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(776)))));
           xport_gte_execute(0x280030);
           v331 = r_u32((uint32)((v321 + 4u * (uint32)(15))));
+          next_word1 = r_u32(v321 + 64u);
           gte_v1 = (sint32)r_u32((uint32)(v326));
           gte_a0 = (sint32)r_u32((uint32)((v326 + 4u * (uint32)(1))));
           gte_fp = ((uint32)(v330) + (uint32)(((uint32)(8) * (uint32)((v331 & 0xFFF)))));
@@ -1403,8 +1394,8 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           (v320 -= 1u);
           xport_gte_execute(0x180001);
           gte_s5 = ((uint32)(v330) + (uint32)((((uint32)(v331) >> ((uint32)(9) & 31u)) & 0x7FF8)));
-          gte_s4 = ((uint32)(v330) + (uint32)(((uint32)(8) * (uint32)((r_u32((uint32)((v321 + 4u * (uint32)(16)))) & 0xFFF)))));
-          v326 = (uint32)(((uint32)(v330) + (uint32)((((uint32)(r_u32((uint32)((v321 + 4u * (uint32)(16))))) >> ((uint32)(9) & 31u)) & 0x7FF8))));
+          gte_s4 = ((uint32)(v330) + (uint32)(((uint32)(8) * (uint32)((next_word1 & 0xFFF)))));
+          v326 = (uint32)(((uint32)(v330) + (uint32)((((uint32)(next_word1) >> ((uint32)(9) & 31u)) & 0x7FF8))));
           gte_v0 = polygon_gte_flags();
           gte_v1 = (sint32)gte_read_h();
           v340 = (gte_a1 | gte_v0);
@@ -1425,19 +1416,19 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v345 = v343;
           v346 = (v343 < v344);
           if ((v344 < v343))
-            v343 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+            v343 = v344;
           v347 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
           if (v346)
-            v345 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(364)))));
+            v345 = v344;
           if ((v347 < v343))
-            v343 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+            v343 = v347;
           v348 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
           if ((v345 < v347))
-            v345 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(396)))));
+            v345 = v347;
           if ((v348 < v343))
-            v343 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
+            v343 = v348;
           if ((v345 < v348))
-            v345 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(428)))));
+            v345 = v348;
           v349 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(4)))));
           if (((v345 <= 0) || (v343 >= v349)))
             goto LABEL_320;
@@ -1447,19 +1438,19 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
           v353 = v351;
           v354 = (v351 < v352);
           if ((v352 < v351))
-            v351 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+            v351 = v352;
           v355 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
           if (v354)
-            v353 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(366)))));
+            v353 = v352;
           if ((v355 < v351))
-            v351 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+            v351 = v355;
           v356 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
           if ((v353 < v355))
-            v353 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(398)))));
+            v353 = v355;
           if ((v356 < v351))
-            v351 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
+            v351 = v356;
           if ((v353 < v356))
-            v353 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(430)))));
+            v353 = v356;
           v357 = (sint16)r_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(6)))));
           if (((v353 <= 0) || (v351 >= v357)))
             goto LABEL_320;
@@ -1480,21 +1471,14 @@ uint32 gt_draft_8001A758(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
               w_u32((uint32)((v321 + 4u * (uint32)(7))), (uint32)(gte_a3));
               w_u32((uint32)((v321 + 4u * (uint32)(10))), (uint32)(gte_t0));
               w_u32((uint32)((v321 + 4u * (uint32)(13))), (uint32)(gte_t2));
-              v369 = (sint8)r_u8((uint32)(v368));
-              v370 = (sint8)r_u8((uint32)((v368 + 1u * (uint32)(1))));
-              v371 = (sint8)r_u8((uint32)((v368 + 1u * (uint32)(2))));
-              w_u16((uint32)((uint32)(v368)), (uint32)((uint16)(v328)));
-              w_u8((uint32)((v368 + 1u * (uint32)(2))), (uint32)(((uint32)(((uint32)((uint32)(v328)) << ((uint32)(8) & 31u))) >> ((uint32)(24) & 31u))));
-              w_u8((uint32)(v328), (uint32)(v369));
-              w_u8((uint32)(((uint32)(v321) + 1u * (uint32)(9))), (uint32)(v370));
-              w_u8((uint32)(((uint32)(v321) + 1u * (uint32)(10))), (uint32)(v371));
+              phase_polygon_link(v368, v328);
             }
           }
           else
           {
             v358 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))));
             if (((v329 & 1) == 0))
-              v358 = ((uint32)(r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(772)))))) + (uint32)(4));
+              v358 = (sint32)((uint32)v358 + 4u);
             w_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(168)))), (uint32)(v358));
             v359 = r_u32((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(780)))));
             w_u16((uint32)((uint32)((sint32)((uint32)((sint32)a0) + (uint32)(184)))), (uint32)(4));

@@ -2,19 +2,13 @@
 #include <string.h>
 #include <stdio.h>
 
-static uint32 menu_missing(uint32 owner, uint32 a0, uint32 a1, uint32 a2, uint32 a3)
-{
-    /* TODO Bind the original menu service and its meaningful result */
-    (void)a0; (void)a1; (void)a2; (void)a3;
-    gt_draft_failure("Native menu context service adapter", owner);
-}
 static uint32 menu_scale(uint32 product)
 {
     sint64 wide = (sint64)(sint32)product * (sint64)(sint32)0x80808081u;
     uint32 high = (uint32)((uint64)wide >> 32);
     return (uint32)((sint32)(high + product) >> 7) - (uint32)((sint32)product >> 31);
 }
-uint32 gtmain_menu_callback(uint32 token)
+static uint32 menu_callback_dispatch(uint32 token)
 {
     switch (token) {
     case 0x80035D88u: return (uint32)gtmain_menu_default_callback();
@@ -24,11 +18,19 @@ uint32 gtmain_menu_callback(uint32 token)
     case 0x8003A344u: return gtmain_menu_effect_begin();
     case 0x800335ECu: return gtmain_menu_result_prepare();
     case 0x80032D1Cu: return gtmain_menu_lap_results_prepare();
+    case 0x800379C0u: return gtmain_menu_quick_end_initialize();
+    case 0x80036350u: return (uint32)gtmain_menu_race_selection_tick();
     default:
         /* TODO Bind remaining callback tokens with their actual native ABI */
         gt_draft_failure("Native menu callback token adapter", token);
     }
 }
+/* GTMAIN.EXE 8003527C */
+uint32 gtmain_menu_callback(uint32 token)
+{
+    return menu_callback_dispatch(token);
+}
+
 uint32 gtmain_menu_name(uint32 guest_name)
 {
     if (!strncmp((const char *)psx_addr(guest_name, 7), (const char *)psx_addr(0x8008CBC4u, 7), 7)) return guest_name + 7u;
@@ -96,28 +98,54 @@ uint32 gtmain_menu_input(void)
     w_u32(context + 156u, gtmain_input_packet(4));
     return 1;
 }
+static void menu_draw_prepare_missing(void)
+{
+    /* TODO Bind the unselected no-argument menu draw preparation */
+    gt_draft_failure("Native menu draw preparation", 0x80035DC0u);
+}
+
 uint32 gtmain_menu_draw(void)
 {
-    uint32 result = (uint32)(sint32)(sint8)r_u8(0x80091B39u), context = r_u32(0x800BDD08u);
+    sint32 prepare = r_s8(0x80091B39u);
+    uint32 context = r_u32(0x800BDD08u), draw_context, start, end;
     sint32 mode;
-    if (result) result = menu_missing(0x80035DC0u, 0, 0, 0, 0);
-    mode = (sint8)r_u8(context + 259u);
-    result = (uint32)mode < 5u;
+    if (prepare) menu_draw_prepare_missing();
+    mode = r_s8(context + 259u);
     switch (mode) {
     case 0: return gtmain_menu_panel_draw(r_u32(0x800BDD08u), 0, 0, 0);
     case 1:
-        (void)gtmain_menu_panel_draw(r_u32(0x800BDD08u), 0u - (uint32)(sint32)(sint16)r_u16(context + 262u), 0, 0);
-        { uint32 end = (uint32)(sint32)(sint16)r_u16(context + 266u), start = (uint32)(sint32)(sint16)r_u16(context + 262u); return gtmain_menu_panel_draw(r_u32(0x800BDD08u), end - start, 0, 1); }
+        start = (uint32)r_s16(context + 262u);
+        draw_context = r_u32(0x800BDD08u);
+        gtmain_menu_panel_draw(draw_context, 0u - start, 0, 0);
+        end = (uint32)r_s16(context + 266u);
+        start = (uint32)r_s16(context + 262u);
+        draw_context = r_u32(0x800BDD08u);
+        return gtmain_menu_panel_draw(draw_context, end - start, 0, 1);
     case 2:
-        { uint32 start = (uint32)(sint32)(sint16)r_u16(context + 262u), end = (uint32)(sint32)(sint16)r_u16(context + 266u); (void)gtmain_menu_panel_draw(r_u32(0x800BDD08u), start - end, 0, 1); }
-        return gtmain_menu_panel_draw(r_u32(0x800BDD08u), (uint32)(sint32)(sint16)r_u16(context + 262u), 0, 0);
+        start = (uint32)r_s16(context + 262u);
+        end = (uint32)r_s16(context + 266u);
+        draw_context = r_u32(0x800BDD08u);
+        gtmain_menu_panel_draw(draw_context, start - end, 0, 1);
+        draw_context = r_u32(0x800BDD08u);
+        start = (uint32)r_s16(context + 262u);
+        return gtmain_menu_panel_draw(draw_context, start, 0, 0);
     case 3:
-        (void)gtmain_menu_panel_draw(r_u32(0x800BDD08u), 0, 0u - (uint32)(sint32)(sint16)r_u16(context + 264u), 0);
-        { uint32 end = (uint32)(sint32)(sint16)r_u16(context + 268u), start = (uint32)(sint32)(sint16)r_u16(context + 264u); return gtmain_menu_panel_draw(r_u32(0x800BDD08u), 0, end - start, 1); }
+        start = (uint32)r_s16(context + 264u);
+        draw_context = r_u32(0x800BDD08u);
+        gtmain_menu_panel_draw(draw_context, 0, 0u - start, 0);
+        end = (uint32)r_s16(context + 268u);
+        start = (uint32)r_s16(context + 264u);
+        draw_context = r_u32(0x800BDD08u);
+        return gtmain_menu_panel_draw(draw_context, 0, end - start, 1);
     case 4:
-        { uint32 start = (uint32)(sint32)(sint16)r_u16(context + 264u), end = (uint32)(sint32)(sint16)r_u16(context + 268u); (void)gtmain_menu_panel_draw(r_u32(0x800BDD08u), 0, start - end, 1); }
-        return gtmain_menu_panel_draw(r_u32(0x800BDD08u), 0, (uint32)(sint32)(sint16)r_u16(context + 264u), 0);
-    default: return result;
+        start = (uint32)r_s16(context + 264u);
+        end = (uint32)r_s16(context + 268u);
+        draw_context = r_u32(0x800BDD08u);
+        gtmain_menu_panel_draw(draw_context, 0, start - end, 1);
+        draw_context = r_u32(0x800BDD08u);
+        start = (uint32)r_s16(context + 264u);
+        return gtmain_menu_panel_draw(draw_context, 0, start, 0);
+    default: return 0u;
     }
 }
 uint32 gtmain_menu_exit_requested(void)
@@ -158,6 +186,12 @@ static uint32 menu_current_descriptor(uint32 context)
     sint32 index = (sint8)r_u8(context + 256u);
     return r_u32(context + 192u + (uint32)index * 4u);
 }
+static sint32 menu_pop_missing(void)
+{
+    /* TODO Bind the unselected no-argument signed-result menu pop */
+    gt_draft_failure("Native menu pop service", 0x8003532Cu);
+}
+
 uint32 gtmain_menu_tick(void)
 {
     uint32 context = r_u32(0x800BDD08u), old, descriptor, command, enabled;
@@ -181,12 +215,12 @@ uint32 gtmain_menu_tick(void)
         { sint32 kind = (sint8)r_u8(descriptor); uint32 buttons = r_u16(context + 6u); if (kind == 1 && (buttons & 8u)) w_u8(context + 257u, 1); }
         return 1;
     case 1:
-        if ((sint32)menu_missing(0x8003532Cu, 0, 0, 0, 0) < 0) w_u8(context + 257u, 1);
+        if (menu_pop_missing() < 0) w_u8(context + 257u, 1);
         else (void)gtmain_menu_callback(r_u32(menu_current_descriptor(context) + 20u));
         w_u32(context + 188u, descriptor); (void)gtmain_menu_transition(3); return 1;
     case 2:
-        if ((sint32)menu_missing(0x8003532Cu, 0, 0, 0, 0) < 0) w_u8(context + 257u, 1);
-        if ((sint32)menu_missing(0x8003532Cu, 0, 0, 0, 0) < 0) w_u8(context + 257u, 1);
+        if (menu_pop_missing() < 0) w_u8(context + 257u, 1);
+        if (menu_pop_missing() < 0) w_u8(context + 257u, 1);
         else (void)gtmain_menu_callback(r_u32(menu_current_descriptor(context) + 20u));
         w_u32(context + 188u, descriptor); (void)gtmain_menu_transition(3); return 1;
     case 3:
@@ -196,7 +230,7 @@ uint32 gtmain_menu_tick(void)
         (void)gtmain_menu_transition(4); return 1;
     case 5: w_u32(context + 188u, descriptor); (void)gtmain_menu_transition(1); return 1;
     case 6: w_u32(context + 188u, descriptor); (void)gtmain_menu_transition(2); return 1;
-    case 7: w_u8(context + 257u, 1); printf("menu escape com.\n"); return 1;
+    case 7: w_u8(context + 257u, 1); printf((const char *)psx_addr(0x8008CBE0u, 1u)); return 1;
     default: return 1;
     }
 }

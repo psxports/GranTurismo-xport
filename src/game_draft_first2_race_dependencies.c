@@ -16,6 +16,7 @@ static void race_input_map(uint32 state, uint32 packet, uint32 buttons,
         axis_first, axis_second, analog);
 }
 
+/* TODO Resolve independent pad mapping and rumble adapter limitations */
 /* GTMAIN.EXE 80028F00 */
 void gtmain_race_input_update(uint32 state, uint32 configuration)
 {
@@ -52,13 +53,19 @@ void gtmain_race_input_update(uint32 state, uint32 configuration)
     w_u16(state + 78u, (uint16)(connected ? held & (held ^ previous) : 0u));
 }
 
+static void race_menu_prepare(uint32 owner)
+{
+    /* TODO Bind unselected noarg preparation calls 80029898 and 80029830 */
+    (void)race_dependency(owner, 0u, 0u, 0u);
+}
+
 /* GTMAIN.EXE 80029928 */
 sint32 gtmain_race_menu_input(void)
 {
     uint32 pressed, held;
     sint32 selected, count;
-    race_dependency(0x80029898u, 0, 0, 0);
-    race_dependency(0x80029830u, 0, 0, 0);
+    race_menu_prepare(0x80029898u);
+    race_menu_prepare(0x80029830u);
     pressed = r_u16(0x800BC1C8u);
     selected = r_s8(0x8008F88Du);
     held = r_u16(0x800BC1C6u);
@@ -151,16 +158,20 @@ static void race_car_callback(uint32 owner, uint32 car)
 }
 
 /* GTMAIN.EXE 800313F8 */
-void gtmain_race_sound_callbacks_apply(uint32 first_owner, uint32 second_owner, uint32 third_owner)
+sint32 gtmain_race_sound_callbacks_apply(uint32 first_owner, uint32 second_owner, uint32 third_owner)
 {
     sint32 index = 0;
+    sint32 count = r_s16(0x800BC1A6u);
     uint32 car = 0x800B6850u;
-    while (index < r_s16(0x800BC1A6u)) {
+    if (count <= 0) return count;
+    do {
         sint32 kind = r_s16(car + 26u);
         race_car_callback(kind == 1 ? first_owner : kind == 2 ? second_owner : third_owner, car);
         ++index;
+        count = r_s16(0x800BC1A6u);
         car += 3380u;
-    }
+    } while (index < count);
+    return 0;
 }
 
 /* GTMAIN.EXE 8002E574 */
@@ -189,14 +200,20 @@ void gtmain_race_effect_init(uint32 effect)
     w_u32(effect, 0x7FC00080u); w_u32(effect + 4u, 0x0026008Fu); w_u16(effect + 28u, 137);
 }
 
+/* TODO Bind the original one-argument license result service */
+static uint32 race_license_result_service(uint32 car_state)
+{
+    return race_dependency(0x80057180u, car_state, 0, 0);
+}
+
 /* GTMAIN.EXE 80029F40 */
-void gtmain_race_license_result_tick(void)
+uint32 gtmain_race_license_result_tick(void)
 {
     uint32 result, thresholds, record, first, second, third, time, category = 0;
-    if (r_u8(0x800CB7F5u) != 4u || r_s8(0x8008F893u)) return;
-    result = race_dependency(0x80057180u, 0x800B6878u, 0, 0);
-    if (!result) return;
-    thresholds = gt_draft_8002A3CC(0, 0, 0, 0, 0, 0, 0, 0);
+    if (r_u8(0x800CB7F5u) != 4u || r_s8(0x8008F893u)) return 4;
+    result = race_license_result_service(0x800B6878u);
+    if (!result) return result;
+    thresholds = gt_draft_8002A3CC();
     record = gtmain_race_mode_record();
     second = r_u32(thresholds + 40u);
     third = r_u32(thresholds + 12u);
@@ -224,17 +241,24 @@ void gtmain_race_license_result_tick(void)
         w_u16(0x800B63D6u, 3);
         w_u16(0x800B63DAu, countdown);
     }
+    return 3;
+}
+
+/* TODO Bind the original one-argument assist activation service */
+static uint32 race_assist_activation(uint32 enabled)
+{
+    return race_dependency(0x800204ECu, enabled, 0, 0);
 }
 
 /* GTMAIN.EXE 80030C24 */
-void gtmain_race_assist_tick(void)
+uint32 gtmain_race_assist_tick(void)
 {
-    sint32 result = (sint32)gt_draft_80030B20(0, 0, 0, 0, 0, 0, 0, 0);
+    sint32 result = gt_draft_80030B20();
     if (result >= 0 && result < 2) {
         w_u8(0x800B63C2u, 0);
         gtmain_race_sound_effect_default(4);
     } else if (!r_s16(0x800B63DEu)) w_u8(0x800B63C2u, 0);
-    race_dependency(0x800204ECu, r_s16(0x800912E0u) != 0, 0, 0);
+    return race_assist_activation(r_s16(0x800912E0u) != 0);
 }
 
 /* GTMAIN.EXE 80030B0C */
@@ -244,15 +268,21 @@ void gtmain_race_assist_reset(void)
     w_u16(0x800912E0u, 0);
 }
 
+static void race_mode_handler(uint32 owner)
+{
+    /* TODO Bind unselected no-argument mode handlers */
+    (void)race_dependency(owner, 0, 0, 0);
+}
+
 /* GTMAIN.EXE 8002B190 */
 void gtmain_race_mode_tick(void)
 {
     if (!r_s16(0x800B63D6u)) return;
     switch (r_u8(0x800CB7F5u)) {
-    case 0: race_dependency(0x80025EACu, 0, 0, 0); break;
-    case 1: race_dependency(0x80026364u, 0, 0, 0); break;
-    case 2: race_dependency(0x800264F8u, 0, 0, 0); break;
-    case 3: race_dependency(0x80023094u, 0, 0, 0); break;
+    case 0: race_mode_handler(0x80025EACu); break;
+    case 1: race_mode_handler(0x80026364u); break;
+    case 2: race_mode_handler(0x800264F8u); break;
+    case 3: race_mode_handler(0x80023094u); break;
     case 4:
         if (r_s16(0x800B63D6u) == 3) {
             uint16 countdown = (uint16)(r_u16(0x800B63DAu) - 1u);
@@ -265,7 +295,7 @@ void gtmain_race_mode_tick(void)
             }
         }
         break;
-    case 5: race_dependency(0x800234FCu, 0, 0, 0); break;
+    case 5: race_mode_handler(0x800234FCu); break;
     default: break;
     }
 }

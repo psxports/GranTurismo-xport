@@ -1,34 +1,59 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80045128(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static void selection_dropdown(uint32 target, uint32 ordering, uint32 descriptor, sint32 x, sint32 y,
+    sint32 selection_style, sint32 intensity, sint32 mode)
 {
-    sint32 v12 = 0;
-    sint32 v13 = 0;
-    sint32 v14 = 0;
-    sint32 v15 = 0;
-    sint32 v16 = 0;
-    sint32 v18 = 0;
-    sint32 v19 = 0;
-  uint32 vars0=0; /* TODO Pseudocode phantom stack local */ // [sp+20h] [+0h]
-  gt_draft_unresolved_call(0x8006C790u, 1, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006C860u, 0, 0, 0, 0, 0, 0, 0, 0);
-  v12 = gt_draft_unresolved_call(0x80035398u, 7, a4 >> 1, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006C874u, v12, 0, 0, 0, 0, 0, 0, 0);
-  v13 = gt_draft_unresolved_call(0x8006C1CCu, (sint16)r_u16(0x800B63C4u), 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_8003A8AC(a0, a1 + 24, a2 + 40, v13, 0, 0, 0, 0);
-  v14 = r_u8(0x8009278Du);
-  v15 = gt_draft_unresolved_call(0x80035458u, a4 >> 1, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006C874u, v15, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006C790u, 2, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8006C860u, 2, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8004B2FCu, a0, r_u32(0x80092780u), a1 + 32, a2 + 56, 0, 0, 0, 0);
-  v16 = gt_draft_unresolved_call(0x80044DECu, v14, 0, 0, 0, 0, 0, 0, 0);
-  v18 = r_u32(0x800B5304u);
-  gt_draft_unresolved_call(0x8004BDB0u, a0, v16, a1 + 64, a2 + 56, 0, 0, 0, 0);
-  if ( r_u32(0x800B5304u) )
-    gt_draft_unresolved_call(0x80043F34u, a0, r_u32(r_u32(0x800928F8u + 4u * v14) + 4u * (uint32)(sint32)(sint8)r_u8(v16 + 1)), a1, a2, a4, 0, 0, 0);
-  else
-    gt_draft_unresolved_call(0x80043F34u, a0, (uint32)0x800BE2B0, a1, a2, a4, 0, 0, 0);
-  return 0;
+    /* TODO Bind unselected dropdown renderer with seven semantic arguments */
+    (void)gt_draft_unresolved_call(target, ordering, descriptor, (uint32)x, (uint32)y,
+        (uint32)selection_style, (uint32)intensity, (uint32)mode, 0u);
+}
+
+static void selection_centered_text(uint32 ordering, uint32 text, sint32 x, sint32 y, sint32 intensity)
+{
+    /* TODO Bind unselected centered text renderer */
+    (void)gt_draft_unresolved_call(0x80043F34u, ordering, text, (uint32)x, (uint32)y,
+        (uint32)intensity, 0u, 0u, 0u);
+}
+
+static uint32 selection_descriptor(sint32 category)
+{
+    /* TODO Bind unselected descriptor lookup 80044DEC */
+    return gt_draft_unresolved_call(0x80044DECu, (uint32)category, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+/* GTMAIN.EXE 80045128 */
+uint32 gt_draft_80045128(uint32 ordering, sint32 x, sint32 y, sint32 selection_style, sint32 intensity)
+{
+    sint32 half = intensity >> 1, category, mode, index;
+    uint32 name, descriptor, table;
+    gtmain_text_font(1);
+    gtmain_text_flags(0);
+    (void)gtmain_text_color(gtmain_menu_palette_color(7, half));
+    name = gtmain_resource_name((uint32)(sint32)(sint16)r_u16(0x800B63C4u));
+    (void)gtmain_menu_text_draw(ordering, (sint32)((uint32)x + 24u),
+        (sint32)((uint32)y + 40u), name, 0);
+    category = (sint8)r_u8(0x8009278Du);
+    (void)gtmain_text_color(gtmain_menu_gray((uint8)half));
+    gtmain_text_font(2);
+    gtmain_text_flags(2);
+    mode = (sint8)r_u8(0x800B5304u);
+    selection_dropdown(0x8004B2FCu, ordering, 0x80092780u,
+        (sint32)((uint32)x + 32u), (sint32)((uint32)y + 56u),
+        selection_style, intensity, mode == 0);
+    descriptor = selection_descriptor(category);
+    mode = (sint8)r_u8(0x800B5304u);
+    selection_dropdown(0x8004BDB0u, ordering, descriptor,
+        (sint32)((uint32)x + 64u), (sint32)((uint32)y + 56u),
+        selection_style, intensity, mode);
+    mode = (sint8)r_u8(0x800B5304u);
+    if (mode) {
+        index = (sint8)r_u8(descriptor + 1u);
+        table = r_u32(0x800928F8u + 4u * (uint32)category);
+        name = r_u32(table + 4u * (uint32)index);
+    } else {
+        name = 0x800BE2B0u;
+    }
+    selection_centered_text(ordering, name, x, y, intensity);
+    return 0u;
 }

@@ -28,24 +28,12 @@ void gt_draft_8002AB48(void)
         w_u8(0x800B63D9u, 0u);
         return;
     }
-    /* TODO Transitive stream pause-state dependencies remain partial */
     gtmain_stream_pause_if_loaded();
 }
 
 uint32 gt_draft_8002ABC0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
-    uint32 result = r_u8(0x800CB767u);
-    w_u8(0x800B63D9u, 0);
-    if (result && (sint32)a0 >= 0) {
-        uint32 request = gt_draft_unresolved_call(0x80070024u, a0, 0, 0, 0, 0, 0, 0, 0);
-        gt_draft_unresolved_call(0x80070054u, request, a1, 0, 0, 0, 0, 0, 0);
-        gt_draft_unresolved_call(0x80070118u, 0, 0, 0, 0, 0, 0, 0, 0);
-        w_u8(0x800B63D9u, 1);
-        w_u8(0x800B63C1u, a1 ? a0 : 255u);
-        w_u8(0x800B6314u, a1);
-        return 0xFFFFFFFFu;
-    }
-    return result;
+    return gtmain_race_stream_start((sint32)a0, (sint32)a1);
 }
 
 uint32 gt_draft_8002AC8C(void)
@@ -72,17 +60,28 @@ uint32 gt_draft_8002ADDC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gt_draft_unresolved_call(0x80022468u, car, 0, 0, 0, 0, 0, 0, 0);
 }
 
-uint32 gt_draft_80043320(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static uint32 menu_parameters_resource(uint32 category)
 {
+    /* TODO Bind unselected parts resource lookup 8001EB94 */
+    return gt_draft_unresolved_call(0x8001EB94u, category,
+        0u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+uint32 gt_draft_80043320(void)
+{
+    uint32 table = menu_parameters_resource(30u);
+    uint32 offset = r_u8(0x800941DBu);
     uint32 owner = r_u32(0x800BEA64u);
-    uint32 index = r_u16(owner + r_u8(0x800941DBu));
-    uint32 item = gt_draft_unresolved_call(0x8001EB94u, 30, 0, 0, 0, 0, 0, 0, 0) + 32u * (index - 1u);
-    w_u16(0x80092ABCu, r_u8(r_u32(0x800BEA64u) + 65));
-    w_u16(0x80092AB8u, r_u8(item + 10));
-    w_u16(0x80092ABAu, r_u8(item + 11));
-    w_u16(0x80092ACCu, r_u8(r_u32(0x800BEA64u) + 78));
-    w_u16(0x80092AC8u, r_u8(item + 12));
-    uint32 result = r_u8(item + 13);
+    uint32 index = r_u16(owner + offset);
+    uint32 first = r_u8(owner + 65u);
+    uint32 item = table + (index - 1u) * 32u;
+    uint32 result;
+    w_u16(0x80092ABCu, first);
+    w_u16(0x80092AB8u, r_u8(item + 10u));
+    w_u16(0x80092ABAu, r_u8(item + 11u));
+    w_u16(0x80092ACCu, r_u8(owner + 78u));
+    w_u16(0x80092AC8u, r_u8(item + 12u));
+    result = r_u8(item + 13u);
     w_u16(0x80092ACAu, result);
     return result;
 }
@@ -132,6 +131,20 @@ sint32 gtmain_menu_entry_type_input(uint32 input)
     return choice;
 }
 
+static sint32 menu_device_select(uint32 selector, uint32 input)
+{
+    /* TODO Bind unselected two-argument device selection 8004D820 */
+    return (sint32)gt_draft_unresolved_call(0x8004D820u,
+        selector, input, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+static void menu_device_transition(sint32 mode, sint32 selection)
+{
+    /* TODO Bind unselected two-argument device transition 800438EC */
+    (void)gt_draft_unresolved_call(0x800438ECu,
+        (uint32)mode, (uint32)selection, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
 uint32 gtmain_menu_device_selection_input(void)
 {
     uint32 device = r_u32(0x800BDD08u);
@@ -139,9 +152,7 @@ uint32 gtmain_menu_device_selection_input(void)
     gtmain_menu_stream_check();
     if (!(sint8)r_u8(device)) return 0;
     gtmain_menu_flags(1);
-    /* TODO Bind unselected device selection input */
-    result = (sint32)gt_draft_unresolved_call(0x8004D820u,
-        0x80092B08u, device + 2u, 0, 0, 0, 0, 0, 0);
+    result = menu_device_select(0x80092B08u, device + 2u);
     if (result == -2)
     {
         gtmain_menu_sound(2);
@@ -153,9 +164,7 @@ uint32 gtmain_menu_device_selection_input(void)
         gtmain_menu_sound(4);
         mode = (sint8)r_u8(0x8009278Du);
         selection = (sint8)r_u8(0x800B5375u);
-        /* TODO Bind unselected device selection transition */
-        gt_draft_unresolved_call(0x800438ECu, (uint32)mode,
-            (uint32)selection, 0, 0, 0, 0, 0, 0);
+        menu_device_transition(mode, selection);
         return 1;
     }
     return 0;
@@ -166,18 +175,21 @@ uint32 gt_draft_80048AF8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_menu_text_fit(a0, (sint32)a1);
 }
 
-uint32 gt_draft_80042E84(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_80042E84(void)
 {
-    uint32 table = gt_draft_unresolved_call(0x8001EB94u, 33, 0, 0, 0, 0, 0, 0, 0);
+    uint32 table = menu_parameters_resource(33u);
+    uint32 offset = r_u8(0x800941DEu);
     uint32 owner = r_u32(0x800BEA64u);
-    uint32 index = r_u16(owner + r_u8(0x800941DEu));
-    w_u16(0x800929CCu, r_u8(r_u32(0x800BEA64u) + 67));
-    w_u16(0x800929DCu, r_u8(r_u32(0x800BEA64u) + 80));
-    uint32 row = table + 72u * (index - 1u);
-    w_u16(0x800929C8u, r_u8(row + 24));
-    w_u16(0x800929CAu, r_u8(row + 25));
-    w_u16(0x800929D8u, r_u8(row + 39));
-    uint32 result = r_u8(row + 40);
+    uint32 first = r_u8(owner + 67u);
+    uint32 index = r_u16(owner + offset);
+    uint32 item, result;
+    w_u16(0x800929CCu, first);
+    w_u16(0x800929DCu, r_u8(owner + 80u));
+    item = table + (index - 1u) * 72u;
+    w_u16(0x800929C8u, r_u8(item + 24u));
+    w_u16(0x800929CAu, r_u8(item + 25u));
+    w_u16(0x800929D8u, r_u8(item + 39u));
+    result = r_u8(item + 40u);
     w_u16(0x800929DAu, result);
     return result;
 }

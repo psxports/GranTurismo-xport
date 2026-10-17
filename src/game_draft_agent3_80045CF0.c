@@ -1,194 +1,122 @@
 #include "game_draft_registry.h"
 #include "game_first2_registry.h"
-#include "game_draft_agent3_support.h"
 
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO Call 8003BA30 has additional inferred arguments requiring integration review */
-/* TODO Native buffer marshalling and callback output depend on the unresolved buffer adapter */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_80045CF0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static sint32 parts_list_add(sint32 a, sint32 b)
 {
-  sint16 v13;
-  sint32 v14;
-  sint32 v15;
-  uint32 v16;
-  sint32 v17;
-  uint32 v18;
-  uint32 v19;
-  uint32 v20;
-  uint8 v21;
-  sint32 v22;
-  sint8 v23;
-  sint32 v24;
-  sint32 v25;
-  sint32 v26;
-  sint32 v27;
-  sint32 v28;
-  sint32 v29;
-  sint32 v30;
-  sint32 v31;
-  sint32 v32;
-  sint32 v33;
-  sint32 v34;
-  sint32 v35;
-  uint32 v36;
-  uint32 v37;
-  sint32 v38;
-  sint32 v39;
-  sint32 v40;
-  sint32 v41;
-  sint32 v42;
-  sint32 v43;
-  sint32 v44;
-  sint32 v45;
-  uint32 v46;
-  sint32 v48;
-  sint32 v49;
-  sint32 v50;
-  sint32 v51;
-  sint32 v52;
-  sint32 v53;
-  sint32 v54;
-  uint32 v55;
-  sint8 v56[26];
-  sint8 v57;
-  v13 = (sint32)((uint32)((sint32)a1) + (uint32)(160));
-  v14 = gtmain_menu_list_extent(0x80093530u);
-  if (((r_u8((uint32)(0x800B5374)) == 27) || (r_u8((uint32)(0x800B5374)) == 35)))
-  {
-    v13 = (sint32)((uint32)((sint32)a1) + (uint32)(120));
-    v15 = (sint32)((uint32)(v14) - (uint32)(126));
-  }
-  else
-  {
-    v15 = (sint32)((uint32)(((sint32)(v14) >> ((uint32)(1) & 31u))) - (uint32)(112));
-  }
-  gt_draft_8003BA30(a0, 0x80093530u, v13, (sint32)((uint32)((sint32)a2) - (uint32)(v15)), (sint32)a3, (sint32)a4, 1, (sint32)(v56));
-  if ((r_u8((uint32)(0x800B5374)) == 34))
-  {
-    gt_draft_unresolved_call(0x8006C790u, 2, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    v17 = 0;
-    v18 = 0x800931F8u;
-    v19 = gt_draft_buffer_address(v56, sizeof(v56));
-    v20 = (uint32)(gt_draft_buffer_address(&v57, sizeof(v57)));
-    do
-    {
-      v21 = r_u8((uint32)(((v20 += 1u) - 1u)));
-      (v17 += 1u);
-      v22 = gt_draft_unresolved_call(0x80035458u, v21, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-      gt_draft_unresolved_call(0x8006C874u, v22, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-      v23 = r_u8((uint32)(((uint32)(v18) + 1u * (uint32)(1))));
-      v18 += 4u * (uint32)(2);
-      v24 = (sint16)r_u16((uint32)(((uint32)(v19) + 2u * (uint32)(49))));
-      v19 += 1u * (uint32)(2);
-      gt_draft_unresolved_call(0x80045BF4u, (sint32)(a0), (sint32)((uint32)((sint32)a1) + (uint32)(152)), v24, v23, 0u, 0u, 0u, 0u);
-    }
-    while ((v17 < 9));
-    v16 = a0;
-  }
-  else
-  {
-    if ((r_u8((uint32)(0x800B5374)) >= 0x23u))
-    {
-      v16 = a0;
-      if ((r_u8((uint32)(0x800B5374)) != 35))
-        goto LABEL_24;
-    }
-    else
-    {
-      v16 = a0;
-      if ((r_u8((uint32)(0x800B5374)) != 27))
-        goto LABEL_24;
-    }
-    if ((r_u32((uint32)(0x801D2FDC)) >= 0))
-      goto LABEL_23;
-    v25 = (sint32)(0u - (uint32)(2145570832));
-    v26 = (sint32)(0u - (uint32)(2145569320));
-    v27 = (sint8)r_u8((uint32)(0x80093531u));
-    v28 = ((sint8)r_u8((uint32)((uint32)((sint32)((uint32)((sint32)((uint32)((sint8)r_u8((uint32)(0x80093531u))) - (uint32)(2145570852))) + (uint32)(4))))) == 0);
-    do
-    {
-      v29 = r_u32((uint32)((uint32)((sint32)((uint32)(v26) + (uint32)(4)))));
-      v30 = r_u32((uint32)((uint32)((sint32)((uint32)(v26) + (uint32)(8)))));
-      v31 = r_u32((uint32)((uint32)((sint32)((uint32)(v26) + (uint32)(12)))));
-      w_u32((uint32)((uint32)(v25)), (uint32)(r_u32((uint32)((uint32)(v26)))));
-      w_u32((uint32)((uint32)((sint32)((uint32)(v25) + (uint32)(4)))), (uint32)(v29));
-      w_u32((uint32)((uint32)((sint32)((uint32)(v25) + (uint32)(8)))), (uint32)(v30));
-      w_u32((uint32)((uint32)((sint32)((uint32)(v25) + (uint32)(12)))), (uint32)(v31));
-      v26 += 16;
-      v25 += 16;
-    }
-    while ((v26 != (sint32)(0u - (uint32)(2145569224))));
-    v32 = r_u32((uint32)(0x801D363C));
-    v33 = r_u32((uint32)(0x801D3640));
-    w_u32((uint32)((uint32)(v25)), (uint32)(r_u32((uint32)(0x801D3638))));
-    w_u32((uint32)((uint32)((sint32)((uint32)(v25) + (uint32)(4)))), (uint32)(v32));
-    w_u32((uint32)((uint32)((sint32)((uint32)(v25) + (uint32)(8)))), (uint32)(v33));
-    v48 = ((sint32)((sint32)a4) >> ((uint32)(2) & 31u));
-    v50 = (sint32)((uint32)((sint32)a2) + (uint32)(138));
-    v49 = (sint32)((uint32)((sint32)a1) + (uint32)(140));
-    v52 = (sint32)((uint32)((sint32)a1) + (uint32)(140));
-    gt_draft_unresolved_call(0x8004D020u, a0, (sint32)((uint32)((sint32)a1) + (uint32)(176)), (sint32)((uint32)((sint32)a2) + (uint32)(80)), (sint32)a4, 0u, 0u, 0u, 0u);
-    v16 = a0;
-    if (!v28)
-    {
-      v34 = (sint32)(0u - (uint32)(2145570832));
-      v35 = (sint32)((uint32)((sint32)((uint32)(108) * (uint32)(v27))) - (uint32)(2145570852));
-      v36 = (uint32)((sint32)((uint32)(v35) + (uint32)(188)));
-      v37 = (uint32)((sint32)((uint32)(v35) + (uint32)(284)));
-      if (((((uint32)(((uint32)(108) * (uint32)((uint8)(v27)))) - (uint32)(104)) & 3) != 0))
-      {
-        do
-        {
-          v38 = r_u32((uint32)((v36 + 4u * (uint32)(1))));
-          v39 = r_u32((uint32)((v36 + 4u * (uint32)(2))));
-          v40 = r_u32((uint32)((v36 + 4u * (uint32)(3))));
-          w_u32((uint32)((uint32)(v34)), (uint32)(r_u32((uint32)(v36))));
-          w_u32((uint32)((uint32)((sint32)((uint32)(v34) + (uint32)(4)))), (uint32)(v38));
-          w_u32((uint32)((uint32)((sint32)((uint32)(v34) + (uint32)(8)))), (uint32)(v39));
-          w_u32((uint32)((uint32)((sint32)((uint32)(v34) + (uint32)(12)))), (uint32)(v40));
-          v36 += 4u * (uint32)(4);
-          v34 += 16;
-        }
-        while ((v36 != v37));
-      }
-      else
-      {
-        do
-        {
-          v41 = r_u32((uint32)((v36 + 4u * (uint32)(1))));
-          v42 = r_u32((uint32)((v36 + 4u * (uint32)(2))));
-          v43 = r_u32((uint32)((v36 + 4u * (uint32)(3))));
-          w_u32((uint32)((uint32)(v34)), (uint32)(r_u32((uint32)(v36))));
-          w_u32((uint32)((uint32)((sint32)((uint32)(v34) + (uint32)(4)))), (uint32)(v41));
-          w_u32((uint32)((uint32)((sint32)((uint32)(v34) + (uint32)(8)))), (uint32)(v42));
-          w_u32((uint32)((uint32)((sint32)((uint32)(v34) + (uint32)(12)))), (uint32)(v43));
-          v36 += 4u * (uint32)(4);
-          v34 += 16;
-        }
-        while ((v36 != v37));
-      }
-      v44 = r_u32((uint32)((v36 + 4u * (uint32)(1))));
-      v45 = r_u32((uint32)((v36 + 4u * (uint32)(2))));
-      w_u32((uint32)((uint32)(v34)), (uint32)(r_u32((uint32)(v36))));
-      w_u32((uint32)((uint32)((sint32)((uint32)(v34) + (uint32)(4)))), (uint32)(v44));
-      w_u32((uint32)((uint32)((sint32)((uint32)(v34) + (uint32)(8)))), (uint32)(v45));
-      v50 = (sint32)((uint32)((sint32)a2) + (uint32)(138));
-      v48 = (sint32)a4;
-      v49 = (sint32)((uint32)((sint32)a1) + (uint32)(140));
-      v52 = (sint32)((uint32)((sint32)a1) + (uint32)(140));
-      gt_draft_unresolved_call(0x8004D020u, a0, (sint32)((uint32)((sint32)a1) + (uint32)(176)), (sint32)((uint32)((sint32)a2) + (uint32)(80)), (sint32)a4, 0u, 0u, 0u, 0u);
-      LABEL_23:
-      v16 = a0;
-
-    }
-  }
-  LABEL_24:
-  v46 = (0x80092F70u + 4u * (uint32)((sint32)((uint32)(4) * (uint32)((sint8)r_u8((uint32)(0x800B5305))))));
-
-  gt_draft_unresolved_call(0x800706BCu, v16, ((uint16)((sint32)((uint32)((sint32)a1) + (uint32)(180))) | (sint32)((uint32)((sint32)((uint32)((sint32)a2) + (uint32)(80))) << ((uint32)(16) & 31u))), (sint32)r_u32((uint32)((v46 + 4u * (uint32)(3)))), (sint32)r_u32((uint32)((v46 + 4u * (uint32)(2)))), 0u, 0u, 0u, 0u);
-  gt_draft_unresolved_call(0x8006F590u, a0, ((uint16)((sint8)((r_u8((uint32)(((uint32)(v46) + 1u * (uint32)(1)))) | 0x20))) | 0x200), 0u, 0u, 0u, 0u, 0u, 0u);
-  gt_draft_unresolved_call9(0x80043F34u, (sint32)(a0), r_u32((uint32)((uint32)(((uint32)((sint32)((uint32)(4) * (uint32)((sint8)r_u8((uint32)(0x80093531u))))) + (uint32)(r_u32((uint32)(0x800B530C))))))), (sint32)a1, (sint32)a2, (sint32)a4, v48, v49, v50, v52);
-  return 0;
+    return (sint32)((uint32)a + (uint32)b);
 }
 
+static void parts_list_copy_summary(uint32 source)
+{
+    uint32 destination = 0x801D2FF0u, i;
+    for (i = 0u; i < 6u; ++i) {
+        uint32 first = r_u32(source), second = r_u32(source + 4u);
+        uint32 third = r_u32(source + 8u), fourth = r_u32(source + 12u);
+        w_u32(destination, first); w_u32(destination + 4u, second);
+        w_u32(destination + 8u, third); w_u32(destination + 12u, fourth);
+        source += 16u; destination += 16u;
+    }
+    {
+        uint32 first = r_u32(source), second = r_u32(source + 4u);
+        uint32 third = r_u32(source + 8u);
+        w_u32(destination, first); w_u32(destination + 4u, second);
+        w_u32(destination + 8u, third);
+    }
+}
+
+static void parts_list_value_draw(uint32 ordering, sint32 x, sint32 y, uint32 value)
+{
+    /* TODO Bind unselected four-argument value renderer 80045BF4 */
+    (void)gt_draft_unresolved_call(0x80045BF4u, ordering, (uint32)x,
+        (uint32)y, value, 0u, 0u, 0u, 0u);
+}
+
+static void parts_list_detail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity,
+    uint32 summary, sint32 text_intensity, sint32 first_x, sint32 first_y,
+    sint32 second_x, sint32 second_y, uint32 first_flags, uint32 second_flags)
+{
+    /* TODO Bind unselected twelve-argument detail renderer 8004D020 */
+    gt_draft_failure("Parts list twelve-argument detail draw", 0x8004D020u);
+}
+
+static void parts_list_sprite(uint32 ordering, uint32 xy, uint32 texture, uint32 size, uint32 color)
+{
+    /* TODO Bind unselected five-argument sprite renderer 800706BC */
+    (void)gt_draft_unresolved_call(0x800706BCu, ordering, xy, texture,
+        size, color, 0u, 0u, 0u);
+}
+
+static void parts_list_caption(uint32 ordering, uint32 text, sint32 x, sint32 y, sint32 intensity)
+{
+    /* TODO Bind unselected five-argument centered caption 80043F34 */
+    (void)gt_draft_unresolved_call(0x80043F34u, ordering, text,
+        (uint32)x, (uint32)y, (uint32)intensity, 0u, 0u, 0u);
+}
+
+/* GTMAIN.EXE 80045CF0 */
+uint32 gt_draft_80045CF0(uint32 ordering, sint32 x, sint32 y,
+    uint32 carried_argument, sint32 intensity)
+{
+    uint8 output[152];
+    sint32 extent = gtmain_menu_list_extent(0x80093530u);
+    sint32 list_x, list_y, shade = intensity >> 1;
+    uint32 category = r_u8(0x800B5374u), descriptor, texture, size, color, xy, page, text;
+    if (category == 27u || category == 35u) {
+        list_x = parts_list_add(x, 120);
+        list_y = (sint32)((uint32)y - ((uint32)extent - 126u));
+    } else {
+        list_x = parts_list_add(x, 160);
+        list_y = (sint32)((uint32)y - ((uint32)(extent >> 1) - 112u));
+    }
+    (void)gtmain_menu_descriptor_draw(ordering, 0x80093530u, list_x, list_y,
+        intensity, 1u, output, sizeof(output));
+    category = r_u8(0x800B5374u);
+    if (category == 34u) {
+        uint32 i;
+        (void)gtmain_text_font(2);
+        for (i = 0u; i < 9u; ++i) {
+            uint32 brightness = output[26u + i];
+            uint32 value;
+            sint32 row_y;
+            (void)gtmain_text_color(gtmain_menu_gray((uint8)brightness));
+            value = r_u8(0x800931F9u + i * 8u);
+            row_y = (sint16)((uint16)output[98u + i * 2u] |
+                ((uint16)output[99u + i * 2u] << 8));
+            parts_list_value_draw(ordering, parts_list_add(x, 152), row_y, value);
+        }
+    } else if (category == 27u || category == 35u) {
+        if (category == 27u) shade = 0;
+        shade >>= 2;
+        if (r_s16(0x801D2FDCu) < 0) {
+            sint32 selected = r_s8(0x80093531u);
+            uint32 empty = r_s8(0x801D2FE0u + (uint32)selected) == 0;
+            parts_list_copy_summary(0x801D35D8u);
+            parts_list_detail_draw(ordering, parts_list_add(x, 176), parts_list_add(y, 80),
+                intensity, 0x801D2FE8u, intensity >> 2, parts_list_add(x, 140),
+                parts_list_add(y, 138), parts_list_add(x, 140), parts_list_add(y, 166), 1u, empty);
+            if (!empty) {
+                parts_list_copy_summary(0x801D3098u + (uint32)selected * 108u);
+                parts_list_detail_draw(ordering, parts_list_add(x, 176), parts_list_add(y, 80),
+                    intensity, 0x801D2FE8u, intensity, parts_list_add(x, 140),
+                    parts_list_add(y, 138), parts_list_add(x, 140), parts_list_add(y, 166), 0u, 1u);
+            }
+        }
+    }
+    color = (uint8)shade;
+    color |= (color << 8) | (color << 16) | 0x03000000u;
+    descriptor = 0x80092F70u + (uint32)r_s8(0x800B5305u) * 16u;
+    xy = ((uint32)x + 180u) & 65535u;
+    xy |= ((uint32)y + 80u) << 16;
+    texture = r_u32(descriptor + 12u);
+    size = r_u32(descriptor + 8u);
+    parts_list_sprite(ordering, xy, texture, size, color);
+    page = (uint16)(sint8)(uint8)(r_u8(descriptor + 1u) | 32u);
+    (void)gtmain_packet_page(ordering, page | 512u);
+    {
+        sint32 selected = r_s8(0x80093531u);
+        uint32 names = r_u32(0x800B530Cu);
+        text = r_u32(names + (uint32)selected * 4u);
+    }
+    parts_list_caption(ordering, text, x, y, intensity);
+    return 0u;
+}

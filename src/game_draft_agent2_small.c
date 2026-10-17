@@ -11,29 +11,29 @@ uint32 gtmain_camera_config_pose_prepare(uint32 camera)
     return gtmain_camera_pose_prepare(camera, mode, distance);
 }
 
-uint32 gt_draft_80019EE8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+void gt_draft_80019EE8(void)
 {
     gtmain_sound_voice_tick_if_enabled();
-    return gtmain_sound_sequence_tick();
+    gtmain_sound_sequence_tick();
 }
 
-uint32 gt_draft_8001A098(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_8001A098(void)
 {
     gtmain_file_load(r_u32(0x800B6390u), 0x800D6FDCu, 0u, 0u);
     gtmain_shutdown();
     return gtos_native_transition(0x800D6FDCu);
 }
 
-uint32 gt_draft_8001A008(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_8001A008(void)
 {
-    gt_draft_unresolved_call(0x80031710u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8006A150u, 0x800C4C00u, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8007A694u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x800825DCu, 0, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_race_sound_callbacks_stopped();
+    (void)gtmain_audio_snapshot_upload(0x800C4C00u);
+    gtmain_frame_events_disable();
+    (void)gtmain_card_stop();
     gtmain_input_stop_when_ready();
-    gt_draft_unresolved_call(0x8007ED98u, 0, 0, 0, 0, 0, 0, 0, 0);
-    gt_draft_unresolved_call(0x8007A7B8u, 0, 0, 0, 0, 0, 0, 0, 0);
-    return gt_draft_unresolved_call(0x8008A33Cu, 0, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_sound_shutdown();
+    (void)gtmain_frame_shutdown();
+    return (uint32)StopCallback();
 }
 
 uint32 gt_draft_8004A260(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -104,9 +104,9 @@ uint32 gt_draft_8002FC74(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gt_draft_unresolved_call(0x8002FBA8u, a0, 64, 16, 0x800912ACu, a1, 0, 0, 0);
 }
 
-uint32 gt_draft_8002AC58(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_8002AC58(void)
 {
-    return gt_draft_8002ABC0(r_u16(0x800B6874u) ? 13u : 12u, 0, 0, 0, 0, 0, 0, 0);
+    return gtmain_race_stream_start(r_u16(0x800B6874u) ? 13 : 12, 0);
 }
 
 uint32 gt_draft_800433B0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -138,7 +138,7 @@ uint32 gt_draft_8002A390(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return r_u8(0x8008FB38u + r_u8(0x800CB7F8u));
 }
 
-uint32 gt_draft_8002A3CC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_8002A3CC(void)
 {
     return 0x800C77ACu + 1792u * r_u8(0x800CB7F8u) + 224u * r_u8(0x800CB7F9u);
 }
@@ -185,15 +185,29 @@ uint32 gt_draft_8001DD9C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gt_draft_8001D654(a0, 0, 0, 0, 0, 0, 0, 0);
 }
 
-uint32 gt_draft_8001EE00(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static uint32 assist_activation_missing(uint32 enabled)
 {
-    return gt_draft_unresolved_call(0x800204ECu, a0 != 0, 0, 0, 0, 0, 0, 0, 0);
+    /* TODO Bind unselected one-argument assist activation */
+    gt_draft_failure("GTMAIN assist activation", 0x800204ECu);
 }
 
-uint32 gt_draft_80022BFC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE:8001EE00 */
+uint32 gt_draft_8001EE00(uint32 enabled)
 {
-    uint32 object = gt_draft_unresolved_call(0x8002278Cu, 0, 0, 0, 0, 0, 0, 0, 0);
-    uint32 result = r_u32(object + (a0 ? 56u : 28u) + 12u);
+    return assist_activation_missing(enabled != 0u);
+}
+
+static uint32 result_record_missing(void)
+{
+    /* TODO Bind unselected no-argument result record selector */
+    gt_draft_failure("GTMAIN result record selector", 0x8002278Cu);
+}
+
+/* GTMAIN.EXE:80022BFC */
+uint32 gt_draft_80022BFC(uint32 alternate)
+{
+    uint32 object = result_record_missing();
+    uint32 result = r_u32(object + (alternate ? 56u : 28u) + 12u);
     uint32 other = r_u32(object + 12u);
     w_u32(0x800BDB4Cu, result);
     w_u32(0x800BDB48u, other);

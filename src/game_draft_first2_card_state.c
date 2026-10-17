@@ -2,6 +2,7 @@
 
 static uint32 card_bios(uint32 service, uint32 argument)
 {
+    if (service == 0x8008AF28u) return gtmain_bios_critical_exit_result();
     /* TODO Bind actual BIOS service data and meaningful result */
     gt_draft_failure("Native card BIOS service adapter", service);
 }
@@ -25,9 +26,7 @@ uint32 gtmain_card_start_result(void)
 uint32 gtmain_card_stop(void)
 {
     gtmain_bios_card_stop();
-    gtmain_bios_card_patch_restore();
-    /* TODO Preserve original meaningful final critical-service result */
-    gt_draft_failure("Native card stop critical result adapter", 0x8008AF28u);
+    return gtmain_bios_card_patch_restore();
 }
 void gtmain_bios_card_patch(void)
 {
@@ -49,11 +48,12 @@ void gtmain_bios_card_patch_second(void)
     do { uint32 word = r_u32(source); w_u32(destination + 2504u, word); source += 4u; destination += 4u; } while (source != 0x80082740u);
     FlushCache();
 }
-void gtmain_bios_card_patch_restore(void)
+uint32 gtmain_bios_card_patch_restore(void)
 {
     uint32 table, destination, source = 0x80082908u;
     (void)EnterCriticalSectionPSX();
     table = card_bios(0xB056u, 0); destination = r_u32(table + 24u);
     do { uint32 word = r_u32(source); w_u32(destination + 112u, word); source += 4u; destination += 4u; } while (source != 0x80082914u);
-    FlushCache(); ExitCriticalSection();
+    FlushCache();
+    return card_bios(0x8008AF28u, 0);
 }

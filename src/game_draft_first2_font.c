@@ -2,17 +2,18 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8006ED0C */
-void gtmain_font_load(sint32 font)
+uint32 gtmain_font_load(sint32 font)
 {
     uint32 buffer[8192];
     const uint8 *data;
-    if ((sint8)r_u8(0x8009948Cu) == font) return;
+    sint32 current = (sint8)r_u8(0x8009948Cu);
+    if (current == font) return (uint32)current;
     data = gtmain_resource_read_retry(0x8008E1A0u, (uint8 *)buffer, sizeof(buffer), 0u);
     w_u8(0x8009948Cu, (uint8)font);
     gtmain_font_texture_upload(0x800C0070u, (sint8)font, data);
     gtmain_text_font(1);
     gtmain_text_flags(0u);
-    gtmain_text_color(0x808080u);
+    return gtmain_text_color(0x808080u);
 }
 
 /* GTMAIN.EXE 8006C900 */

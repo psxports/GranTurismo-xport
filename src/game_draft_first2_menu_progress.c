@@ -14,8 +14,7 @@ static sint32 progress_width(sint32 font, const char *text)
 
 static uint32 progress_outline(uint32 ordering, const sint16 *corners, uint32 color)
 {
-    /* TODO Bind native corners to original outline service */
-    gt_draft_failure("Native progress outline", 0x8006F624u);
+    return gtmain_packet_outline_native(ordering, corners, color);
 }
 
 static sint32 progress_span(uint32 value, uint32 total)

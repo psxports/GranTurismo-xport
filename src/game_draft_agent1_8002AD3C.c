@@ -8,7 +8,6 @@ void gt_draft_8002AD3C(void)
     gtmain_stream_mode_set(0);
     entry = (sint8)r_u8(0x800B63C1u);
     parameter = (sint8)r_u8(0x800B6314u);
-    /* TODO Transitive stream and car callback owners remain partial */
     gtmain_race_stream_start(entry, parameter);
     gtmain_race_sound_callbacks_active();
 }

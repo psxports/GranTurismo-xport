@@ -4,9 +4,12 @@
 
 static void stream_status_error(uint8 status, uint32 response)
 {
-    /* TODO Bind the unselected stream error handler */
-    (void)status; (void)response;
-    gt_draft_failure("GTMAIN alternate stream error handler", 0x8006FB2Cu);
+    /* GTMAIN.EXE 8006FB2C with the authorized fixed-disc policy */
+    if (status != 5u || (response & 0x10u)) return;
+    if (response & 1u) {
+        if (r_u8(0x800994C2u) == 15u) w_u8(0x800994C2u, 16u);
+        else (void)gtmain_stream_stop_request();
+    }
 }
 
 /* GTMAIN.EXE 8006FA28 */
@@ -54,11 +57,12 @@ sint32 gtmain_stream_state_active(uint32 state)
 /* GTMAIN.EXE 8006FEBC */
 void gtmain_stream_begin(void)
 {
-    uint32 state;
+    uint32 state, base;
     if (gtmain_cd_pending_command()) return;
     EnterCriticalSectionPSX();
     state = r_u8(0x800994C2u);
-    w_u32(0x800C00A0u, r_u32(0x800C00A8u));
+    base = r_u32(0x800C00A8u);
+    w_u32(0x800C00A0u, base);
     if (gtmain_stream_state_active(state)) {
         if (state) {
             gtmain_cd_stop_status(1u);
@@ -76,6 +80,7 @@ void gtmain_stream_begin(void)
 void gtmain_stream_alternate_sync(uint8 status, const uint8 *response)
 {
     uint32 response_word, state, request;
+    if (status == 5u && (response[0] & 0x10u)) return;
     w_u8(0x800994BEu, status);
     response_word = xport_load_le32(response);
     w_u32(0x800C00C0u, response_word);
@@ -106,9 +111,9 @@ void gtmain_stream_alternate_sync(uint8 status, const uint8 *response)
     case 12:
         {
             CdlLOC position;
-            CdIntToPos((sint32)r_u32(0x800C00A0u), &position);
+            CdlLOC *parameter = CdIntToPos((sint32)r_u32(0x800C00A0u), &position);
             state = 13u;
-            gtmain_cd_command_native(2u, (uint8 *)&position);
+            gtmain_cd_command_native(2u, (uint8 *)parameter);
         }
         break;
     case 13:

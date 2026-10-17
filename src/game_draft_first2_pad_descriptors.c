@@ -136,7 +136,11 @@ sint32 gtmain_pad_port_begin(uint32 port)
             count_address = 0x800B1F14u + 4u * r_u32(0x800B1EFCu);
             count = (sint32)(r_u32(count_address) - 1u);
             w_u32(count_address, (uint32)count);
-            pad_callback(r_u32(0x800B1EDCu), r_u32(port + 12u) + 240u * (uint32)count);
+            {
+                uint32 children = r_u32(port + 12u);
+                uint32 callback = r_u32(0x800B1EDCu);
+                pad_callback(callback, children + 240u * (uint32)count);
+            }
             count = (sint32)r_u32(0x800B1F14u + 4u * r_u32(0x800B1EFCu));
         } while (count > 0);
         count_address = 0x800B1F14u + 4u * r_u32(0x800B1EFCu);

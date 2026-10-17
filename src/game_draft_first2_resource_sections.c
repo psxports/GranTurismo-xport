@@ -18,7 +18,6 @@ static uint32 sections_align(uint32 address)
 /* GTMAIN.EXE:80069FF0 */
 uint32 gtmain_resource_sections_load(uint32 path, uint32 destination, uint32 requested_bytes)
 {
-    /* TODO Selected file loader dependencies remain partial */
     uint32 resource = sections_read_retry(path, destination, requested_bytes);
     uint32 cursor = (resource + 75u) & ~3u;
     sint32 count = r_s16(resource + 12u), next_count;

@@ -1,4 +1,5 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
 static uint32 gtmain_card_kernel_table(uint32 selector)
 {
@@ -93,6 +94,7 @@ uint32 gtmain_card_filesystem_init(void)
 void gtmain_card_start(void)
 {
     xport_bios_enter_critical();
+    MemCardStart();
     xport_bios_start_card();
     ChangeClearPAD(0u);
     xport_bios_exit_critical();
@@ -129,6 +131,7 @@ void gtmain_card_init(uint32 mode)
 {
     uint32 source;
     uint32 destination = 0xDF80u;
+    gtmain_card_native_absent_init(mode);
     ChangeClearPAD(0u);
     xport_bios_enter_critical();
     if (!r_u32(0x800B38E4u)) mode = 0u;

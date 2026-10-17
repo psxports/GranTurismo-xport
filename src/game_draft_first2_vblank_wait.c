@@ -9,7 +9,6 @@ static void vblank_timeout_counter(uint32 value)
 static uint32 vblank_timeout_mode(uint32 mode, uint32 value)
 {
     /* TODO Bind original timeout service with its actual result */
-    (void)mode; (void)value;
     gt_draft_failure("Native VBlank timeout mode adapter", 0x8008B2B8u);
 }
 uint32 gtmain_vblank_wait(sint32 target, uint32 budget)

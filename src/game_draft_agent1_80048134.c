@@ -1,8 +1,11 @@
 #include "game_draft_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80048134(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* TODO Resolve independent continuation buffer and service boundaries */
+/* GTMAIN.EXE 80048134 */
+void gt_draft_80048134(uint32 owner, uint32 ordering, sint32 x, sint32 y,
+    uint32 carried_argument, sint32 intensity)
 {
-
-  return gt_draft_8004813C(0, 0, 0, 0, 0, 0, 0, 0);
+    uint32 context = r_u32(0x800BDD08u);
+    gt_draft_8004813C(owner, ordering, x, y,
+        carried_argument, intensity, context);
 }

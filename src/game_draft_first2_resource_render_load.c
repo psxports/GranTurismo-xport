@@ -106,6 +106,12 @@ static uint32 *resource_render_words(uint32 count)
     return words;
 }
 
+static void resource_render_image_free(uint32 image)
+{
+    /* TODO Bind the unselected one-argument guest heap free */
+    gt_draft_failure("Unrecorded GTMAIN car image heap free", 0x8007CFE0u);
+}
+
 sint32 gtmain_car_records_decode(uint32 records, sint32 count, const uint32 *destinations,
     uint32 destinations_count, uint32 texture_destination)
 {
@@ -147,18 +153,15 @@ sint32 gtmain_car_records_decode(uint32 records, sint32 count, const uint32 *des
                 resource_render_copy_block(record + 60u, image + 80u);
                 resource_render_copy_block(record + 12u, image + 32u);
                 resource_render_copy_block(record + 28u, image + 48u);
-                palette = r_u16(palette_indices + r_u16(record + 4u) * 2u);
+                palette = r_u16(record + 4u);
+                palette = r_u16(palette_indices + palette * 2u);
                 gtmain_texture_palette_upload(image, (sint32)palette, r_u8(record + 2u));
                 w_u16(record + 4u, palette);
             }
             ++item;
         }
         if (!texture_destination)
-        {
-            /* TODO Bind the unselected original guest heap free dependency */
-            (void)image;
-            gt_draft_failure("Unrecorded GTMAIN car image heap free", 0x8007CFE0u);
-        }
+            resource_render_image_free(image);
         {
             uint32 destination = 0u;
             if (destinations)

@@ -17,7 +17,6 @@ sint32 gtmain_menu_race_selection_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u), selector, descriptor;
     sint32 selected, mode;
-    /* TODO Stream pause dependencies remain partial */
     gtmain_menu_stream_check();
     (void)gtmain_menu_angle_tick();
     if (!r_s8(input)) return 0;

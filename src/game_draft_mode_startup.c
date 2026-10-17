@@ -72,11 +72,10 @@ static uint32 gtmain_mode_menu_session(void)
 uint32 gtmain_mode_init(void)
 {
     uint32 mode;
-    /* TODO Native bootstrap and sound setup adapters remain partial */
     gtmain_heap_reset();
-    gtmain_mode_prepare();
+    gtmain_menu_bootstrap();
     gtmain_menu_status_reset();
-    gtmain_sound_bank_load(0x800B49ECu, 0x1010u, 0x801BB70Cu, 0x500u, 0u);
+    gtmain_race_render_config(0u);
     mode = r_u8(0x800CB7F4u);
     w_u32(0x800B6390u, 0x8008BE68u);
     w_u8(0x800B63DCu, 0u);

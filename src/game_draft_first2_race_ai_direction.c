@@ -10,15 +10,15 @@ static uint32 direction_call(uint32 owner, uint32 a, uint32 b, uint32 c)
 /* TODO Bind unrecorded behavior mode and pair cache dependencies */
 static sint32 direction_behavior_mode3(uint32 mode)
 {
-    return (sint32)gt_draft_unresolved_call(0x80053C68u, mode, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_failure("GTMAIN behavior mode3 selector", 0x80053C68u);
 }
 static sint32 direction_behavior_mode4(uint32 mode)
 {
-    return (sint32)gt_draft_unresolved_call(0x80053CA0u, mode, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_failure("GTMAIN behavior mode4 selector", 0x80053CA0u);
 }
 static uint32 direction_pair_cache_clear(sint32 car_index, sint32 count)
 {
-    return gt_draft_unresolved_call(0x80062138u, (uint32)car_index, (uint32)count, 0, 0, 0, 0, 0, 0);
+    gt_draft_failure("GTMAIN behavior pair cache clear", 0x80062138u);
 }
 
 static uint32 direction_fp(uint32 a, uint32 b)
@@ -37,12 +37,11 @@ static void direction_spline(uint32 owner, uint32 mode, uint32 segment, uint32 p
 {
     if (owner == 0x80054164u) { gtmain_race_ai_spline_position((sint32)mode, (sint32)segment, (sint32)progress, x, z); return; }
     /* TODO Bind the unselected alternate spline native outputs */
-    (void)mode; (void)segment; (void)progress; (void)x; (void)z;
     gt_draft_failure("GTMAIN native AI spline outputs", owner);
 }
 
 /* GTMAIN.EXE 80055C0C */
-void gtmain_race_ai_direction(uint32 car, sint32 distance, sint32 *first, sint32 *second)
+sint32 gtmain_race_ai_direction(uint32 car, sint32 distance, sint32 *first, sint32 *second)
 {
     uint32 mode = r_u8(car + 1912u), segment = r_u8(car + 1913u), attempt = 0;
     sint32 x, z, dx, dz, absolute_x, absolute_z, minimum;
@@ -58,6 +57,7 @@ void gtmain_race_ai_direction(uint32 car, sint32 distance, sint32 *first, sint32
         ++attempt;
     } while (attempt < 10u);
     *first = x; *second = z;
+    return distance;
 }
 
 /* GTMAIN.EXE 80053050 */
@@ -116,27 +116,32 @@ void gtmain_race_ai_mode_set(uint32 car, uint8 mode)
 /* GTMAIN.EXE 80054E20 */
 sint32 gtmain_race_behavior_set(uint32 car, sint32 behavior)
 {
-    sint32 mode;
+    sint32 mode, car_index, count;
     switch (behavior) {
     case 0: w_u8(car + 1780u, 0); break;
     case 2: w_u8(car + 58u, (uint8)(r_u8(car + 58u) | 8u));
         /* Fall through */
     case 4:
-        if (r_u8(car + 1912u) == 3u) goto publish;
-        mode = direction_behavior_mode3(r_u8(car + 1912u));
+        mode = r_u8(car + 1912u);
+        if (mode == 3) goto publish;
+        mode = direction_behavior_mode3((uint32)mode);
         if (mode == -1) return 0;
         gtmain_race_ai_mode_set(car, (uint8)mode); goto publish;
     case 3:
         mode = direction_behavior_mode4(r_u8(car + 1912u));
         if (mode == -1) return 0;
         gtmain_race_ai_mode_set(car, (uint8)mode);
-        direction_pair_cache_clear(r_u8(car), r_s16(0x800BC1A6u)); goto publish;
+        car_index = r_u8(car);
+        count = r_s16(0x800BC1A6u);
+        direction_pair_cache_clear(car_index, count); goto publish;
     case 5: goto neutral;
     case 6: case 7: goto publish;
     default: break;
     }
     mode = r_u8(car + 1696u);
-    if (mode == 2 || (uint32)mode - 3u < 2u) {
+    if (mode == 2) goto neutral;
+    mode = r_u8(car + 1696u);
+    if ((uint32)mode - 3u < 2u) {
 neutral:
         mode = gtmain_race_ai_mode_select(6); gtmain_race_ai_mode_set(car, (uint8)mode);
     } else if (!r_s8(car + 1689u) && !r_u8(car + 1696u)) gtmain_race_ai_segment_bind(car);

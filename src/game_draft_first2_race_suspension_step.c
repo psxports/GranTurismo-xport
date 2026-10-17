@@ -11,13 +11,11 @@ static uint32 suspension_half(sint32 a) { return ((uint32)a + ((uint32)a >> 31))
 static uint32 suspension_route(uint32 key, sint32 *mode)
 {
     /* TODO Bind the unrecorded route lookup with its actual native mode output */
-    (void)key; (void)mode;
     gt_draft_failure("Native suspension route lookup and mode output", 0x80052F60u);
 }
 static uint32 suspension_route_apply(uint32 car, uint32 route)
 {
     /* TODO Bind the unrecorded pose override and its actual result */
-    (void)car; (void)route;
     gt_draft_failure("Native suspension route pose result", 0x80060050u);
 }
 
@@ -188,8 +186,9 @@ void gtmain_race_suspension_step(uint32 cars, sint32 count)
             route = suspension_route(key, &mode);
             if (suspension_route_apply(car, route)) {
                 if (mode == 2) {
+                    sint32 route_index = r_s8(outer + 1735u);
                     route = r_u32(0x800BF51Cu); route = r_u32(route + 24u);
-                    heading = r_s32(route + 40u * (uint32)r_s8(outer + 1735u) + 40u);
+                    heading = r_s32(route + 40u * (uint32)route_index + 40u);
                     difference = gtmain_race_angle_delta(heading, r_s16(outer + 1830u));
                     if (difference) {
                         step = suspension_time(341);

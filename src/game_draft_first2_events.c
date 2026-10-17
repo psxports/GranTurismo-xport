@@ -28,9 +28,8 @@ sint32 gtmain_frame_event_open(uint32 event_class, uint32 specification, uint32 
 {
     sint32 result;
     EnterCriticalSectionPSX();
-    /* TODO Bind unsupported guest event callback tokens in the native SDK */
     result = OpenEventGuest(event_class, specification, mode, callback_token);
-    if (result != -1) EnableEvent((uint32)result);
+    if (result != -1) EnableEvent(result);
     ExitCriticalSection();
     return result;
 }

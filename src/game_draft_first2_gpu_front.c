@@ -1,12 +1,22 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "psx_gpu.h"
 #include <stdio.h>
 
 static uint32 front_missing(uint32 token, uint32 a0, uint32 a1)
 {
     /* TODO Bind actual native device callback result */
-    (void)a0; (void)a1;
     gt_draft_failure("Native GPU front callback adapter", token);
+}
+static sint32 front_detect_native(uint32 mode)
+{
+    /* Existing rasterizer reports the standard native GPU type */
+    return GetGraphType();
+}
+static void front_pump_missing(void)
+{
+    /* TODO Bind the original zero-argument GPU queue pump */
+    gt_draft_failure("Native GPU queue pump adapter", 0x80088B54u);
 }
 static uint32 front_read(uint32 address)
 {
@@ -32,7 +42,6 @@ static sint32 front_enqueue(uint32 dispatcher, uint32 callback, uint32 data, sin
 {
     if (dispatcher == 0x800888A4u) return gtmain_gpu_command_enqueue(callback, data, count, argument);
     /* TODO Bind the unknown four-argument queue callback */
-    (void)callback; (void)data; (void)count; (void)argument;
     gt_draft_failure("Native GPU queue dispatcher", dispatcher);
 }
 static sint32 front_log(uint32 format, uint32 a0, uint32 a1)
@@ -84,39 +93,53 @@ sint32 gtmain_gpu_ordering_dma_clear(uint32 table, uint32 count)
 }
 sint32 gtmain_gpu_device_reset(uint32 mode)
 {
-    uint32 saved = front_missing(0x8008A3C4u, 0, 0), zero, selected = mode & 7u, address;
+    uint32 saved = gtmain_interrupt_mask_exchange(0), zero, selected = mode & 7u;
     w_u32(0x800B25B0u, 0); zero = r_u32(0x800B25B0u);
     w_u32(0x800B25BCu, saved); w_u32(0x800B25ACu, zero);
     if (selected == 0u || selected == 5u) {
-        front_write(r_u32(0x800B2598u), 1025);
-        address = r_u32(0x800B25A8u); front_write(address, front_read(address) | 0x800u);
-        front_write(r_u32(0x800B258Cu), 0);
+        uint32 dma_control = r_u32(0x800B2598u);
+        uint32 dma_priority = r_u32(0x800B25A8u);
+        uint32 gpu_control = r_u32(0x800B258Cu);
+        /* Native transfers finish synchronously before a hard reset */
+        if (dma_control != 0x1F8010A8u || dma_priority != 0x1F8010F0u || gpu_control != 0x1F801814u)
+            gt_draft_failure("Native GPU hard reset register identity", 0x80088DB4u);
+        if (ResetGraph(0) < 0)
+            gt_draft_failure("Native GPU synchronous hard reset", 0x80088DB4u);
         (void)gtmain_gpu_bytes_fill(0x800B5FC4u, 0, 256);
         (void)gtmain_gpu_bytes_fill(0x800B6140u, 0, 384);
     } else if (selected == 1u || selected == 3u) {
-        front_write(r_u32(0x800B2598u), 1025);
-        address = r_u32(0x800B25A8u); front_write(address, front_read(address) | 0x800u);
-        front_write(r_u32(0x800B258Cu), 0x02000000u);
-        front_write(r_u32(0x800B258Cu), 0x01000000u);
+        uint32 dma_control = r_u32(0x800B2598u);
+        uint32 dma_priority = r_u32(0x800B25A8u);
+        uint32 gpu_control = r_u32(0x800B258Cu);
+        /* Bind the reviewed device addresses to the synchronous native reset */
+        if (dma_control != 0x1F8010A8u || dma_priority != 0x1F8010F0u || gpu_control != 0x1F801814u)
+            gt_draft_failure("Native GPU soft reset register identity", 0x80088DB4u);
+        if (!gpu_bind_soft_reset(0x800B25ACu, 0x800B25B0u) || ResetGraph(1) < 0)
+            gt_draft_failure("Native GPU synchronous soft reset", 0x80088DB4u);
     }
-    (void)front_missing(0x8008A3C4u, r_u32(0x800B25BCu), 0);
-    if (!selected) return (sint32)front_missing(0x800891B8u, mode, 0);
+    (void)gtmain_interrupt_mask_exchange((uint16)r_u32(0x800B25BCu));
+    if (!selected) return front_detect_native(mode);
     return 0;
 }
 sint32 gtmain_gpu_queue_sync(sint32 mode)
 {
-    uint32 pending;
+    uint32 pending, head, tail;
     if (mode) {
-        pending = (r_u32(0x800B25ACu) - r_u32(0x800B25B0u)) & 3u;
-        if (pending) (void)front_missing(0x80088B54u, 0, 0);
+        head = r_u32(0x800B25ACu);
+        tail = r_u32(0x800B25B0u);
+        pending = (head - tail) & 3u;
+        if (pending) front_pump_missing();
         if ((front_read(r_u32(0x800B2598u)) & 0x01000000u) ||
             !(front_read(r_u32(0x800B258Cu)) & 0x04000000u))
             return pending ? (sint32)pending : 1;
         return (sint32)pending;
     }
     (void)gtmain_gpu_timeout_begin();
-    while (r_u32(0x800B25ACu) != r_u32(0x800B25B0u)) {
-        (void)front_missing(0x80088B54u, 0, 0);
+    for (;;) {
+        head = r_u32(0x800B25ACu);
+        tail = r_u32(0x800B25B0u);
+        if (head == tail) break;
+        front_pump_missing();
         if (gtmain_gpu_timeout_poll()) return -1;
     }
     for (;;) {
@@ -140,6 +163,18 @@ sint32 gtmain_gpu_draw_sync(sint32 mode)
     table = r_u32(0x800B24ACu);
     return (sint32)front_control(r_u32(table + 60u), (uint32)mode);
 }
+static sint32 front_rectangle_label(uint32 token, uint32 format, uint32 label)
+{
+    /* TODO Bind unknown two-argument diagnostic callbacks */
+    if (token != 0x8008B7D8u) gt_draft_failure("Native GPU rectangle label callback", token);
+    return printf(format == 0x8008EFB4u ? "%s:bad RECT" : "%s:", (const char *)psx_addr(label, 1));
+}
+static sint32 front_rectangle_values(uint32 token, uint32 format, sint32 x, sint32 y, sint32 width, sint32 height)
+{
+    /* TODO Bind unknown five-argument diagnostic callbacks */
+    if (token != 0x8008B7D8u) gt_draft_failure("Native GPU rectangle values callback", token);
+    return printf("(%d,%d)-(%d,%d)\n", (int)x, (int)y, (int)width, (int)height);
+}
 sint32 gtmain_gpu_rectangle_report(uint32 label, uint32 rectangle)
 {
     uint32 debug = r_u8(0x800B24B6u), token;
@@ -158,13 +193,11 @@ sint32 gtmain_gpu_rectangle_report(uint32 label, uint32 rectangle)
     }
 report:
     token = r_u32(0x800B24B0u);
-    if (token != 0x8008B7D8u) return (sint32)front_missing(token, debug == 1u ? 0x8008EFB4u : 0x8008EFD4u, label);
-    printf(debug == 1u ? "%s:bad RECT" : "%s:", (const char *)psx_addr(label, 1));
+    front_rectangle_label(token, debug == 1u ? 0x8008EFB4u : 0x8008EFD4u, label);
     x = (sint16)r_u16(rectangle); y = (sint16)r_u16(rectangle + 2u);
     width = (sint16)r_u16(rectangle + 4u); height = (sint16)r_u16(rectangle + 6u);
     token = r_u32(0x800B24B0u);
-    if (token != 0x8008B7D8u) return (sint32)front_missing(token, 0x8008EFC0u, rectangle);
-    return printf("(%d,%d)-(%d,%d)\n", (int)x, (int)y, (int)width, (int)height);
+    return front_rectangle_values(token, 0x8008EFC0u, x, y, width, height);
 }
 sint32 gtmain_gpu_image_clear(uint32 rectangle, uint8 red, uint8 green, uint8 blue)
 {

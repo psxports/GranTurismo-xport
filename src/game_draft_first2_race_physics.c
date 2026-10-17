@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "game_local_stack.h"
 #include <string.h>
 
 /* TODO Implement unrecorded GTMAIN.EXE 800521A4 only for an observed native blocker */
@@ -38,8 +39,7 @@ void gtmain_race_physics_prepare(uint32 cars, sint32 count)
 {
     sint32 index;
     uint32 replay = r_s16(0x800B63DEu) != 0;
-    uint8 controls[12];
-    uint32 controls_valid = 0;
+    uint8 *controls = (uint8 *)psx_addr(gt_local_stack_workspace(0x2D00u, 12u, 0x800521ACu), 12u);
     for (index = 0; index < count; ++index) {
         uint32 car = cars + 3380u * (uint32)index;
         sint32 timer = r_s16(car + 74u);
@@ -62,11 +62,16 @@ void gtmain_race_physics_prepare(uint32 cars, sint32 count)
             square = physics_div_pow2(physics_mul(speed, speed), 12u);
             acceleration = r_s16(car + 1860u);
             if (acceleration) {
-                result = r_u16(car + 1862u) + physics_fp((uint32)acceleration, physics_div_pow2(r_u32(0x1F800000u), 4u));
+                uint32 step = physics_div_pow2(r_u32(0x1F800000u), 4u);
+                uint32 adjustment = physics_fp((uint32)acceleration, step);
+                uint32 previous = r_u16(car + 1862u);
+                result = previous + adjustment;
                 w_u16(car + 1862u, (uint16)result);
                 if ((sint16)result >= 4097) w_u16(car + 1862u, 4096);
             } else {
-                result = r_u16(car + 1862u) - physics_div_pow2(r_u32(0x1F800000u), 6u);
+                uint32 adjustment = physics_div_pow2(r_u32(0x1F800000u), 6u);
+                uint32 previous = r_u16(car + 1862u);
+                result = previous - adjustment;
                 w_u16(car + 1862u, (uint16)result);
                 if ((sint16)result < 0) w_u16(car + 1862u, 0);
             }
@@ -82,7 +87,9 @@ void gtmain_race_physics_prepare(uint32 cars, sint32 count)
     for (index = 0; index < count; ++index) {
         uint32 car = cars + 3380u * (uint32)index;
         uint32 result = (uint32)gtmain_race_curve32(car + 560u, r_s32(car + 1928u));
-        sint64 product = (sint64)r_s32(car + 704u) * r_s32(car + 1928u);
+        sint32 factor = r_s32(car + 704u);
+        sint32 velocity = r_s32(car + 1928u);
+        sint64 product = (sint64)factor * velocity;
         w_u32(car + 1720u, result);
         w_u32(car + 1724u, (uint32)(product / 4096));
     }
@@ -92,13 +99,13 @@ void gtmain_race_physics_prepare(uint32 cars, sint32 count)
         uint32 car = cars + 3380u * (uint32)index;
         sint32 type = r_s16(car + 24u), state;
         switch (type) {
-        case 0: memset(controls, 0, 12); controls_valid = 1; break;
-        case 2: physics_controls_read(controls, 0x800BC1C0u, 1, r_u32(car + 28u)); controls_valid = 1; break;
-        case 3: physics_controls_read(controls, 0x800BC280u, 0, r_u32(car + 28u)); controls_valid = 1; break;
+        case 0: memset(controls, 0, 12); break;
+        case 2: physics_controls_read(controls, 0x800BC1C0u, 1, r_u32(car + 28u)); break;
+        case 3: physics_controls_read(controls, 0x800BC280u, 0, r_u32(car + 28u)); break;
         case 6:
             if (gtmain_race_object_flag(r_u32(car + 28u))) { w_u32(car + 12u, r_u32(car + 12u) & ~1u); break; }
             /* Fall through */
-        case 5: physics_controls_read(controls, 0x800BC220u, 2, r_u32(car + 28u)); controls_valid = 1; break;
+        case 5: physics_controls_read(controls, 0x800BC220u, 2, r_u32(car + 28u)); break;
         default: break;
         }
         w_u32(0x1F800000u, r_u32(car + 44u));
@@ -110,10 +117,6 @@ void gtmain_race_physics_prepare(uint32 cars, sint32 count)
         else if (!state) {
             uint32 ai_route = r_u8(car + 1736u) && !r_u16(car + 52u);
             if (ai_route) gtmain_race_controls_ai(car + 40u, controls, index);
-            if (!controls_valid) {
-                /* TODO Resolve original controls at the first drive or HUD read without a producer */
-                gt_draft_failure("GTMAIN undefined initial physics controls", 0x800521ACu);
-            }
             if (!ai_route) gtmain_race_controls_drive(car + 40u, controls, index);
             gtmain_race_controls_hud(car + 40u, controls);
         }

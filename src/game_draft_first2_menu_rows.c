@@ -1,15 +1,13 @@
 #include "game_first2_registry.h"
 
-static void row_format(char output[16], sint32 number)
+static void row_format(char output[16], uint32 format, sint32 number)
 {
     /* TODO Bind bounded native destination formatting using the original format */
-    (void)output; (void)number;
     gt_draft_failure("Native menu formatted string adapter", 0x8007C014u);
 }
-static uint32 row_native_character(uint32 ordering, uint32 x, uint32 y, const char text[8])
+static uint32 row_native_character(uint32 ordering, sint32 x, sint32 y, const char text[8], sint32 spacing)
 {
     /* TODO Bind the original text service with an actual native character buffer */
-    (void)ordering; (void)x; (void)y; (void)text;
     gt_draft_failure("Native menu character string adapter", 0x8003A8ACu);
 }
 static sint32 row_half(uint32 value) { return (sint32)value >> 1; }
@@ -33,12 +31,12 @@ uint32 gtmain_menu_row_draw(uint32 ordering, sint32 x, sint32 y, uint32 guest_te
     if (number >= 0) {
         (void)gtmain_menu_text_draw(ordering, (sint32)(position - 63u), y, 0x800BCA19u, 0);
         position += gtmain_menu_text_width(2, 0x800BCA19u, 0) - 60u;
-        row_format(formatted, number);
+        row_format(formatted, 0x8008C85Cu, number);
         i = 0; result = (uint32)(sint32)(sint8)formatted[0];
         while (result) {
             if (i >= sizeof(formatted)) gt_draft_failure("Native menu formatted buffer extent", 0x800321A0u);
             character[0] = formatted[i++];
-            (void)row_native_character(ordering, position, (uint32)y, character);
+            (void)row_native_character(ordering, (sint32)position, y, character, 0);
             if (i >= sizeof(formatted)) gt_draft_failure("Native menu formatted terminator extent", 0x800321A0u);
             result = (uint32)(sint32)(sint8)formatted[i];
             position += 8u;

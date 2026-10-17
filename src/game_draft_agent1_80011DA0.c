@@ -12,17 +12,24 @@ static sint32 course_polygon_gte_flags(void)
 static sint32 course_polygon_facing(uint32 context, uint32 first, uint32 second, uint32 third)
 {
     sint32 eye_x = (sint16)r_u16(context + 56u), eye_y = (sint16)r_u16(context + 58u), eye_z = (sint16)r_u16(context + 60u);
+    sint32 first_x, first_y, first_z, second_x, second_y, second_z;
     sint32 last_x, last_y, last_z;
     uint32 mac_x, mac_y, mac_z, diagonal_x, diagonal_y, diagonal_z, packed, result;
-    xport_gte_write_control(0u, (uint32)((sint16)r_u16(context + first) - eye_x));
-    xport_gte_write_control(2u, (uint32)((sint16)r_u16(context + first + 2u) - eye_y));
-    xport_gte_write_control(4u, (uint32)((sint16)r_u16(context + first + 4u) - eye_z));
-    xport_gte_write_data(9u, (uint32)((sint16)r_u16(context + second) - eye_x));
-    xport_gte_write_data(10u, (uint32)((sint16)r_u16(context + second + 2u) - eye_y));
-    xport_gte_write_data(11u, (uint32)((sint16)r_u16(context + second + 4u) - eye_z));
-    xport_gte_execute(0x170000Cu);
+    first_x = (sint16)r_u16(context + first);
+    first_y = (sint16)r_u16(context + first + 2u);
+    xport_gte_write_control(0u, (uint32)(first_x - eye_x));
+    first_z = (sint16)r_u16(context + first + 4u);
+    xport_gte_write_control(2u, (uint32)(first_y - eye_y));
+    second_x = (sint16)r_u16(context + second);
+    xport_gte_write_control(4u, (uint32)(first_z - eye_z));
+    second_y = (sint16)r_u16(context + second + 2u);
+    xport_gte_write_data(9u, (uint32)(second_x - eye_x));
+    second_z = (sint16)r_u16(context + second + 4u);
+    xport_gte_write_data(10u, (uint32)(second_y - eye_y));
+    xport_gte_write_data(11u, (uint32)(second_z - eye_z));
     last_x = (sint16)r_u16(context + third) - eye_x;
     last_y = (sint16)r_u16(context + third + 2u) - eye_y;
+    xport_gte_execute(0x170000Cu);
     last_z = (sint16)r_u16(context + third + 4u) - eye_z;
     mac_x = xport_gte_read_data(25u); mac_y = xport_gte_read_data(26u); mac_z = xport_gte_read_data(27u);
     xport_gte_write_data(9u, last_x); xport_gte_write_data(10u, last_y); xport_gte_write_data(11u, last_z);
@@ -44,10 +51,19 @@ static sint32 course_polygon_facing(uint32 context, uint32 first, uint32 second,
     return (sint32)result;
 }
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
+static void course_polygon_link(uint32 ordering, uint32 first_packet, uint32 last_packet)
+{
+    uint32 previous = r_u8(ordering);
+    previous |= (uint32)r_u8(ordering + 1u) << 8;
+    previous |= (uint32)r_u8(ordering + 2u) << 16;
+    w_masked_u32(ordering, first_packet, 7u);
+    w_masked_u32(last_packet, previous, 7u);
+}
+
+/* Unverified pseudocode draft with the reviewed three-argument ABI */
 /* GTE operations use live shared services in original order */
-/* TODO Restore remaining generated widths, subdivision pointers and omitted result aliases */
-uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Saved full draft with cumulative original-image review */
+uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2)
 {
     sint32 v4 = 0;
     uint32 v5 = 0;
@@ -76,9 +92,6 @@ uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     sint32 v60 = 0;
     sint32 v61 = 0;
     sint32 v62 = 0;
-    sint8 v63 = 0;
-    sint8 v64 = 0;
-    sint8 v65 = 0;
     sint32 v66 = 0;
     sint32 v68 = 0;
     uint32 v69 = 0;
@@ -248,22 +261,22 @@ uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     uint32 v381 = 0;
     sint32 v382 = 0;
     sint32 v383 = 0;
-    sint32 v384 = 0;
-    sint32 v385 = 0;
+    uint32 v384;
+    uint32 v385;
     sint32 v386 = 0;
     sint32 v387 = 0;
     sint32 v389 = 0;
     sint16 v392 = 0;
-    sint32 v393 = 0;
+    uint32 v393;
     sint32 v394 = 0;
     sint32 v396 = 0;
     sint32 v400 = 0;
     sint32 v401 = 0;
     sint32 v402 = 0;
     sint32 v403 = 0;
-    sint32 v404 = 0;
-    sint32 v405 = 0;
-    sint32 v406 = 0;
+    uint32 v404;
+    uint32 v405;
+    uint32 v406;
     sint32 v408 = 0;
     sint32 v409 = 0;
     uint32 v410 = 0;
@@ -373,11 +386,11 @@ uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     sint16 v557 = 0;
     uint32 v558 = 0;
     sint32 v559 = 0;
-    sint32 v560 = 0;
-    sint32 v561 = 0;
+    uint32 v560;
+    uint32 v561;
     sint32 v562 = 0;
     sint32 v566 = 0;
-    sint32 v567 = 0;
+    uint32 v567;
     uint32 v569 = 0;
     uint32 v570 = 0;
     sint32 v571 = 0;
@@ -385,8 +398,8 @@ uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     sint32 v577 = 0;
     sint32 v578 = 0;
     sint32 v579 = 0;
-    sint32 v580 = 0;
-    sint32 v581 = 0;
+    uint32 v580;
+    uint32 v581;
     sint32 v583 = 0;
     sint32 v584 = 0;
     sint32 v586 = 0;
@@ -478,26 +491,26 @@ uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     sint8 v746 = 0;
     sint8 v747 = 0;
     sint32 v748 = 0;
-    uint32 carrier_a0 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_a1 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_a2 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_a3 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_s1 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_s2 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_s3 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_s4 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t0 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t1 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t2 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t3 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t4 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t5 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t6 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t7 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t8 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_t9 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_v0 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
-    uint32 carrier_v1 = 0; /* TODO Recover nonstandard incoming or omitted carrier */
+    uint32 carrier_a0;
+    uint32 carrier_a1;
+    uint32 carrier_a2;
+    uint32 carrier_a3;
+    uint32 carrier_s1;
+    uint32 carrier_s2;
+    uint32 carrier_s3;
+    uint32 carrier_s4;
+    uint32 carrier_t0;
+    uint32 carrier_t1;
+    uint32 carrier_t2;
+    uint32 carrier_t3;
+    uint32 carrier_t4;
+    uint32 carrier_t5;
+    uint32 carrier_t6;
+    uint32 carrier_t7;
+    uint32 carrier_t8;
+    uint32 carrier_t9;
+    uint32 carrier_v0;
+    uint32 carrier_v1;
   v4 = a1 + 164;
   if ( a2 )
     v4 = r_u32(a1 + 148);
@@ -514,11 +527,14 @@ uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     v8 = r_u32(a0 + 952);
     v9 = r_u32(v5);
     v10 = r_u32(a0 + 936);
-    carrier_t8 = v10 + 8 * (r_u32(v5) & 0x1FF);
-    carrier_s2 = v10 + ((r_u32(v5) >> 6) & 0xFF8);
-    carrier_s1 = v10 + ((r_u32(v5) >> 15) & 0xFF8);
+    carrier_t8 = v10 + 8 * ((uint32)v9 & 0x1FF);
+    carrier_s2 = v10 + (((uint32)v9 >> 6) & 0xFF8);
+    carrier_s1 = v10 + (((uint32)v9 >> 15) & 0xFF8);
     do
     {
+      uint32 polygon_metadata, ordering_base;
+      uint16 near_depth, depth_shift;
+      sint32 viewport_width, viewport_height;
 xport_gte_write_data(0, r_u32(carrier_s2 + (0)));
 xport_gte_write_data(1, r_u32(carrier_s2 + (4)));
 xport_gte_write_data(2, r_u32(carrier_t8 + (0)));
@@ -529,7 +545,10 @@ xport_gte_write_data(5, r_u32(carrier_s1 + (4)));
       v14 = v9;
 xport_gte_execute(0x280030);
       v9 = r_u32(carrier_t4 + 4u * (3));
+      polygon_metadata = r_u32(carrier_t4 + 4u);
       v15 = r_u32(a0 + 936);
+      near_depth = r_u16(a0 + 8u);
+      depth_shift = r_u16(a0 + 40u);
       carrier_t8 = v15 + 8 * (v9 & 0x1FF);
       carrier_s2 = v15 + ((v9 >> 6) & 0xFF8);
       carrier_s1 = v15 + ((v9 >> 15) & 0xFF8);
@@ -537,13 +556,14 @@ carrier_t6 = carrier_t6 = course_polygon_gte_flags();
 carrier_t0 = carrier_t0 = xport_gte_read_data(17);
 v15 = carrier_v1 = xport_gte_read_data(18);
 carrier_a0 = xport_gte_read_data(19);
+      ordering_base = r_u32(a0 + 948u);
 xport_gte_execute(0x1400006);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
       v20 = ((uint32)v14 >> 23) & 0x30;
       if ( carrier_t0 < carrier_a0 )
         carrier_t0 = carrier_a0;
-      if ( carrier_t0 >= r_u16(a0 + 8) )
+      if ( carrier_t0 >= near_depth )
       {
 v5 = carrier_v0 = xport_gte_read_data(24);
         v22 = carrier_v0 & v14;
@@ -561,20 +581,20 @@ w_u32(a0 + (0x188), xport_gte_read_data(5));
             v22 = course_polygon_facing(a0, 324u, 388u, 356u);
           }
         }
-        v48 = carrier_t0 >> (r_u16(a0 + 40) & 31u);
+        v48 = carrier_t0 >> (depth_shift & 31u);
         if ( v22 >= 0 )
         {
           if ( v48 >= 4096 )
             v48 = 4095;
           carrier_v0 = 0;
-          if ( (r_u32(carrier_t4 + 4u * (1)) & 0x8000000) == 0 )
+          if ( (polygon_metadata & 0x8000000u) == 0 )
             carrier_v0 = r_u16(2 * v48 + r_u32(a0 + 940));
 w_u32(a0 + (0x16C), xport_gte_read_data(12));
 w_u32(a0 + (0x14C), xport_gte_read_data(13));
 w_u32(a0 + (0x18C), xport_gte_read_data(14));
 xport_gte_write_data(6, r_u32(carrier_t4 + (8)));
 xport_gte_write_data(8, carrier_v0);
-          v50 = (uint32)(r_u32(a0 + 948) + 4 * (v20 + v48));
+          v50 = (uint32)(ordering_base + 4 * (v20 + v48));
 xport_gte_execute(0x780010);
           v51 = (sint16)r_u16(a0 + 332);
           v52 = (sint16)r_u16(a0 + 364);
@@ -582,14 +602,15 @@ xport_gte_execute(0x780010);
           v54 = v51;
           v55 = v51 < v52;
           if ( v52 < v51 )
-            v51 = (sint16)r_u16(a0 + 364);
+            v51 = v52;
           if ( v55 )
-            v54 = (sint16)r_u16(a0 + 364);
+            v54 = v52;
           if ( v53 < v51 )
-            v51 = (sint16)r_u16(a0 + 396);
+            v51 = v53;
           if ( v54 < v53 )
-            v54 = (sint16)r_u16(a0 + 396);
-          if ( v54 > 0 && v51 < (sint16)r_u16(a0 + 4) )
+            v54 = v53;
+          viewport_width = (sint16)r_u16(a0 + 4u);
+          if ( v54 > 0 && v51 < viewport_width )
           {
             v56 = carrier_t6 | (1023 - (v54 - v51));
             v57 = (sint16)r_u16(a0 + 334);
@@ -598,15 +619,16 @@ xport_gte_execute(0x780010);
             v60 = v57;
             v61 = v57 < v58;
             if ( v58 < v57 )
-              v57 = (sint16)r_u16(a0 + 366);
+              v57 = v58;
             if ( v61 )
-              v60 = (sint16)r_u16(a0 + 366);
+              v60 = v58;
             v62 = v60 < v59;
             if ( v59 < v57 )
-              v57 = (sint16)r_u16(a0 + 398);
+              v57 = v59;
             if ( v60 < v59 )
-              v60 = (sint16)r_u16(a0 + 398);
-            if ( v60 > 0 && v57 < (sint16)r_u16(a0 + 6) )
+              v60 = v59;
+            viewport_height = (sint16)r_u16(a0 + 6u);
+            if ( v60 > 0 && v57 < viewport_height )
             {
               if ( (v56 | (511 - (v60 - v57))) >= 0 )
               {
@@ -615,14 +637,7 @@ w_u32(v8 + (4), xport_gte_read_data(22));
 w_u32(v8 + (0xC), xport_gte_read_data(12));
 w_u32(v8 + (8), xport_gte_read_data(13));
 w_u32(v8 + (0x10), xport_gte_read_data(14));
-                v63 = (sint8)r_u8(v50);
-                v64 = (sint8)r_u8(v50 + 1u * (1));
-                v65 = (sint8)r_u8(v50 + 1u * (2));
-    w_u16(v50, v8);
-    w_u8(v50 + 1u * (2), (((uint32)v8 >> 16) & 0xFFu));
-    w_u8(v8, v63);
-    w_u8(v8 + 1, v64);
-    w_u8(v8 + 2, v65);
+                course_polygon_link(v50, (uint32)v8, (uint32)v8);
                 v8 += 20;
               }
               else
@@ -671,11 +686,14 @@ w_u32(a0 + (0x188), xport_gte_read_data(5));
     v68 = r_u32(a0 + 952);
     v69 = r_u32(carrier_t8);
     v70 = r_u32(a0 + 936);
-    carrier_s4 = v70 + 8 * (r_u32(carrier_t8) & 0x1FF);
-    carrier_s3 = v70 + ((r_u32(carrier_t8) >> 6) & 0xFF8);
-    carrier_s2 = v70 + ((r_u32(carrier_t8) >> 15) & 0xFF8);
+    carrier_s4 = v70 + 8 * (v69 & 0x1FF);
+    carrier_s3 = v70 + ((v69 >> 6) & 0xFF8);
+    carrier_s2 = v70 + ((v69 >> 15) & 0xFF8);
     do
     {
+      uint32 fourth_vertex_word, fog_table, ordering_base;
+      uint16 near_depth, depth_shift;
+      sint32 viewport_width, viewport_height;
 xport_gte_write_data(0, r_u32(carrier_s3 + (0)));
 xport_gte_write_data(1, r_u32(carrier_s3 + (4)));
 xport_gte_write_data(2, r_u32(carrier_s2 + (0)));
@@ -687,13 +705,15 @@ xport_gte_write_data(5, r_u32(carrier_s4 + (4)));
       v74 = r_u32(a0 + 936);
       v75 = v69;
 xport_gte_execute(0x280030);
+      fourth_vertex_word = r_u32(carrier_t8 + 4u);
       v69 = r_u32(carrier_t8 + 4u * (3));
-      v76 = (uint32)(v74 + 8 * (r_u32(carrier_t8 + 4u * (1)) & 0x1FF));
+      v76 = (uint32)(v74 + 8 * (fourth_vertex_word & 0x1FF));
       carrier_v1 = (sint32)r_u32(v76);
       carrier_a0 = (sint32)r_u32(v76 + 4u * (1));
 w_u32(a0 + (0x16C), xport_gte_read_data(12));
 w_u32(v68 + (0xC), xport_gte_read_data(12));
 v9 = carrier_t3 = course_polygon_gte_flags();
+      near_depth = r_u16(a0 + 8u);
       --v66;
 xport_gte_execute(0x1400006);
       carrier_s4 = v74 + 8 * (v69 & 0x1FF);
@@ -704,6 +724,8 @@ carrier_a0 = carrier_a0 = xport_gte_read_data(24);
 v48 = carrier_t0 = xport_gte_read_data(17);
 carrier_v1 = carrier_v1 = xport_gte_read_data(18);
 v59 = carrier_a2 = xport_gte_read_data(19);
+      depth_shift = r_u16(a0 + 40u);
+      fog_table = r_u32(a0 + 940u);
 xport_gte_execute(0x180001);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
@@ -719,9 +741,10 @@ xport_gte_execute(0x1400006);
       v88 = (0u - carrier_a0);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
-      if ( carrier_t0 >= r_u16(a0 + 8) )
+      if ( carrier_t0 >= near_depth )
       {
-        v89 = carrier_t0 >> (r_u16(a0 + 40) & 31u);
+        v89 = carrier_t0 >> (depth_shift & 31u);
+        ordering_base = r_u32(a0 + 948u);
 v76 = carrier_v0 = xport_gte_read_data(24);
         v91 = v75 & v88 & carrier_v0;
         if ( v87 < 0 )
@@ -741,33 +764,34 @@ w_u32(a0 + (0x148), xport_gte_read_data(5));
           if ( v89 >= 4096 )
             v89 = 4095;
           carrier_v0 = 0;
-          if ( (r_u32(carrier_t8 + 4u * (1)) & 0x8000000) == 0 )
-            carrier_v0 = r_u16(2 * v89 + r_u32(a0 + 940));
+          if ( (fourth_vertex_word & 0x8000000u) == 0 )
+            carrier_v0 = r_u16(2 * v89 + fog_table);
 w_u32(a0 + (0x18C), xport_gte_read_data(12));
 w_u32(a0 + (0x14C), xport_gte_read_data(13));
 w_u32(a0 + (0x1AC), xport_gte_read_data(14));
 xport_gte_write_data(8, carrier_v0);
-          v118 = (uint32)(r_u32(a0 + 948) + 4 * (v84 + v89));
+          v118 = (uint32)(ordering_base + 4 * (v84 + v89));
 xport_gte_execute(0x780010);
           v119 = (sint16)r_u16(a0 + 332);
           v120 = (sint16)r_u16(a0 + 364);
           v121 = v119;
           v122 = v119 < v120;
           if ( v120 < v119 )
-            v119 = (sint16)r_u16(a0 + 364);
+            v119 = v120;
           v123 = (sint16)r_u16(a0 + 396);
           if ( v122 )
-            v121 = (sint16)r_u16(a0 + 364);
+            v121 = v120;
           if ( v123 < v119 )
-            v119 = (sint16)r_u16(a0 + 396);
+            v119 = v123;
           v124 = (sint16)r_u16(a0 + 428);
           if ( v121 < v123 )
-            v121 = (sint16)r_u16(a0 + 396);
+            v121 = v123;
           if ( v124 < v119 )
-            v119 = (sint16)r_u16(a0 + 428);
+            v119 = v124;
           if ( v121 < v124 )
-            v121 = (sint16)r_u16(a0 + 428);
-          if ( v121 > 0 && v119 < (sint16)r_u16(a0 + 4) )
+            v121 = v124;
+          viewport_width = (sint16)r_u16(a0 + 4u);
+          if ( v121 > 0 && v119 < viewport_width )
           {
             v125 = v87 | (1023 - (v121 - v119));
             v126 = (sint16)r_u16(a0 + 334);
@@ -775,20 +799,21 @@ xport_gte_execute(0x780010);
             v128 = v126;
             v129 = v126 < v127;
             if ( v127 < v126 )
-              v126 = (sint16)r_u16(a0 + 366);
+              v126 = v127;
             v130 = (sint16)r_u16(a0 + 398);
             if ( v129 )
-              v128 = (sint16)r_u16(a0 + 366);
+              v128 = v127;
             if ( v130 < v126 )
-              v126 = (sint16)r_u16(a0 + 398);
+              v126 = v130;
             v131 = (sint16)r_u16(a0 + 430);
             if ( v128 < v130 )
-              v128 = (sint16)r_u16(a0 + 398);
+              v128 = v130;
             if ( v131 < v126 )
-              v126 = (sint16)r_u16(a0 + 430);
+              v126 = v131;
             if ( v128 < v131 )
-              v128 = (sint16)r_u16(a0 + 430);
-            if ( v128 > 0 && v126 < (sint16)r_u16(a0 + 6) )
+              v128 = v131;
+            viewport_height = (sint16)r_u16(a0 + 6u);
+            if ( v128 > 0 && v126 < viewport_height )
             {
               if ( (v125 | (511 - (v128 - v126))) >= 0 )
               {
@@ -797,14 +822,7 @@ w_u32(v68 + (4), xport_gte_read_data(22));
 w_u32(v68 + (0x14), xport_gte_read_data(12));
 w_u32(v68 + (8), xport_gte_read_data(13));
 w_u32(v68 + (0x10), xport_gte_read_data(14));
-                v132 = (sint8)r_u8(v118);
-                v133 = (sint8)r_u8(v118 + 1u * (1));
-                v134 = (sint8)r_u8(v118 + 1u * (2));
-    w_u16(v118, v68);
-    w_u8(v118 + 1u * (2), (((uint32)v68 >> 16) & 0xFFu));
-    w_u8(v68, v132);
-    w_u8(v68 + 1, v133);
-    w_u8(v68 + 2, v134);
+                course_polygon_link(v118, (uint32)v68, (uint32)v68);
                 v68 += 24;
               }
               else
@@ -853,11 +871,14 @@ w_u32(a0 + (0x148), xport_gte_read_data(5));
     v137 = r_u32(a0 + 952);
     v138 = r_u32(carrier_t3);
     v139 = r_u32(a0 + 936);
-    carrier_t8 = v139 + 8 * (r_u32(carrier_t3) & 0x1FF);
-    carrier_s2 = v139 + ((r_u32(carrier_t3) >> 6) & 0xFF8);
-    carrier_s1 = v139 + ((r_u32(carrier_t3) >> 15) & 0xFF8);
+    carrier_t8 = v139 + 8 * (v138 & 0x1FF);
+    carrier_s2 = v139 + ((v138 >> 6) & 0xFF8);
+    carrier_s1 = v139 + ((v138 >> 15) & 0xFF8);
     do
     {
+      uint32 polygon_metadata, ordering_base;
+      uint16 near_depth, depth_shift;
+      sint32 viewport_width, viewport_height;
 xport_gte_write_data(0, r_u32(carrier_s2 + (0)));
 xport_gte_write_data(1, r_u32(carrier_s2 + (4)));
 xport_gte_write_data(2, r_u32(carrier_t8 + (0)));
@@ -868,7 +889,10 @@ xport_gte_write_data(5, r_u32(carrier_s1 + (4)));
       v143 = v138;
 xport_gte_execute(0x280030);
       v138 = r_u32(carrier_t3 + 4u * (5));
+      polygon_metadata = r_u32(carrier_t3 + 4u);
       v144 = r_u32(a0 + 936);
+      near_depth = r_u16(a0 + 8u);
+      depth_shift = r_u16(a0 + 40u);
       carrier_t8 = v144 + 8 * (v138 & 0x1FF);
       carrier_s2 = v144 + ((v138 >> 6) & 0xFF8);
       carrier_s1 = v144 + ((v138 >> 15) & 0xFF8);
@@ -876,13 +900,14 @@ v56 = carrier_t6 = course_polygon_gte_flags();
 v118 = carrier_t0 = xport_gte_read_data(17);
 v144 = carrier_v1 = xport_gte_read_data(18);
 v91 = carrier_a0 = xport_gte_read_data(19);
+      ordering_base = r_u32(a0 + 948u);
 xport_gte_execute(0x1400006);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
       v149 = ((uint32)v143 >> 23) & 0x30;
       if ( carrier_t0 < carrier_a0 )
         carrier_t0 = carrier_a0;
-      if ( carrier_t0 >= r_u16(a0 + 8) )
+      if ( carrier_t0 >= near_depth )
       {
 v126 = carrier_v0 = xport_gte_read_data(24);
         v151 = carrier_v0 & v143;
@@ -900,13 +925,13 @@ w_u32(a0 + (0x188), xport_gte_read_data(5));
             v151 = course_polygon_facing(a0, 324u, 388u, 356u);
           }
         }
-        v177 = carrier_t0 >> (r_u16(a0 + 40) & 31u);
+        v177 = carrier_t0 >> (depth_shift & 31u);
         if ( v151 >= 0 )
         {
           if ( v177 >= 4096 )
             v177 = 4095;
           carrier_v1 = 0;
-          if ( (r_u32(carrier_t3 + 4u * (1)) & 0x8000000) == 0 )
+          if ( (polygon_metadata & 0x8000000u) == 0 )
             carrier_v1 = r_u16(2 * v177 + r_u32(a0 + 940));
 w_u32(a0 + (0x16C), xport_gte_read_data(12));
 w_u32(a0 + (0x14C), xport_gte_read_data(13));
@@ -917,7 +942,7 @@ xport_gte_write_data(22, r_u32(carrier_t3 + (0x10)));
 xport_gte_write_data(6, carrier_v0);
 xport_gte_write_data(20, carrier_v0);
 xport_gte_write_data(8, carrier_v1);
-          v180 = (uint32)(r_u32(a0 + 948) + 4 * (v149 + v177));
+          v180 = (uint32)(ordering_base + 4 * (v149 + v177));
 xport_gte_execute(0xF8002A);
           v181 = (sint16)r_u16(a0 + 332);
           v182 = (sint16)r_u16(a0 + 364);
@@ -925,14 +950,15 @@ xport_gte_execute(0xF8002A);
           v184 = v181;
           v185 = v181 < v182;
           if ( v182 < v181 )
-            v181 = (sint16)r_u16(a0 + 364);
+            v181 = v182;
           if ( v185 )
-            v184 = (sint16)r_u16(a0 + 364);
+            v184 = v182;
           if ( v183 < v181 )
-            v181 = (sint16)r_u16(a0 + 396);
+            v181 = v183;
           if ( v184 < v183 )
-            v184 = (sint16)r_u16(a0 + 396);
-          if ( v184 > 0 && v181 < (sint16)r_u16(a0 + 4) )
+            v184 = v183;
+          viewport_width = (sint16)r_u16(a0 + 4u);
+          if ( v184 > 0 && v181 < viewport_width )
           {
             v186 = carrier_t6 | (1023 - (v184 - v181));
             v187 = (sint16)r_u16(a0 + 334);
@@ -941,15 +967,16 @@ xport_gte_execute(0xF8002A);
             v190 = v187;
             v191 = v187 < v188;
             if ( v188 < v187 )
-              v187 = (sint16)r_u16(a0 + 366);
+              v187 = v188;
             if ( v191 )
-              v190 = (sint16)r_u16(a0 + 366);
+              v190 = v188;
             v192 = v190 < v189;
             if ( v189 < v187 )
-              v187 = (sint16)r_u16(a0 + 398);
+              v187 = v189;
             if ( v190 < v189 )
-              v190 = (sint16)r_u16(a0 + 398);
-            if ( v190 > 0 && v187 < (sint16)r_u16(a0 + 6) )
+              v190 = v189;
+            viewport_height = (sint16)r_u16(a0 + 6u);
+            if ( v190 > 0 && v187 < viewport_height )
             {
               if ( (v186 | (511 - (v190 - v187))) >= 0 )
               {
@@ -960,14 +987,7 @@ w_u32(v137 + (0x14), xport_gte_read_data(22));
 w_u32(v137 + (0x10), xport_gte_read_data(12));
 w_u32(v137 + (8), xport_gte_read_data(13));
 w_u32(v137 + (0x18), xport_gte_read_data(14));
-                v193 = (sint8)r_u8(v180);
-                v194 = (sint8)r_u8(v180 + 1u * (1));
-                v195 = (sint8)r_u8(v180 + 1u * (2));
-    w_u16(v180, v137);
-    w_u8(v180 + 1u * (2), (((uint32)v137 >> 16) & 0xFFu));
-    w_u8(v137, v193);
-    w_u8(v137 + 1, v194);
-    w_u8(v137 + 2, v195);
+                course_polygon_link(v180, (uint32)v137, (uint32)v137);
                 v137 += 28;
               }
               else
@@ -1019,11 +1039,14 @@ w_u32(a0 + (0x188), xport_gte_read_data(5));
     v198 = r_u32(a0 + 952);
     v199 = r_u32(carrier_t4);
     v200 = r_u32(a0 + 936);
-    carrier_s4 = v200 + 8 * (r_u32(carrier_t4) & 0x1FF);
-    carrier_s3 = v200 + ((r_u32(carrier_t4) >> 6) & 0xFF8);
-    carrier_t9 = v200 + ((r_u32(carrier_t4) >> 15) & 0xFF8);
+    carrier_s4 = v200 + 8 * (v199 & 0x1FF);
+    carrier_s3 = v200 + ((v199 >> 6) & 0xFF8);
+    carrier_t9 = v200 + ((v199 >> 15) & 0xFF8);
     do
     {
+      uint32 fourth_vertex_word, fog_table, ordering_base;
+      uint16 near_depth, depth_shift;
+      sint32 viewport_width, viewport_height;
 xport_gte_write_data(0, r_u32(carrier_s3 + (0)));
 xport_gte_write_data(1, r_u32(carrier_s3 + (4)));
 xport_gte_write_data(2, r_u32(carrier_t9 + (0)));
@@ -1035,13 +1058,15 @@ xport_gte_write_data(5, r_u32(carrier_s4 + (4)));
       v204 = r_u32(a0 + 936);
       v205 = v199;
 xport_gte_execute(0x280030);
+      fourth_vertex_word = r_u32(carrier_t4 + 4u);
       v199 = r_u32(carrier_t4 + 4u * (6));
-      v206 = (uint32)(v204 + 8 * (r_u32(carrier_t4 + 4u * (1)) & 0x1FF));
+      v206 = (uint32)(v204 + 8 * (fourth_vertex_word & 0x1FF));
       carrier_v1 = (sint32)r_u32(v206);
       carrier_a0 = (sint32)r_u32(v206 + 4u * (1));
 w_u32(a0 + (0x16C), xport_gte_read_data(12));
 w_u32(v198 + (0x10), xport_gte_read_data(12));
 carrier_t3 = carrier_t3 = course_polygon_gte_flags();
+      near_depth = r_u16(a0 + 8u);
       --v196;
 xport_gte_execute(0x1400006);
       carrier_s4 = v204 + 8 * (v199 & 0x1FF);
@@ -1052,6 +1077,8 @@ carrier_a0 = carrier_a0 = xport_gte_read_data(24);
 v177 = carrier_t0 = xport_gte_read_data(17);
 carrier_v1 = carrier_v1 = xport_gte_read_data(18);
 v189 = carrier_a2 = xport_gte_read_data(19);
+      depth_shift = r_u16(a0 + 40u);
+      fog_table = r_u32(a0 + 940u);
 xport_gte_execute(0x180001);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
@@ -1067,9 +1094,10 @@ xport_gte_execute(0x1400006);
       v218 = (0u - carrier_a0);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
-      if ( carrier_t0 >= r_u16(a0 + 8) )
+      if ( carrier_t0 >= near_depth )
       {
-        v219 = carrier_t0 >> (r_u16(a0 + 40) & 31u);
+        v219 = carrier_t0 >> (depth_shift & 31u);
+        ordering_base = r_u32(a0 + 948u);
 v206 = carrier_v0 = xport_gte_read_data(24);
         v221 = v205 & v218 & carrier_v0;
         if ( v217 < 0 )
@@ -1089,13 +1117,13 @@ w_u32(a0 + (0x148), xport_gte_read_data(5));
           if ( v219 >= 4096 )
             v219 = 4095;
           carrier_v0 = 0;
-          if ( (r_u32(carrier_t4 + 4u * (1)) & 0x8000000) == 0 )
-            carrier_v0 = r_u16(2 * v219 + r_u32(a0 + 940));
+          if ( (fourth_vertex_word & 0x8000000u) == 0 )
+            carrier_v0 = r_u16(2 * v219 + fog_table);
 w_u32(a0 + (0x18C), xport_gte_read_data(12));
 w_u32(a0 + (0x14C), xport_gte_read_data(13));
 w_u32(a0 + (0x1AC), xport_gte_read_data(14));
 xport_gte_write_data(8, carrier_v0);
-          v248 = (uint32)(r_u32(a0 + 948) + 4 * (v214 + v219));
+          v248 = (uint32)(ordering_base + 4 * (v214 + v219));
 xport_gte_execute(0x780010);
           carrier_v1 = r_u32(carrier_t4 + 4u * (3));
           carrier_a0 = r_u32(carrier_t4 + 4u * (4));
@@ -1113,20 +1141,21 @@ xport_gte_execute(0xF8002A);
           v255 = v253;
           v256 = v253 < v254;
           if ( v254 < v253 )
-            v253 = (sint16)r_u16(a0 + 364);
+            v253 = v254;
           v257 = (sint16)r_u16(a0 + 396);
           if ( v256 )
-            v255 = (sint16)r_u16(a0 + 364);
+            v255 = v254;
           if ( v257 < v253 )
-            v253 = (sint16)r_u16(a0 + 396);
+            v253 = v257;
           v258 = (sint16)r_u16(a0 + 428);
           if ( v255 < v257 )
-            v255 = (sint16)r_u16(a0 + 396);
+            v255 = v257;
           if ( v258 < v253 )
-            v253 = (sint16)r_u16(a0 + 428);
+            v253 = v258;
           if ( v255 < v258 )
-            v255 = (sint16)r_u16(a0 + 428);
-          if ( v255 > 0 && v253 < (sint16)r_u16(a0 + 4) )
+            v255 = v258;
+          viewport_width = (sint16)r_u16(a0 + 4u);
+          if ( v255 > 0 && v253 < viewport_width )
           {
             v259 = v217 | (1023 - (v255 - v253));
             v260 = (sint16)r_u16(a0 + 334);
@@ -1134,20 +1163,21 @@ xport_gte_execute(0xF8002A);
             v262 = v260;
             v263 = v260 < v261;
             if ( v261 < v260 )
-              v260 = (sint16)r_u16(a0 + 366);
+              v260 = v261;
             v264 = (sint16)r_u16(a0 + 398);
             if ( v263 )
-              v262 = (sint16)r_u16(a0 + 366);
+              v262 = v261;
             if ( v264 < v260 )
-              v260 = (sint16)r_u16(a0 + 398);
+              v260 = v264;
             v265 = (sint16)r_u16(a0 + 430);
             if ( v262 < v264 )
-              v262 = (sint16)r_u16(a0 + 398);
+              v262 = v264;
             if ( v265 < v260 )
-              v260 = (sint16)r_u16(a0 + 430);
+              v260 = v265;
             if ( v262 < v265 )
-              v262 = (sint16)r_u16(a0 + 430);
-            if ( v262 > 0 && v260 < (sint16)r_u16(a0 + 6) )
+              v262 = v265;
+            viewport_height = (sint16)r_u16(a0 + 6u);
+            if ( v262 > 0 && v260 < viewport_height )
             {
               if ( (v259 | (511 - (v262 - v260))) >= 0 )
               {
@@ -1158,14 +1188,7 @@ w_u32(v198 + (0x14), xport_gte_read_data(22));
 w_u32(v198 + (0x20), xport_gte_read_data(12));
 w_u32(v198 + (8), xport_gte_read_data(13));
 w_u32(v198 + (0x18), xport_gte_read_data(14));
-                v266 = (sint8)r_u8(v248);
-                v267 = (sint8)r_u8(v248 + 1u * (1));
-                v268 = (sint8)r_u8(v248 + 1u * (2));
-    w_u16(v248, v198);
-    w_u8(v248 + 1u * (2), (((uint32)v198 >> 16) & 0xFFu));
-    w_u8(v198, v266);
-    w_u8(v198 + 1, v267);
-    w_u8(v198 + 2, v268);
+                course_polygon_link(v248, (uint32)v198, (uint32)v198);
                 v198 += 36;
               }
               else
@@ -1216,11 +1239,14 @@ w_u32(a0 + (0x148), xport_gte_read_data(5));
     v271 = r_u32(a0 + 952);
     v272 = r_u32(carrier_t6);
     v273 = r_u32(a0 + 936);
-    carrier_t9 = v273 + 8 * (r_u32(carrier_t6) & 0x1FF);
-    carrier_s3 = v273 + ((r_u32(carrier_t6) >> 6) & 0xFF8);
-    carrier_s2 = v273 + ((r_u32(carrier_t6) >> 15) & 0xFF8);
+    carrier_t9 = v273 + 8 * (v272 & 0x1FF);
+    carrier_s3 = v273 + ((v272 >> 6) & 0xFF8);
+    carrier_s2 = v273 + ((v272 >> 15) & 0xFF8);
     do
     {
+      uint32 ordering_base;
+      uint16 near_depth, depth_shift;
+      sint16 viewport_width, viewport_height;
 xport_gte_write_data(0, r_u32(carrier_s3 + (0)));
 xport_gte_write_data(1, r_u32(carrier_s3 + (4)));
 xport_gte_write_data(2, r_u32(carrier_t9 + (0)));
@@ -1233,6 +1259,8 @@ xport_gte_execute(0x280030);
       v272 = r_u32(carrier_t6 + 4u * (3));
       v278 = r_u32(carrier_t6 + 4u * (1));
       v279 = r_u32(a0 + 936);
+      near_depth = r_u16(a0 + 8u);
+      depth_shift = r_u16(a0 + 40u);
       carrier_t9 = v279 + 8 * (v272 & 0x1FF);
       carrier_s3 = v279 + ((v272 >> 6) & 0xFF8);
       carrier_s2 = v279 + ((v272 >> 15) & 0xFF8);
@@ -1240,13 +1268,14 @@ carrier_t4 = carrier_t4 = course_polygon_gte_flags();
 v248 = carrier_t0 = xport_gte_read_data(17);
 v279 = carrier_v1 = xport_gte_read_data(18);
 carrier_a0 = carrier_a0 = xport_gte_read_data(19);
+      ordering_base = r_u32(a0 + 948u);
 xport_gte_execute(0x1400006);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
       v284 = ((uint32)v277 >> 23) & 0x30;
       if ( carrier_t0 < carrier_a0 )
         carrier_t0 = carrier_a0;
-      if ( carrier_t0 >= r_u16(a0 + 8) )
+      if ( carrier_t0 >= near_depth )
       {
 v135 = carrier_t7 = xport_gte_read_data(24);
         v286 = carrier_t7 & v277;
@@ -1264,7 +1293,7 @@ w_u32(a0 + (0x158), xport_gte_read_data(5));
             v286 = course_polygon_facing(a0, 308u, 340u, 324u);
           }
         }
-        v312 = carrier_t0 >> (r_u16(a0 + 40) & 31u);
+        v312 = carrier_t0 >> (depth_shift & 31u);
         if ( v286 >= 0 )
         {
           if ( v312 >= 4096 )
@@ -1272,7 +1301,7 @@ w_u32(a0 + (0x158), xport_gte_read_data(5));
           carrier_a0 = 0;
           if ( (v278 & 0x8000000) == 0 )
             carrier_a0 = r_u16(2 * v312 + r_u32(a0 + 940));
-          v314 = (uint32)(r_u32(a0 + 944) + 32 * (v278 << 9 >> 18));
+          v314 = (uint32)(r_u32(a0 + 944) + 32u * ((uint32)v278 << 9 >> 18));
           if ( (sint32)carrier_t7 < 0 )
             carrier_t7 = (0u - carrier_t7);
           v315 = v284 + v312;
@@ -1284,7 +1313,7 @@ w_u32(a0 + (0x13C), xport_gte_read_data(13));
 w_u32(a0 + (0x15C), xport_gte_read_data(14));
 xport_gte_write_data(6, r_u32(carrier_t6 + (8)));
 xport_gte_write_data(8, carrier_a0);
-          v317 = (uint32)(r_u32(a0 + 948) + 4 * v315);
+          v317 = (uint32)(ordering_base + 4 * v315);
 xport_gte_execute(0x780010);
           v318 = (sint16)r_u16(a0 + 316);
           v319 = (sint16)r_u16(a0 + 332);
@@ -1292,14 +1321,15 @@ xport_gte_execute(0x780010);
           v321 = v318;
           v322 = v318 < v319;
           if ( v319 < v318 )
-            v318 = (sint16)r_u16(a0 + 332);
+            v318 = v319;
           if ( v322 )
-            v321 = (sint16)r_u16(a0 + 332);
+            v321 = v319;
           if ( v320 < v318 )
-            v318 = (sint16)r_u16(a0 + 348);
+            v318 = v320;
           if ( v321 < v320 )
-            v321 = (sint16)r_u16(a0 + 348);
-          if ( v321 > 0 && v318 < (sint16)r_u16(a0 + 4) )
+            v321 = v320;
+          viewport_width = (sint16)r_u16(a0 + 4u);
+          if ( v321 > 0 && v318 < viewport_width )
           {
             v323 = carrier_t4 | (1023 - (v321 - v318));
             v324 = (sint16)r_u16(a0 + 318);
@@ -1308,14 +1338,15 @@ xport_gte_execute(0x780010);
             v327 = v324;
             v328 = v324 < v325;
             if ( v325 < v324 )
-              v324 = (sint16)r_u16(a0 + 334);
+              v324 = v325;
             if ( v328 )
-              v327 = (sint16)r_u16(a0 + 334);
+              v327 = v325;
             if ( v326 < v324 )
-              v324 = (sint16)r_u16(a0 + 350);
+              v324 = v326;
             if ( v327 < v326 )
-              v327 = (sint16)r_u16(a0 + 350);
-            if ( v327 > 0 && v324 < (sint16)r_u16(a0 + 6) )
+              v327 = v326;
+            viewport_height = (sint16)r_u16(a0 + 6u);
+            if ( v327 > 0 && v324 < viewport_height )
             {
               if ( (sint32)carrier_t7 >= 800 )
                 v323 = -1;
@@ -1332,19 +1363,13 @@ w_u32(v271 + (4), xport_gte_read_data(22));
 w_u32(v271 + (0x10), xport_gte_read_data(12));
 w_u32(v271 + (8), xport_gte_read_data(13));
 w_u32(v271 + (0x18), xport_gte_read_data(14));
-                v417 = (sint8)r_u8(v317);
-                v418 = (sint8)r_u8(v317 + 1u * (1));
-                v419 = (sint8)r_u8(v317 + 1u * (2));
-    w_u16(v317, v271);
-    w_u8(v317 + 1u * (2), (((uint32)v271 >> 16) & 0xFFu));
-    w_u8(v271, v417);
-    w_u8(v271 + 1, v418);
-    w_u8(v271 + 2, v419);
+                course_polygon_link(v317, v271, v271);
                 v271 += 32;
               }
               else
               {
     w_u16(a0 + 188, 5);
+                uint32 subdivision_depth;
                 carrier_t4 = a0;
     w_u32(a0 + 956, carrier_t6);
     w_u32(a0 + 984, v269);
@@ -1360,8 +1385,7 @@ w_u32(v271 + (0x18), xport_gte_read_data(14));
     w_u16(a0 + 338, v331);
 w_u32(a0 + (0x9C), xport_gte_read_data(22));
     w_u32(a0 + 164, v330);
-    w_u8(a0 + 164, (((uint32)(v329) >> 16) & 0xFFu));
-    w_u8(a0 + 165, (((uint32)(v329) >> 24) & 0xFFu));
+    w_masked_u32(a0 + 164u, (uint32)v329 >> 16, 3u);
 w_u32(a0 + (0x144), xport_gte_read_data(0));
 w_u32(a0 + (0x148), xport_gte_read_data(1));
 w_u32(a0 + (0x134), xport_gte_read_data(2));
@@ -1416,17 +1440,18 @@ xport_gte_execute(0x180001);
                   carrier_t1 += 16;
                 }
                 while ( v342 );
+                subdivision_depth = r_u16(a0 + 188u);
                 v350 = 0;
                 if ( (v333 & 0x1F) == 0 )
                 {
                   v351 = (uint32)(a0 + 204);
-                  if ( v335 - ((v335 - v336) >> (r_u8(a0 + 188) + 1)) >= v337 )
+                  if ( v335 - ((v335 - v336) >> ((subdivision_depth + 1u) & 31u)) >= v337 )
                   {
 LABEL_244:
                     v352 = r_u32(v351);
                     v353 = r_u32(v351 + 4u * (1));
                     v354 = r_u32(v351 + 4u * (2));
-                    v355 = (sint16)r_u16(r_u32(v351) + 4);
+                    v355 = (sint16)r_u16(v352 + 4);
                     v356 = (sint16)r_u16(v353 + 4);
                     v357 = (sint16)r_u16(v354 + 4);
                     w_u16(carrier_t1 + 2u * (2), (v355 + v356) >> 1);
@@ -1490,13 +1515,13 @@ xport_gte_execute(0x180001);
                     v381 = carrier_t1 - 48;
                     v382 = r_u32(a0 + 180);
                     v383 = r_u32(a0 + 156);
-    v384 = (v384 & 0xFF00FFFFu) | (((uint32)(r_u8(a0 + 164)) & 0xFFu) << 16);
-    v384 = (v384 & 0x00FFFFFFu) | (((uint32)(r_u8(a0 + 165)) & 0xFFu) << 24);
+                    v384 = (uint32)r_u16(a0 + 164u) << 16;
                     v385 = r_u32(a0 + 164);
                     v386 = 2;
                     v387 = 1;
                     do
                     {
+                      uint32 first_flags, third_flags;
                       carrier_t0 = (uint32)r_u32(v351 + 4u * (v386));
                       v389 = 8 * v387;
                       if ( v387 < 0 )
@@ -1506,10 +1531,12 @@ xport_gte_execute(0x180001);
                       }
                       carrier_a3 = (v381 + 2u * (v389));
                       carrier_a2 = (uint32)r_u32(v351 + 4u * (v387));
-                      v392 = r_u16(v381 + 2u * (v389));
-                      v393 = ((uint8)(r_u16(carrier_t0) | v392) | (uint8)r_u16(carrier_a2)) & 0x20;
+                      first_flags = r_u16(carrier_t0);
+                      v392 = r_u16(carrier_a3);
+                      third_flags = r_u16(carrier_a2);
+                      v393 = (first_flags | (uint32)v392 | third_flags) & 0x20u;
                       --v386;
-                      if ( (((uint8)(r_u16(carrier_t0) | v392) | (uint8)r_u16(carrier_a2)) & 0x20) == 0 )
+                      if ( v393 == 0 )
                       {
 xport_gte_write_data(12, r_u32(carrier_t0 + (0xC)));
 xport_gte_write_data(13, r_u32(carrier_a3 + (0xC)));
@@ -1520,12 +1547,9 @@ xport_gte_execute(0x1400006);
     v384 = (v384 & 0xFFFF0000u) | (((uint32)(r_u16(carrier_t0 + 2u)) & 0xFFFFu) << 0);
     w_u32(v382 + 28, v393);
     v385 = (v385 & 0xFFFF0000u) | (((uint32)(r_u16(carrier_a3 + 2u)) & 0xFFFFu) << 0);
-                        v394 = ((uint32)v382 + 32u) << 8;
     w_u32(v382 + 12, v384);
     w_u32(v382 + 20, v385);
-    w_u8(v382, (((uint32)(v394) >> 8) & 0xFFu));
-    w_u8(v382 + 1, (((uint32)(v394) >> 16) & 0xFFu));
-    w_u8(v382 + 2, (((uint32)(v394) >> 24) & 0xFFu));
+                        w_masked_u32(v382, (uint32)v382 + 32u, 7u);
 v394 = carrier_v0 = xport_gte_read_data(24);
 w_u32(v382 + (8), xport_gte_read_data(12));
 w_u32(v382 + (0x10), xport_gte_read_data(13));
@@ -1546,6 +1570,8 @@ w_u32(v382 + (0x18), xport_gte_read_data(14));
                     {
                       while ( 1 )
                       {
+                        uint32 first_flags, second_flags, third_flags;
+                        sint32 threshold;
                         v400 = v396 - 1;
                         if ( v396 < 0 )
                           break;
@@ -1563,11 +1589,14 @@ w_u32(v382 + (0x18), xport_gte_read_data(14));
                             v400 = 2;
                           carrier_t2 = (v381 + 2u * (8 * v400));
                         }
+                        first_flags = r_u16(carrier_t0);
+                        second_flags = r_u16(carrier_t3);
+                        third_flags = r_u16(carrier_t2);
                         --v396;
-                        if ( ((uint8)r_u16(carrier_t2) & (uint8)(r_u16(carrier_t0) & r_u16(carrier_t3)) & 0x1F) == 0 )
+                        if ( (first_flags & second_flags & third_flags & 0x1Fu) == 0 )
                         {
                           v401 = v350 < r_u16(a0 + 188);
-                          if ( (((uint8)r_u16(carrier_t2) | (uint8)(r_u16(carrier_t0) | r_u16(carrier_t3))) & 0x20) != 0 )
+                          if ( ((first_flags | second_flags | third_flags) & 0x20u) != 0 )
                           {
     w_u32(v351 + 4u * (3), carrier_t0);
                             if ( v401 )
@@ -1579,8 +1608,7 @@ w_u32(v382 + (0x18), xport_gte_read_data(14));
 xport_gte_write_data(12, r_u32(carrier_t3 + (0xC)));
 xport_gte_write_data(13, r_u32(carrier_t0 + (0xC)));
 xport_gte_write_data(14, r_u32(carrier_t2 + (0xC)));
-    v404 = (v404 & 0xFF00FFFFu) | (((uint32)(r_u8(a0 + 164)) & 0xFFu) << 16);
-    v404 = (v404 & 0x00FFFFFFu) | (((uint32)(r_u8(a0 + 165)) & 0xFFu) << 24);
+                            v404 = (uint32)r_u16(a0 + 164u) << 16;
                             v405 = r_u32(a0 + 164);
 xport_gte_execute(0x1400006);
                             v406 = r_u32(a0 + 156);
@@ -1592,10 +1620,11 @@ xport_gte_execute(0x1400006);
     w_u32(v403 + 20, v405);
     w_u32(v403 + 28, v406);
 v406 = carrier_v0 = xport_gte_read_data(24);
+                            threshold = (sint32)r_u32(a0 + 184u);
 w_u32(v403 + (8), xport_gte_read_data(12));
                             if ( (sint32)carrier_v0 < 0 )
                               carrier_v0 = (0u - carrier_v0);
-                            v408 = (sint32)r_u32(a0 + 184) < (sint32)carrier_v0 && v401;
+                            v408 = threshold < (sint32)carrier_v0 && v401;
     w_u32(v351 + 4u * (3), carrier_t0);
                             if ( v408 )
                             {
@@ -1610,11 +1639,8 @@ LABEL_268:
                             }
 w_u32(v403 + (0x10), xport_gte_read_data(13));
 w_u32(v403 + (0x18), xport_gte_read_data(14));
-                            v409 = ((uint32)v403 + 32u) << 8;
     w_u8(v403 + 3, 7);
-    w_u8(v403, (((uint32)(v409) >> 8) & 0xFFu));
-    w_u8(v403 + 1, (((uint32)(v409) >> 16) & 0xFFu));
-    w_u8(v403 + 2, (((uint32)(v409) >> 24) & 0xFFu));
+                            w_masked_u32(v403, (uint32)v403 + 32u, 7u);
     w_u32(a0 + 176, v403);
     w_u32(a0 + 180, v403 + 32);
                           }
@@ -1628,19 +1654,11 @@ w_u32(v403 + (0x18), xport_gte_read_data(14));
                     while ( v350 >= 0 );
                     v410 = r_u32(a0 + 168);
                     v411 = r_u32(a0 + 172);
+                    uint32 chain_end = r_u32(a0 + 180u);
                     v412 = r_u32(a0 + 176);
-                    v413 = (uint32)v411 << 8;
-                    if ( v411 != r_u32(a0 + 180) )
+                    if ( (uint32)v411 != chain_end )
                     {
-                      v414 = (sint8)r_u8(v410);
-                      v415 = (sint8)r_u8(v410 + 1u * (1));
-                      v416 = (sint8)r_u8(v410 + 1u * (2));
-    w_u8(v410, (((uint32)(v413) >> 8) & 0xFFu));
-    w_u8(v410 + 1u * (1), (((uint32)(v413) >> 16) & 0xFFu));
-    w_u8(v410 + 1u * (2), (((uint32)(v413) >> 24) & 0xFFu));
-    w_u8(v412, v414);
-    w_u8(v412 + 1u * (1), v415);
-    w_u8(v412 + 1u * (2), v416);
+                      course_polygon_link(v410, (uint32)v411, (uint32)v412);
                     }
                   }
                 }
@@ -1671,11 +1689,14 @@ w_u32(v403 + (0x18), xport_gte_read_data(14));
     v422 = r_u32(a0 + 952);
     v423 = r_u32(carrier_t8);
     v424 = r_u32(a0 + 936);
-    carrier_t9 = v424 + 8 * (r_u32(carrier_t8) & 0x1FF);
-    carrier_s4 = v424 + ((r_u32(carrier_t8) >> 6) & 0xFF8);
-    carrier_s3 = v424 + ((r_u32(carrier_t8) >> 15) & 0xFF8);
+    carrier_t9 = v424 + 8 * (v423 & 0x1FF);
+    carrier_s4 = v424 + ((v423 >> 6) & 0xFF8);
+    carrier_s3 = v424 + ((v423 >> 15) & 0xFF8);
     do
     {
+      uint16 near_depth, depth_shift;
+      uint32 fog_table, ordering_base;
+      sint16 viewport_width, viewport_height;
 xport_gte_write_data(0, r_u32(carrier_s4 + (0)));
 xport_gte_write_data(1, r_u32(carrier_s4 + (4)));
 xport_gte_write_data(2, r_u32(carrier_s3 + (0)));
@@ -1695,6 +1716,7 @@ xport_gte_execute(0x280030);
 w_u32(a0 + (0x14C), xport_gte_read_data(12));
 w_u32(v422 + (0x10), xport_gte_read_data(12));
 carrier_t3 = carrier_t3 = course_polygon_gte_flags();
+      near_depth = r_u16(a0 + 8u);
       --v420;
 xport_gte_execute(0x1400006);
       carrier_t9 = v428 + 8 * (v423 & 0x1FF);
@@ -1705,6 +1727,8 @@ carrier_t2 = carrier_t2 = xport_gte_read_data(24);
 carrier_t0 = carrier_t0 = xport_gte_read_data(17);
 carrier_v1 = carrier_v1 = xport_gte_read_data(18);
 carrier_a0 = carrier_a0 = xport_gte_read_data(19);
+      depth_shift = r_u16(a0 + 40u);
+      fog_table = r_u32(a0 + 940u);
 xport_gte_execute(0x180001);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
@@ -1720,9 +1744,10 @@ xport_gte_execute(0x1400006);
       v443 = (0u - carrier_t2);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
-      if ( carrier_t0 >= r_u16(a0 + 8) )
+      if ( carrier_t0 >= near_depth )
       {
-        v444 = carrier_t0 >> (r_u16(a0 + 40) & 31u);
+        v444 = carrier_t0 >> (depth_shift & 31u);
+        ordering_base = r_u32(a0 + 948u);
 carrier_t4 = carrier_t4 = xport_gte_read_data(24);
         v446 = v429 & v443 & carrier_t4;
         if ( v442 < 0 )
@@ -1743,12 +1768,12 @@ w_u32(a0 + (0x138), xport_gte_read_data(5));
             v444 = 4095;
           carrier_v0 = 0;
           if ( (v430 & 0x8000000) == 0 )
-            carrier_v0 = r_u16(2 * v444 + r_u32(a0 + 940));
+            carrier_v0 = r_u16(2 * v444 + fog_table);
 w_u32(a0 + (0x15C), xport_gte_read_data(12));
 w_u32(a0 + (0x13C), xport_gte_read_data(13));
 w_u32(a0 + (0x16C), xport_gte_read_data(14));
 xport_gte_write_data(8, carrier_v0);
-          v473 = (uint32)(r_u32(a0 + 948) + 4 * (v439 + v444));
+          v473 = (uint32)(ordering_base + 4 * (v439 + v444));
 xport_gte_execute(0x780010);
           if ( v443 < 0 )
             v443 = (sint32)(0u - (uint32)v443);
@@ -1764,20 +1789,21 @@ xport_gte_execute(0x780010);
           v479 = v477;
           v480 = v477 < v478;
           if ( v478 < v477 )
-            v477 = (sint16)r_u16(a0 + 332);
+            v477 = v478;
           v481 = (sint16)r_u16(a0 + 348);
           if ( v480 )
-            v479 = (sint16)r_u16(a0 + 332);
+            v479 = v478;
           if ( v481 < v477 )
-            v477 = (sint16)r_u16(a0 + 348);
+            v477 = v481;
           v482 = (sint16)r_u16(a0 + 364);
           if ( v479 < v481 )
-            v479 = (sint16)r_u16(a0 + 348);
+            v479 = v481;
           if ( v482 < v477 )
-            v477 = (sint16)r_u16(a0 + 364);
+            v477 = v482;
           if ( v479 < v482 )
-            v479 = (sint16)r_u16(a0 + 364);
-          if ( v479 > 0 && v477 < (sint16)r_u16(a0 + 4) )
+            v479 = v482;
+          viewport_width = (sint16)r_u16(a0 + 4u);
+          if ( v479 > 0 && v477 < viewport_width )
           {
             v483 = v442 | (1023 - (v479 - v477));
             v484 = (sint16)r_u16(a0 + 318);
@@ -1785,20 +1811,21 @@ xport_gte_execute(0x780010);
             v486 = v484;
             v487 = v484 < v485;
             if ( v485 < v484 )
-              v484 = (sint16)r_u16(a0 + 334);
+              v484 = v485;
             v488 = (sint16)r_u16(a0 + 350);
             if ( v487 )
-              v486 = (sint16)r_u16(a0 + 334);
+              v486 = v485;
             if ( v488 < v484 )
-              v484 = (sint16)r_u16(a0 + 350);
+              v484 = v488;
             v489 = (sint16)r_u16(a0 + 366);
             if ( v486 < v488 )
-              v486 = (sint16)r_u16(a0 + 350);
+              v486 = v488;
             if ( v489 < v484 )
-              v484 = (sint16)r_u16(a0 + 366);
+              v484 = v489;
             if ( v486 < v489 )
-              v486 = (sint16)r_u16(a0 + 366);
-            if ( v486 > 0 && v484 < (sint16)r_u16(a0 + 6) )
+              v486 = v489;
+            viewport_height = (sint16)r_u16(a0 + 6u);
+            if ( v486 > 0 && v484 < viewport_height )
             {
               if ( v475 >= 1568 )
                 v483 = -1;
@@ -1811,25 +1838,18 @@ xport_gte_execute(0x780010);
     w_u32(v422 + 12, v490);
     w_u32(v422 + 20, v491);
     w_u32(v422 + 36, v492);
-    w_u8(v422 + 28, (((uint32)(v492) >> 16) & 0xFFu));
-    w_u8(v422 + 29, (((uint32)(v492) >> 24) & 0xFFu));
+    w_masked_u32(v422 + 28u, (uint32)v492 >> 16, 3u);
 w_u32(v422 + (4), xport_gte_read_data(22));
 w_u32(v422 + (0x20), xport_gte_read_data(12));
 w_u32(v422 + (8), xport_gte_read_data(13));
 w_u32(v422 + (0x18), xport_gte_read_data(14));
-                v595 = (sint8)r_u8(v473);
-                v596 = (sint8)r_u8(v473 + 1u * (1));
-                v597 = (sint8)r_u8(v473 + 1u * (2));
-    w_u16(v473, v422);
-    w_u8(v473 + 1u * (2), (((uint32)v422 >> 16) & 0xFFu));
-    w_u8(v422, v595);
-    w_u8(v422 + 1, v596);
-    w_u8(v422 + 2, v597);
+                course_polygon_link(v473, v422, v422);
                 v422 += 40;
               }
               else
               {
     w_u16(a0 + 188, 5);
+                uint32 subdivision_depth;
                 carrier_t7 = a0;
     w_u32(a0 + 956, carrier_t8);
     w_u32(a0 + 984, v420);
@@ -1842,8 +1862,7 @@ w_u32(v422 + (0x18), xport_gte_read_data(14));
     w_u32(a0 + 184, 2048);
 w_u32(a0 + (0x9C), xport_gte_read_data(22));
     w_u32(a0 + 164, v491);
-    w_u8(a0 + 164, (((uint32)(v490) >> 16) & 0xFFu));
-    w_u8(a0 + 165, (((uint32)(v490) >> 24) & 0xFFu));
+    w_masked_u32(a0 + 164u, (uint32)v490 >> 16, 3u);
     w_u16(a0 + 306, v490);
     w_u16(a0 + 322, v491);
     w_u16(a0 + 338, v492);
@@ -1903,11 +1922,12 @@ xport_gte_execute(0x180001);
                   carrier_t3 += 16;
                 }
                 while ( v498 );
+                subdivision_depth = r_u16(a0 + 188u);
                 v511 = 0;
                 if ( (v494 & 0x1F) == 0 )
                 {
                   v512 = (uint32)(a0 + 204);
-                  if ( v496 - ((v496 - v497) >> (r_u8(a0 + 188) + 1)) >= v499 )
+                  if ( v496 - ((v496 - v497) >> ((subdivision_depth + 1u) & 31u)) >= v499 )
                   {
 LABEL_350:
                     v513 = r_u32(v512 + 4u * (1));
@@ -1916,7 +1936,7 @@ LABEL_350:
                     v516 = r_u32(v512 + 4u * (3));
                     v517 = (sint16)r_u16(v513 + 4);
                     v518 = (sint16)r_u16(v514 + 4);
-                    v519 = (sint16)r_u16(r_u32(v512) + 4);
+                    v519 = (sint16)r_u16(v515 + 4);
                     v520 = (sint16)r_u16(v516 + 4);
                     w_u16(carrier_t3 + 2u * (18), (v517 + v518) >> 1);
                     v521 = (v520 + v519) >> 1;
@@ -2002,19 +2022,22 @@ xport_gte_execute(0x180001);
                     while ( v544 );
                     v558 = carrier_t3 - 80;
                     v559 = r_u32(a0 + 180);
-    v560 = (v560 & 0xFF00FFFFu) | (((uint32)(r_u8(a0 + 164)) & 0xFFu) << 16);
-    v560 = (v560 & 0x00FFFFFFu) | (((uint32)(r_u8(a0 + 165)) & 0xFFu) << 24);
+                    v560 = (uint32)r_u16(a0 + 164u) << 16;
                     v561 = r_u32(a0 + 164);
                     v562 = 3;
                     do
                     {
+                      uint32 first_flags, second_flags, third_flags;
                       carrier_a2 = (uint32)r_u32(v512 + 4u * (1));
                       carrier_a3 = r_u32(v512);
                       carrier_t0 = v558 + 16;
                       if ( !v562 )
                         carrier_a2 = r_u32(v512 - 12u);
+                      first_flags = r_u16(carrier_a3);
+                      second_flags = r_u16(carrier_a2);
+                      third_flags = r_u16(carrier_t0);
                       --v562;
-                      if ( (((uint8)(r_u16(carrier_a3) | r_u16(carrier_a2)) | (uint8)r_u16(carrier_t0)) & 0x20) == 0 )
+                      if ( ((first_flags | second_flags | third_flags) & 0x20u) == 0 )
                       {
 xport_gte_write_data(12, r_u32(carrier_a3 + (0xC)));
 xport_gte_write_data(13, r_u32(carrier_a2 + (0xC)));
@@ -2036,8 +2059,7 @@ w_u32(v559 + (0x10), xport_gte_read_data(13));
                         {
 w_u32(v559 + (0x18), xport_gte_read_data(14));
     w_u8(v559 + 3, 7);
-    w_u16(v559, v566);
-    w_u8(v559 + 2, (((uint32)v566 >> 16) & 0xFFu));
+                          w_masked_u32(v559, v566, 7u);
     w_u32(a0 + 176, v559);
                           v559 += 32;
                         }
@@ -2054,6 +2076,9 @@ w_u32(v559 + (0x18), xport_gte_read_data(14));
                     {
                       while ( v571 >= 0 )
                       {
+                        uint32 first_flags, second_flags, third_flags, fourth_flags;
+                        uint32 first_screen_xy;
+                        sint32 threshold;
                         v572 = ((uint8)v571 - 1) & 3;
                         if ( (v571 & 1) != 0 )
                         {
@@ -2069,11 +2094,15 @@ w_u32(v559 + (0x18), xport_gte_read_data(14));
                           carrier_t6 = v570;
                           carrier_t5 = (v570 + 2u * (8 * v572 + 8));
                         }
+                        first_flags = r_u16(carrier_t1);
+                        second_flags = r_u16(carrier_t2);
+                        third_flags = r_u16(carrier_t6);
+                        fourth_flags = r_u16(carrier_t5);
                         --v571;
-                        if ( ((uint8)(r_u16(carrier_t1) & r_u16(carrier_t2) & r_u16(carrier_t6)) & (uint8)r_u16(carrier_t5) & 0x1F) == 0 )
+                        if ( (first_flags & second_flags & third_flags & fourth_flags & 0x1Fu) == 0 )
                         {
                           v577 = v511 < r_u16(a0 + 188);
-                          if ( (((uint8)(r_u16(carrier_t1) | r_u16(carrier_t2) | r_u16(carrier_t6)) | (uint8)r_u16(carrier_t5)) & 0x20) != 0 )
+                          if ( ((first_flags | second_flags | third_flags | fourth_flags) & 0x20u) != 0 )
                           {
     w_u32(v569 + 4u * (4), carrier_t1);
                             if ( v577 )
@@ -2085,8 +2114,7 @@ xport_gte_write_data(12, r_u32(carrier_t2 + (0xC)));
 xport_gte_write_data(13, r_u32(carrier_t1 + (0xC)));
 xport_gte_write_data(14, r_u32(carrier_t6 + (0xC)));
                             v579 = r_u32(a0 + 180);
-    v580 = (v580 & 0xFF00FFFFu) | (((uint32)(r_u8(a0 + 164)) & 0xFFu) << 16);
-    v580 = (v580 & 0x00FFFFFFu) | (((uint32)(r_u8(a0 + 165)) & 0xFFu) << 24);
+                            v580 = (uint32)r_u16(a0 + 164u) << 16;
 xport_gte_execute(0x1400006);
                             v581 = r_u32(a0 + 164);
     v580 = (v580 & 0xFFFF0000u) | (((uint32)(r_u16(carrier_t2 + 2u)) & 0xFFFFu) << 0);
@@ -2100,14 +2128,13 @@ v553 = carrier_a0 = xport_gte_read_data(24);
 xport_gte_write_data(12, r_u32(carrier_t5 + (0xC)));
     w_u32(v579 + 36, v581);
                             v583 = r_u32(a0 + 156);
+                            first_screen_xy = r_u32(carrier_t2 + 12u);
 xport_gte_execute(0x1400006);
-    w_u32(v579 + 8, r_u32(carrier_t2 + 12u));
+    w_u32(v579 + 8, first_screen_xy);
     w_u32(v579 + 4, v583);
     w_u8(v579 + 3, 9);
-                            v584 = ((uint32)v579 + 40u) << 8;
-    w_u8(v579, (((uint32)(v584) >> 8) & 0xFFu));
-    w_u8(v579 + 1, (((uint32)(v584) >> 16) & 0xFFu));
-    w_u8(v579 + 2, (((uint32)(v584) >> 24) & 0xFFu));
+                            w_masked_u32(v579, (uint32)v579 + 40u, 7u);
+                            threshold = (sint32)r_u32(a0 + 184u);
 v584 = carrier_v0 = xport_gte_read_data(24);
 w_u32(v579 + (0x20), xport_gte_read_data(12));
                             v586 = carrier_a0 - carrier_v0;
@@ -2115,7 +2142,7 @@ w_u32(v579 + (0x10), xport_gte_read_data(13));
                             if ( v586 < 0 )
                               v586 = (sint32)(0u - (uint32)v586);
 w_u32(v579 + (0x18), xport_gte_read_data(14));
-                            v587 = (sint32)r_u32(a0 + 184) < v586 && v577;
+                            v587 = threshold < v586 && v577;
     w_u32(v569 + 4u * (4), carrier_t1);
                             if ( v587 )
                             {
@@ -2142,19 +2169,11 @@ LABEL_372:
                     while ( v511 >= 0 );
                     v588 = r_u32(a0 + 168);
                     v589 = r_u32(a0 + 172);
+                    uint32 chain_end = r_u32(a0 + 180u);
                     v590 = r_u32(a0 + 176);
-                    v591 = (uint32)v589 << 8;
-                    if ( v589 != r_u32(a0 + 180) )
+                    if ( (uint32)v589 != chain_end )
                     {
-                      v592 = (sint8)r_u8(v588);
-                      v593 = (sint8)r_u8(v588 + 1u * (1));
-                      v594 = (sint8)r_u8(v588 + 1u * (2));
-    w_u8(v588, (((uint32)(v591) >> 8) & 0xFFu));
-    w_u8(v588 + 1u * (1), (((uint32)(v591) >> 16) & 0xFFu));
-    w_u8(v588 + 1u * (2), (((uint32)(v591) >> 24) & 0xFFu));
-    w_u8(v590, v592);
-    w_u8(v590 + 1u * (1), v593);
-    w_u8(v590 + 1u * (2), v594);
+                      course_polygon_link(v588, (uint32)v589, (uint32)v590);
                     }
                   }
                 }
@@ -2185,11 +2204,14 @@ LABEL_372:
     v600 = r_u32(a0 + 952);
     v601 = r_u32(carrier_t4);
     v602 = r_u32(a0 + 936);
-    carrier_t9 = v602 + 8 * (r_u32(carrier_t4) & 0x1FF);
-    carrier_s3 = v602 + ((r_u32(carrier_t4) >> 6) & 0xFF8);
-    carrier_s2 = v602 + ((r_u32(carrier_t4) >> 15) & 0xFF8);
+    carrier_t9 = v602 + 8 * (v601 & 0x1FF);
+    carrier_s3 = v602 + ((v601 >> 6) & 0xFF8);
+    carrier_s2 = v602 + ((v601 >> 15) & 0xFF8);
     do
     {
+      uint16 near_depth, depth_shift;
+      uint32 ordering_base;
+      sint16 viewport_width, viewport_height;
 xport_gte_write_data(0, r_u32(carrier_s3 + (0)));
 xport_gte_write_data(1, r_u32(carrier_s3 + (4)));
 xport_gte_write_data(2, r_u32(carrier_t9 + (0)));
@@ -2202,6 +2224,8 @@ xport_gte_execute(0x280030);
       v601 = r_u32(carrier_t4 + 4u * (5));
       v607 = r_u32(carrier_t4 + 4u * (1));
       v608 = r_u32(a0 + 936);
+      near_depth = r_u16(a0 + 8u);
+      depth_shift = r_u16(a0 + 40u);
       carrier_t9 = v608 + 8 * (v601 & 0x1FF);
       carrier_s3 = v608 + ((v601 >> 6) & 0xFF8);
       carrier_s2 = v608 + ((v601 >> 15) & 0xFF8);
@@ -2209,13 +2233,14 @@ carrier_t7 = carrier_t7 = course_polygon_gte_flags();
 v577 = carrier_t0 = xport_gte_read_data(17);
 v608 = carrier_v1 = xport_gte_read_data(18);
 v588 = carrier_a0 = xport_gte_read_data(19);
+      ordering_base = r_u32(a0 + 948u);
 xport_gte_execute(0x1400006);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
       v613 = ((uint32)v606 >> 23) & 0x30;
       if ( carrier_t0 < carrier_a0 )
         carrier_t0 = carrier_a0;
-      if ( carrier_t0 >= r_u16(a0 + 8) )
+      if ( carrier_t0 >= near_depth )
       {
 carrier_t3 = carrier_t3 = xport_gte_read_data(24);
         v615 = carrier_t3 & v606;
@@ -2233,7 +2258,7 @@ w_u32(a0 + (0x188), xport_gte_read_data(5));
             v615 = course_polygon_facing(a0, 324u, 388u, 356u);
           }
         }
-        v641 = carrier_t0 >> (r_u16(a0 + 40) & 31u);
+        v641 = carrier_t0 >> (depth_shift & 31u);
         if ( v615 >= 0 )
         {
           if ( v641 >= 4096 )
@@ -2257,7 +2282,7 @@ xport_gte_write_data(22, r_u32(carrier_t4 + (0x10)));
 xport_gte_write_data(6, carrier_v0);
 xport_gte_write_data(20, carrier_v0);
 xport_gte_write_data(8, carrier_a0);
-          v647 = (uint32)(r_u32(a0 + 948) + 4 * v644);
+          v647 = (uint32)(ordering_base + 4 * v644);
 xport_gte_execute(0xF8002A);
           v648 = (sint16)r_u16(a0 + 332);
           v649 = (sint16)r_u16(a0 + 364);
@@ -2265,14 +2290,15 @@ xport_gte_execute(0xF8002A);
           v651 = v648;
           v652 = v648 < v649;
           if ( v649 < v648 )
-            v648 = (sint16)r_u16(a0 + 364);
+            v648 = v649;
           if ( v652 )
-            v651 = (sint16)r_u16(a0 + 364);
+            v651 = v649;
           if ( v650 < v648 )
-            v648 = (sint16)r_u16(a0 + 396);
+            v648 = v650;
           if ( v651 < v650 )
-            v651 = (sint16)r_u16(a0 + 396);
-          if ( v651 > 0 && v648 < (sint16)r_u16(a0 + 4) )
+            v651 = v650;
+          viewport_width = (sint16)r_u16(a0 + 4u);
+          if ( v651 > 0 && v648 < viewport_width )
           {
             v653 = carrier_t7 | (1023 - (v651 - v648));
             v654 = (sint16)r_u16(a0 + 334);
@@ -2281,14 +2307,15 @@ xport_gte_execute(0xF8002A);
             v657 = v654;
             v658 = v654 < v655;
             if ( v655 < v654 )
-              v654 = (sint16)r_u16(a0 + 366);
+              v654 = v655;
             if ( v658 )
-              v657 = (sint16)r_u16(a0 + 366);
+              v657 = v655;
             if ( v656 < v654 )
-              v654 = (sint16)r_u16(a0 + 398);
+              v654 = v656;
             if ( v657 < v656 )
-              v657 = (sint16)r_u16(a0 + 398);
-            if ( v657 > 0 && v654 < (sint16)r_u16(a0 + 6) )
+              v657 = v656;
+            viewport_height = (sint16)r_u16(a0 + 6u);
+            if ( v657 > 0 && v654 < viewport_height )
             {
               v659 = r_u32(v645);
               v660 = r_u32(v645 + 4u * (1));
@@ -2305,14 +2332,7 @@ w_u32(v600 + (0x1C), xport_gte_read_data(22));
 w_u32(v600 + (0x14), xport_gte_read_data(12));
 w_u32(v600 + (8), xport_gte_read_data(13));
 w_u32(v600 + (0x20), xport_gte_read_data(14));
-                v662 = (sint8)r_u8(v647);
-                v663 = (sint8)r_u8(v647 + 1u * (1));
-                v664 = (sint8)r_u8(v647 + 1u * (2));
-    w_u16(v647, v600);
-    w_u8(v647 + 1u * (2), (((uint32)v600 >> 16) & 0xFFu));
-    w_u8(v600, v662);
-    w_u8(v600 + 1, v663);
-    w_u8(v600 + 2, v664);
+                course_polygon_link(v647, v600, v600);
                 v600 += 40;
               }
               else
@@ -2327,8 +2347,7 @@ w_u32(v600 + (0x20), xport_gte_read_data(14));
     w_u32(a0 + 172, v600);
     w_u16(a0 + 184, 3);
     w_u32(a0 + 164, v660);
-    w_u8(a0 + 164, (((uint32)(v659) >> 16) & 0xFFu));
-    w_u8(a0 + 165, (((uint32)(v659) >> 24) & 0xFFu));
+    w_masked_u32(a0 + 164u, v659 >> 16, 3u);
     w_u16(a0 + 336, ((uint16)v659 << 7) & 0x7F80 | 0x40);
     w_u16(a0 + 338, (v659 >> 1) & 0x7F80 | 0x40);
     w_u16(a0 + 368, ((uint16)v660 << 7) & 0x7F80 | 0x40);
@@ -2373,11 +2392,14 @@ w_u32(a0 + (0x188), xport_gte_read_data(5));
     v667 = r_u32(a0 + 952);
     v668 = r_u32(carrier_t5);
     v669 = r_u32(a0 + 936);
-    carrier_t9 = v669 + 8 * (r_u32(carrier_t5) & 0x1FF);
-    carrier_s4 = v669 + ((r_u32(carrier_t5) >> 6) & 0xFF8);
-    carrier_s3 = v669 + ((r_u32(carrier_t5) >> 15) & 0xFF8);
+    carrier_t9 = v669 + 8 * (v668 & 0x1FF);
+    carrier_s4 = v669 + ((v668 >> 6) & 0xFF8);
+    carrier_s3 = v669 + ((v668 >> 15) & 0xFF8);
     do
     {
+      uint16 near_depth, depth_shift;
+      uint32 fog_table, ordering_base;
+      sint16 viewport_width, viewport_height;
 xport_gte_write_data(0, r_u32(carrier_s4 + (0)));
 xport_gte_write_data(1, r_u32(carrier_s4 + (4)));
 xport_gte_write_data(2, r_u32(carrier_s3 + (0)));
@@ -2397,6 +2419,7 @@ xport_gte_execute(0x280030);
 w_u32(a0 + (0x16C), xport_gte_read_data(12));
 w_u32(v667 + (0x14), xport_gte_read_data(12));
 carrier_t4 = carrier_t4 = course_polygon_gte_flags();
+      near_depth = r_u16(a0 + 8u);
       --v665;
 xport_gte_execute(0x1400006);
       carrier_t9 = v673 + 8 * (v668 & 0x1FF);
@@ -2407,6 +2430,8 @@ v645 = carrier_t2 = xport_gte_read_data(24);
 v641 = carrier_t0 = xport_gte_read_data(17);
 carrier_v1 = carrier_v1 = xport_gte_read_data(18);
 carrier_a0 = carrier_a0 = xport_gte_read_data(19);
+      depth_shift = r_u16(a0 + 40u);
+      fog_table = r_u32(a0 + 940u);
 xport_gte_execute(0x180001);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
@@ -2422,9 +2447,10 @@ xport_gte_execute(0x1400006);
       v688 = (0u - carrier_t2);
       if ( carrier_t0 < carrier_v1 )
         carrier_t0 = carrier_v1;
-      if ( carrier_t0 >= r_u16(a0 + 8) )
+      if ( carrier_t0 >= near_depth )
       {
-        v689 = carrier_t0 >> (r_u16(a0 + 40) & 31u);
+        v689 = carrier_t0 >> (depth_shift & 31u);
+        ordering_base = r_u32(a0 + 948u);
 v647 = carrier_t3 = xport_gte_read_data(24);
         v691 = v674 & v688 & carrier_t3;
         if ( v687 < 0 )
@@ -2445,12 +2471,12 @@ w_u32(a0 + (0x148), xport_gte_read_data(5));
             v689 = 4095;
           carrier_v0 = 0;
           if ( (v675 & 0x8000000) == 0 )
-            carrier_v0 = r_u16(2 * v689 + r_u32(a0 + 940));
+            carrier_v0 = r_u16(2 * v689 + fog_table);
 w_u32(a0 + (0x18C), xport_gte_read_data(12));
 w_u32(a0 + (0x14C), xport_gte_read_data(13));
 w_u32(a0 + (0x1AC), xport_gte_read_data(14));
 xport_gte_write_data(8, carrier_v0);
-          v718 = (uint32)(r_u32(a0 + 948) + 4 * (v684 + v689));
+          v718 = (uint32)(ordering_base + 4 * (v684 + v689));
 xport_gte_execute(0x780010);
           if ( v688 < 0 )
             v688 = (sint32)(0u - (uint32)v688);
@@ -2476,20 +2502,21 @@ xport_gte_execute(0xF8002A);
           v727 = v725;
           v728 = v725 < v726;
           if ( v726 < v725 )
-            v725 = (sint16)r_u16(a0 + 364);
+            v725 = v726;
           v729 = (sint16)r_u16(a0 + 396);
           if ( v728 )
-            v727 = (sint16)r_u16(a0 + 364);
+            v727 = v726;
           if ( v729 < v725 )
-            v725 = (sint16)r_u16(a0 + 396);
+            v725 = v729;
           v730 = (sint16)r_u16(a0 + 428);
           if ( v727 < v729 )
-            v727 = (sint16)r_u16(a0 + 396);
+            v727 = v729;
           if ( v730 < v725 )
-            v725 = (sint16)r_u16(a0 + 428);
+            v725 = v730;
           if ( v727 < v730 )
-            v727 = (sint16)r_u16(a0 + 428);
-          if ( v727 > 0 && v725 < (sint16)r_u16(a0 + 4) )
+            v727 = v730;
+          viewport_width = (sint16)r_u16(a0 + 4u);
+          if ( v727 > 0 && v725 < viewport_width )
           {
             v731 = v687 | (1023 - (v727 - v725));
             v732 = (sint16)r_u16(a0 + 334);
@@ -2497,20 +2524,21 @@ xport_gte_execute(0xF8002A);
             v734 = v732;
             v735 = v732 < v733;
             if ( v733 < v732 )
-              v732 = (sint16)r_u16(a0 + 366);
+              v732 = v733;
             v736 = (sint16)r_u16(a0 + 398);
             if ( v735 )
-              v734 = (sint16)r_u16(a0 + 366);
+              v734 = v733;
             if ( v736 < v732 )
-              v732 = (sint16)r_u16(a0 + 398);
+              v732 = v736;
             v737 = (sint16)r_u16(a0 + 430);
             if ( v734 < v736 )
-              v734 = (sint16)r_u16(a0 + 398);
+              v734 = v736;
             if ( v737 < v732 )
-              v732 = (sint16)r_u16(a0 + 430);
+              v732 = v737;
             if ( v734 < v737 )
-              v734 = (sint16)r_u16(a0 + 430);
-            if ( v734 > 0 && v732 < (sint16)r_u16(a0 + 6) )
+              v734 = v737;
+            viewport_height = (sint16)r_u16(a0 + 6u);
+            if ( v734 > 0 && v732 < viewport_height )
             {
               v738 = v731 | (511 - (v734 - v732));
               v739 = r_u32(v720 + 4u * (2));
@@ -2522,22 +2550,14 @@ xport_gte_execute(0xF8002A);
     w_u32(v667 + 12, v740);
     w_u32(v667 + 24, v741);
     w_u32(v667 + 48, v739);
-    w_u8(v667 + 36, (((uint32)(v739) >> 16) & 0xFFu));
-    w_u8(v667 + 37, (((uint32)(v739) >> 24) & 0xFFu));
+    w_masked_u32(v667 + 36u, v739 >> 16, 3u);
 w_u32(v667 + (0x10), xport_gte_read_data(20));
 w_u32(v667 + (0x28), xport_gte_read_data(21));
 w_u32(v667 + (0x1C), xport_gte_read_data(22));
 w_u32(v667 + (0x2C), xport_gte_read_data(12));
 w_u32(v667 + (8), xport_gte_read_data(13));
 w_u32(v667 + (0x20), xport_gte_read_data(14));
-                v745 = (sint8)r_u8(v718);
-                v746 = (sint8)r_u8(v718 + 1u * (1));
-                v747 = (sint8)r_u8(v718 + 1u * (2));
-    w_u16(v718, v667);
-    w_u8(v718 + 1u * (2), (((uint32)v667 >> 16) & 0xFFu));
-    w_u8(v667, v745);
-    w_u8(v667 + 1, v746);
-    w_u8(v667 + 2, v747);
+                course_polygon_link(v718, v667, v667);
                 v667 += 52;
               }
               else
@@ -2552,8 +2572,7 @@ w_u32(v667 + (0x20), xport_gte_read_data(14));
     w_u32(a0 + 172, v667);
     w_u16(a0 + 184, 4);
     w_u32(a0 + 164, v741);
-    w_u8(a0 + 164, (((uint32)(v740) >> 16) & 0xFFu));
-    w_u8(a0 + 165, (((uint32)(v740) >> 24) & 0xFFu));
+    w_masked_u32(a0 + 164u, v740 >> 16, 3u);
                 v742 = (uint16)v739 << 7;
                 v743 = v739 >> 1;
                 v744 = (((uint32)(v739) >> 16) & 0xFFFFu);

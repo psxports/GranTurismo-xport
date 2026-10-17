@@ -120,22 +120,38 @@ sint32 gtmain_cd_command_native(uint8 command, uint8 *parameter)
 
 
 static uint8 *native_destination;
-static uint32 native_capacity, native_remaining;
+static uint32 native_capacity;
 
 void gtmain_cd_stream_native_destination(uint8 *destination, uint32 capacity, uint32 bytes)
 {
     uint32 aligned = (bytes + 3u) & ~3u;
+    uint32 guest_destination;
     if (destination && aligned > capacity)
         gt_draft_failure("Native CD transfer capacity", 0x8007A340u);
-    native_destination = destination;
-    native_capacity = capacity; native_remaining = aligned;
-    if (destination) w_u32(0x800C0A4Cu, aligned);
+    guest_destination = destination ? xport_guest_buffer_address(destination, aligned) : 0u;
+    native_destination = guest_destination ? NULL : destination;
+    native_capacity = capacity;
+    if (guest_destination) gtmain_cd_stream_destination(guest_destination, bytes);
+    else if (destination) w_u32(0x800C0A4Cu, aligned);
 }
 
 static sint32 gtmain_cd_stream_missing(const char *name, uint32 address)
 {
     /* TODO Bind the selected stream's remaining native game dependencies */
     gt_draft_failure(name, address);
+}
+
+static uint32 gtmain_cd_stream_response(const uint8 *result)
+{
+    uint32 response;
+    memcpy(&response, result, sizeof(response));
+    return response;
+}
+
+static void gtmain_cd_stream_error(uint8 status, uint32 response)
+{
+    /* TODO Bind the unselected CD error transition */
+    gt_draft_failure("GTMAIN CD error transition", 0x80079B6Cu);
 }
 
 static void gtmain_cd_stream_default_sync(uint8 status, uint8 *result)
@@ -232,11 +248,11 @@ sint32 gtmain_cd_stream_restart(void)
 /* GTMAIN.EXE 80079C6C */
 void gtmain_cd_stream_sync(uint8 status, const uint8 *result)
 {
-    uint32 state, request;
+    uint32 state, request, response;
     w_u8(0x800994BEu, status);
-    w_u32(0x800C00C0u, (uint32)result[0] | ((uint32)result[1] << 8u) |
-        ((uint32)result[2] << 16u) | ((uint32)result[3] << 24u));
-    if (status != 2u) { gtmain_cd_stream_missing("GTMAIN CD error transition", 0x80079B6Cu); return; }
+    response = gtmain_cd_stream_response(result);
+    w_u32(0x800C00C0u, response);
+    if (status != 2u) { gtmain_cd_stream_error(status, response); return; }
     state = r_u8(0x800994C2u);
     request = r_u8(0x800994BFu);
     if (state != 5u) {
@@ -267,15 +283,19 @@ void gtmain_cd_stream_sync(uint8 status, const uint8 *result)
 /* GTMAIN.EXE 80079E94 */
 sint32 gtmain_cd_stream_copy_sector(void)
 {
-    if (native_destination) {
-        uint32 amount = native_remaining < 2048u ? native_remaining : 2048u;
-        if (amount > native_capacity) gt_draft_failure("Native CD transfer overrun", 0x80079E94u);
-        gtmain_cd_sector_native(native_destination, (sint32)(amount >> 2));
-        native_destination += amount; native_capacity -= amount; native_remaining -= amount;
-        w_u32(0x800C0A4Cu, native_remaining);
-        return native_remaining == 0u;
-    }
     uint32 remaining = r_u32(0x800C0A4Cu);
+    if (native_destination) {
+        uint8 *destination = native_destination;
+        uint32 capacity = native_capacity;
+        uint32 amount = remaining < 2048u ? (remaining + 3u) & ~3u : 2048u;
+        if (amount > native_capacity) gt_draft_failure("Native CD transfer overrun", 0x80079E94u);
+        gtmain_cd_sector_native(destination, (sint32)(amount >> 2));
+        remaining -= amount;
+        native_destination = destination + amount;
+        native_capacity = capacity - amount;
+        w_u32(0x800C0A4Cu, remaining);
+        return remaining == 0u;
+    }
     uint32 destination = r_u32(0x800C0A54u);
     uint32 amount = remaining < 2048u ? (remaining + 3u) & ~3u : 2048u;
     gtmain_cd_sector_native(psx_addr(destination, amount), (sint32)(amount >> 2u));
@@ -292,11 +312,10 @@ void gtmain_cd_stream_ready(uint8 status, const uint8 *result)
     uint32 sector, token, request, response;
     sint32 value;
     w_u8(0x800994BEu, status);
-    response = (uint32)result[0] | ((uint32)result[1] << 8u) |
-        ((uint32)result[2] << 16u) | ((uint32)result[3] << 24u);
+    response = gtmain_cd_stream_response(result);
     request = r_u8(0x800994BFu);
     w_u32(0x800C00C0u, response);
-    if (status != 1u) { gtmain_cd_stream_missing("GTMAIN CD error transition", 0x80079B6Cu); return; }
+    if (status != 1u) { gtmain_cd_stream_error(status, response); return; }
     if (request == 1u) { gtmain_cd_stream_restart(); return; }
     if (request == 2u) { gtmain_cd_stream_finish(); return; }
     gtmain_cd_sector_native(header, 3);

@@ -1,4 +1,5 @@
 #include "game_first2_registry.h"
+#include "game_local_stack.h"
 #include "game_draft_registry.h"
 #include "psx_gte.h"
 
@@ -7,6 +8,7 @@ static uint32 race_call(uint32 owner, uint32 a0, uint32 a1, uint32 a2)
 {
     if (owner == 0x8002FF48u) return (uint32)gtmain_race_banner_draw();
     if (owner == 0x80025FCCu) return gtmain_race_standard_hud_draw();
+    if (owner == 0x8002332Cu) return gt_draft_8002332C();
     return gt_draft_unresolved_call(owner, a0, a1, a2, 0, 0, 0, 0, 0);
 }
 
@@ -36,14 +38,14 @@ static uint32 race_bounds_native(uint32 ordering, const sint16 *bounds, uint32 r
     return packet;
 }
 
-static void race_format_native(char *buffer, uint32 capacity, uint32 first, uint32 second)
+static void race_format_native(char *buffer, uint32 capacity, uint32 format,
+    uint32 first, uint32 second)
 {
     /* TODO Bind formatter output to the real native destination */
-    (void)buffer; (void)capacity; (void)first; (void)second;
     gt_draft_failure("GTMAIN native race menu formatting", 0x8007C014u);
 }
 
-static sint32 race_text_width_native(const char *text)
+static sint32 race_text_width_native(sint32 font, const char *text)
 {
     /* TODO Bind native formatted text to the original width algorithm */
     gt_draft_failure("GTMAIN native race menu text width", 0x8006C900u);
@@ -52,7 +54,6 @@ static sint32 race_text_width_native(const char *text)
 static void race_text_draw_native(uint32 link, sint16 x, sint16 y, const char *text)
 {
     /* TODO Bind native formatted text to the original text renderer */
-    (void)link; (void)x; (void)y; (void)text;
     gt_draft_failure("GTMAIN native race menu text draw", 0x8006CA10u);
 }
 
@@ -121,6 +122,12 @@ sint32 gtmain_race_frame_status(void)
     return r_s8(0x800B63C0u);
 }
 
+static void race_mode_prepare_missing(uint32 owner)
+{
+    /* TODO Bind the unselected original no-argument mode service */
+    gt_draft_unresolved_call(owner, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+
 /* GTMAIN.EXE 8002B4C0 */
 void gtmain_race_mode_prepare(void)
 {
@@ -133,13 +140,13 @@ void gtmain_race_mode_prepare(void)
     }
     switch (r_u8(0x800CB7F5u)) {
     case 0: gtmain_race_mode0_prepare(); break;
-    case 1: race_call(0x8002633Cu, 0, 0, 0); break;
-    case 2: race_call(0x800264D0u, 0, 0, 0); break;
-    case 3: race_call(0x80022FE8u, 0, 0, 0); break;
-    case 5: race_call(0x800234CCu, 0, 0, 0); return;
+    case 1: race_mode_prepare_missing(0x8002633Cu); break;
+    case 2: race_mode_prepare_missing(0x800264D0u); break;
+    case 3: race_mode_prepare_missing(0x80022FE8u); break;
+    case 5: race_mode_prepare_missing(0x800234CCu); return;
     default: return;
     }
-    gt_draft_8002AC58(0, 0, 0, 0, 0, 0, 0, 0);
+    gt_draft_8002AC58();
 }
 
 /* GTMAIN.EXE 8002B5A4 */
@@ -183,7 +190,7 @@ void gtmain_race_hud_draw(void)
         race_call(0x8003061Cu, r_u32(0x800B6368u), 110, 0);
         break;
     case 3: race_call(0x8002332Cu, 0, 0, 0); break;
-    case 4: race_call(0x8002A300u, 0, 0, 0); break;
+    case 4: gt_draft_8002A300(); break;
     case 5: race_call(0x80023554u, 0, 0, 0); break;
     default: break;
     }
@@ -195,15 +202,16 @@ void gtmain_race_menu_draw(void)
     sint16 bounds[4];
     char formatted[256];
     sint32 x, y, width, count, selected;
-    uint32 packet, link, blink, index;
+    uint32 ordering, packet, link, blink, index;
     if (!r_s8(0x800B63D8u) || r_s16(0x800B63D6u)) return;
     y = r_s16(0x800B3996u);
+    ordering = r_u32(0x800B6308u);
     x = r_s16(0x800B3994u);
     bounds[0] = (sint16)x; bounds[1] = (sint16)y;
     width = r_s16(0x800B3998u);
     bounds[2] = (sint16)((uint32)x + (uint32)width);
     bounds[3] = (sint16)((uint32)y + (uint32)r_s16(0x800B399Au));
-    packet = gtmain_packet_page(r_u32(0x800B6308u), 64);
+    packet = gtmain_packet_page(ordering, 64);
     link = race_bounds_native(packet, bounds, 0x02606060u);
     gtmain_text_font(1);
     y = (sint32)((uint32)y + 3u);
@@ -219,9 +227,9 @@ void gtmain_race_menu_draw(void)
         gtmain_text_color(color);
         if (entry == 7u) {
             uint32 second = r_u8(0x800CB764u) ? 0x800BC300u : 0x800BC305u;
-            race_format_native(formatted, sizeof(formatted), text, second);
-            race_text_width_native(formatted);
-            text_width = race_text_width_native(formatted);
+            race_format_native(formatted, sizeof(formatted), 0x8008C05Cu, text, second);
+            race_text_width_native(1, formatted);
+            text_width = race_text_width_native(1, formatted);
             race_text_draw_native(link, (sint16)((uint32)x + race_asr((uint32)width - (uint32)text_width, 1)), (sint16)y, formatted);
         } else {
             text_width = gtmain_text_width(1, text);
@@ -256,9 +264,9 @@ void gtmain_race_view_draw(sint32 view_index)
     gte_ctc2(depth, 26u);
     vertical = r_u32(scratch + 28u);
     gte_ctc2(horizontal, 24u); gte_ctc2(vertical, 25u);
-    gt_draft_8001C108(scratch, r_u32(0x800B63F8u), (uint32)view_index, 0, 0, 0, 0, 0);
+    gt_draft_8001C108(scratch, r_u32(0x800B63F8u), view_index);
     scene = gtmain_course_scene_draw(scratch, r_u32(0x800B6338u), 0);
-    if (!r_s8(0x8008FBE1u)) gt_draft_8002F6EC(scratch, scene, 0, 0, 0, 0, 0, 0);
+    if (!r_s8(0x8008FBE1u)) gt_draft_8002F6EC(scratch, scene);
     gtmain_race_cars_draw(scratch);
     gtmain_race_effects_draw();
     if (view_index) {
@@ -346,13 +354,11 @@ uint32 gtmain_race_record_label_draw(void)
 {
     sint32 enabled = (sint16)r_u16(0x8009071Au);
     if (!enabled) return (uint32)enabled;
-    /* TODO Integrate the saved 8002FDCC owner with its exact native record ABI */
-    return gt_draft_8002FDCC((uint32)(sint32)(sint16)r_u16(0x80090718u), 0x800B39A4u, 0u, 0u, 0u, 0u, 0u, 0u);
+    return (uint32)gtmain_race_record_text_draw((uint32)(sint32)(sint16)r_u16(0x80090718u), 0x800B39A4u);
 }
 
 uint32 gtmain_race_driver_hud_draw(uint32 ordering)
 {
-    /* TODO Integrate saved driver HUD callee bodies with their actual native ABIs */
     gtmain_race_instruments_draw(ordering, 238, 150, 0x800B6850u);
     gtmain_race_status_draw(ordering, 68, 0x800B6850u);
     gtmain_race_lap_counter_draw(ordering, 16, 16, 0x800B6850u);
@@ -403,7 +409,7 @@ static void race_format_buffer(char *output, uint32 capacity, uint32 format, con
     race_time_output = NULL;
 }
 
-static void race_time_string_native(char *output, uint32 capacity, uint32 milliseconds)
+void gtmain_time_string_native(char *output, uint32 capacity, uint32 milliseconds)
 {
     uint32 words[4], seconds, minutes, hours, format;
     GTMainFormatArguments arguments = { words, 0u, 0u, 0u };
@@ -464,7 +470,7 @@ sint32 gtmain_race_lap_times_draw(uint32 ordering, sint32 x, sint32 y)
     for (index = 0; index < count; ) {
         uint32 time = r_u32(0x800BDB70u + ((uint32)first + (uint32)index) * 4u);
         y = (sint32)((uint32)y + 10u); ++index;
-        race_time_string_native(text, sizeof(text), time);
+        gtmain_time_string_native(text, sizeof(text), time);
         race_time_draw_native(ordering, x, y, text);
         result = index < count;
     }
@@ -547,41 +553,38 @@ uint32 gtmain_race_position_hud_draw(uint32 ordering, uint32 car)
 uint32 gtmain_race_minimap_draw(uint32 ordering, sint32 x, sint32 y)
 {
     uint32 disabled = r_u8(0x800CB75Cu);
-    sint16 boxes[6][8];
-    uint8 present[6] = {0};
     sint32 initial, limit, index, active = 0;
-    uint32 left;
+    uint32 left, boxes;
     if (disabled) return disabled;
+    boxes = gt_local_stack_workspace(0x2600u, 96u, 0x800301F4u);
     left = (uint32)x - 16u;
     initial = (sint16)r_u16(0x800BC1A6u);
     if (initial > 0) {
         limit = (sint16)r_u16(0x800BC1A6u); index = 0;
         do {
             uint32 car = 0x800B6850u + (uint32)index * 3380u;
-            /* TODO Resolve original local output extent for more than six records */
-            if (index >= 6) gt_draft_failure("Native minimap record extent", 0x800301F4u);
             if (r_u32(car + 12u) & 1u) {
+                ++active;
                 sint32 px = (sint16)r_u16(car + 2230u), pz = (sint16)r_u16(car + 2238u);
                 uint32 mx = left + (uint32)((px * 163) >> 12) + 48u;
                 uint32 my = (uint32)y - ((uint32)((pz * 163) >> 12) - 48u);
-                ++active;
-                boxes[index][0] = (sint16)(mx - 2u); boxes[index][1] = (sint16)(my - 2u);
-                boxes[index][2] = (sint16)(mx + 1u); boxes[index][3] = (sint16)(my + 1u);
-                boxes[index][4] = (sint16)(mx - 1u); boxes[index][5] = (sint16)(my - 1u);
-                boxes[index][6] = (sint16)mx; boxes[index][7] = (sint16)my;
-                present[index] = 1u;
+                uint32 row = boxes + (uint32)index * 16u;
+                w_u16(row, mx - 2u); w_u16(row + 2u, my - 2u);
+                w_u16(row + 4u, mx + 1u); w_u16(row + 6u, my + 1u);
+                w_u16(row + 8u, mx - 1u); w_u16(row + 10u, my - 1u);
+                w_u16(row + 12u, mx); w_u16(row + 14u, my);
             }
             ++index;
         } while (index < limit);
     }
-    /* TODO Original sparse flags leave output records unreadable; do not fabricate their contents */
-    if (!present[0]) gt_draft_failure("Original minimap first record uninitialized", 0x80030338u);
-    for (index = 1; index < active; ++index)
-        if (!present[index]) gt_draft_failure("Original minimap sparse record uninitialized", 0x80030370u);
-    race_bounds_native(ordering, boxes[0] + 4, 255u);
-    race_bounds_native(ordering, boxes[0], 0u);
-    for (index = 1; index < active; ++index) race_bounds_native(ordering, boxes[index] + 4, 65280u);
-    for (index = 1; index < active; ++index) race_bounds_native(ordering, boxes[index], 0u);
+    race_bounds_native(ordering, (const sint16 *)psx_addr(boxes + 8u, 8u), 255u);
+    race_bounds_native(ordering, (const sint16 *)psx_addr(boxes, 8u), 0u);
+    for (index = 1; index < active; ++index) {
+        race_bounds_native(ordering, (const sint16 *)psx_addr(boxes + (uint32)index * 16u + 8u, 8u), 65280u);
+    }
+    for (index = 1; index < active; ++index) {
+        race_bounds_native(ordering, (const sint16 *)psx_addr(boxes + (uint32)index * 16u, 8u), 0u);
+    }
     gtmain_packet_sprite(ordering, (left & 65535u) | (((uint32)y + 16u) << 16), 0x181A1080u, 0x00500060u, 0x00808080u);
     return gtmain_packet_page(ordering, 518u);
 }

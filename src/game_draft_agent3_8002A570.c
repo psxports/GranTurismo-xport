@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 
+/* TODO Complete the independent driver configuration callee 8001E988 */
 /* GTMAIN.EXE 8002A570 */
 uint32 gtmain_race_record_selection_prepare(void)
 {
@@ -14,7 +15,6 @@ uint32 gtmain_race_record_selection_prepare(void)
     w_u8(0x800CB7FFu, 0);
     w_u8(0x800B6394u, 1);
     gtmain_race_track_invalidate();
-    /* TODO Driver configuration dependencies remain partial */
     gtmain_race_driver_configurations(0x800D6FDCu, 1, 4, 3);
     gtmain_course_route_caption_update();
     result = r_u32(record) == 4u ? 5u : 1u;

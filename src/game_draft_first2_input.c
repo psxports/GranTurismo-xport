@@ -134,14 +134,15 @@ uint32 gtmain_input_port_update(uint32 state, uint32 port, uint32 slot)
     uint32 present = 1u << (slot & 31u);
     uint32 entry = state + 16u + 8u * slot;
     uint32 sdk_state = (uint8)PadGetState((sint32)port);
-    uint32 actuators;
+    uint32 actuators, request;
     w_u8(entry, (uint8)sdk_state);
     actuators = r_u8(entry + 1u);
     if (sdk_state == 2u) actuators = 1u;
     else if (!sdk_state) { present = 0u; actuators = 0u; }
     else if (sdk_state == 6u) actuators = (uint32)gtmain_native_pad_info_act(port, -1, 0);
+    request = r_u8(entry + 2u);
     w_u8(entry + 1u, (uint8)actuators);
-    if (!r_u8(entry + 2u)) return present;
+    if (!request) return present;
     {
         uint32 small = r_u8(entry + 3u), large = r_u8(entry + 4u);
         if (actuators == 1u) {

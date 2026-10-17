@@ -139,7 +139,14 @@ static uint32 gtmain_frame_callback(uint32 address)
         return 0u;
     }
     /* TODO Translate drawing callback and further mode callbacks */
-    return gt_draft_unresolved_call(address, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+    gt_draft_failure("GTMAIN native no-argument frame callback", address);
+}
+
+static void gtmain_vblank_dispatch(uint32 callback)
+{
+    if (callback == 0x8006F11Cu) { gtmain_loading_callback_noop(); return; }
+    if (!callback) gt_draft_failure("GTMAIN null VBlank callback", callback);
+    gtmain_frame_callback(callback);
 }
 
 void gtmain_frame_vblank(void)
@@ -147,8 +154,7 @@ void gtmain_frame_vblank(void)
     uint32 ticks = r_u32(0x800C009Cu), callback = r_u32(0x800C0090u);
     w_u32(0x800C009Cu, ticks + 1u);
     w_u32(0x800C0094u, r_u32(0x800C0094u) + 1u);
-    if (callback == 0x8006F11Cu) gtmain_loading_callback_noop();
-    else gtmain_frame_callback(callback);
+    gtmain_vblank_dispatch(callback);
 }
 
 static void gtmain_frame_environments(void)

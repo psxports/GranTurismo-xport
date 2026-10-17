@@ -91,18 +91,18 @@ void gtmain_roster_select(uint32 *selected, uint32 list, sint32 count,
 }
 
 /* GTMAIN.EXE 8001F3D0 */
-uint32 gtmain_roster_variants(uint32 *variants, const uint32 *selected,
+void gtmain_roster_variants(uint32 *variants, const uint32 *selected,
     sint32 count, uint32 *seed, uint32 excluded_class)
 {
     sint8 *classes;
     sint32 i;
-    /* TODO The nonpositive-count path returns unspecified original stack contents */
-    if (count <= 0) gt_draft_failure("Native roster variants unspecified result", 0x8001F3D0u);
+    if (count <= 0) return;
     classes = (sint8 *)malloc((size_t)count);
     if (!classes) gt_draft_failure("Native roster variant scratch allocation", 0x8001F3D0u);
     for (i = 0; i < count; ++i) {
         uint32 car = selected[i], chosen;
-        uint32 choices = gtmain_resource_pairs_count(car), pairs = gtmain_resource_pairs(car);
+        uint32 choices = gtmain_resource_pairs_count(car);
+        uint32 pairs = gtmain_resource_pairs(car);
         sint32 attempts = 0, kind;
         for (;;) {
             uint32 value = roster_random(seed);
@@ -123,27 +123,26 @@ uint32 gtmain_roster_variants(uint32 *variants, const uint32 *selected,
         variants[i] = chosen;
     }
     free(classes);
-    return 0u;
 }
 
 /* GTMAIN.EXE 8001F564 */
-uint32 gtmain_roster_commit(const uint32 *selected, const uint32 *variants,
+void gtmain_roster_commit(const uint32 *selected, const uint32 *variants,
     sint32 count, uint32 seed)
 {
     sint32 i;
     for (i = 0; i < count; ++i) {
-        uint32 car = (uint16)selected[i], variant = (uint16)variants[i];
+        uint32 car = xport_load_le16((const uint8 *)selected + (uint32)i * 4u);
+        uint32 variant = xport_load_le16((const uint8 *)variants + (uint32)i * 4u);
         uint16 packed = (uint16)((car & 511u) | ((variant & 127u) << 9));
         w_u16(0x800B6650u + (uint32)i * 2u, packed);
     }
     w_u32(0x800B6640u, seed);
-    /* TODO The nonpositive-count path leaves the incoming result unspecified */
-    if (count <= 0) gt_draft_failure("Native roster commit unspecified result", 0x8001F564u);
-    return 0u;
 }
 
 /* GTMAIN.EXE 80025B68 */
-uint32 gtmain_race_arcade_roster(void)
+/* TODO Resolve independent generator extent and variant owner limitations */
+/* GTMAIN.EXE 80025B68 */
+void gtmain_race_arcade_roster(void)
 {
     uint32 player, count, table, group, mode, spec;
     sint32 index;
@@ -159,5 +158,5 @@ uint32 gtmain_race_arcade_roster(void)
     player = r_u16(0x800CB7FAu);
     spec = r_u8(0x800CB7FCu);
     w_u32(0x800BC1B4u, r_u32(table + mode * 4u));
-    return gtmain_roster_generate(group, count, player, spec);
+    gtmain_roster_generate(group, count, player, spec);
 }

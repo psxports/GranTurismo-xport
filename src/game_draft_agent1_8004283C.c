@@ -1,17 +1,29 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include <stdio.h>
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_8004283C(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static uint32 parts_resource(sint32 category)
 {
-    sint32 v0 = 0;
-    sint32 v1 = 0;
-  v0 = gt_draft_unresolved_call(0x8001EB94u, r_u32(0x800BEA20u), 0, 0, 0, 0, 0, 0, 0);
-  v1 = r_u16(r_u32(0x800BEA64u) + (uint8)r_u8(0x800941BDu + 1u * (r_u32(0x800BEA20u))));
-  if ( v1 - 1 < 0 )
-    return -1;
-    w_u8(r_u32(0x800BEA64u) + 63, r_u8(56 * (v1 - 1) + v0 + 16));
-  gt_draft_unresolved_call(0x8008B7D8u, 0x8008D520u, 0, 0, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8008B7D8u, " <CARINF___%d> parts No.<%d>  effects  as follows....\n", r_u32(0x800BEA20u), v1, 0, 0, 0, 0, 0);
-  gt_draft_unresolved_call(0x8008B7D8u, "     WasteGate <%d>\n", r_u8(r_u32(0x800BEA64u) + 63), 0, 0, 0, 0, 0, 0);
-  return 3;
+    /* TODO Bind unselected parts resource lookup 8001EB94 */
+    return gt_draft_unresolved_call(0x8001EB94u, (uint32)category, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+/* GTMAIN.EXE 8004283C */
+uint32 gt_draft_8004283C(void)
+{
+    uint32 table = parts_resource((sint16)r_u16(0x800BEA20u));
+    sint32 category = (sint16)r_u16(0x800BEA20u);
+    uint32 context = r_u32(0x800BEA64u);
+    uint32 offset = r_u8(0x800941BDu + (uint32)category);
+    uint32 part = r_u16(context + offset), value;
+    if (!part) return 0xFFFFFFFFu;
+    value = r_u8(table + 56u * (part - 1u) + 16u);
+    w_u8(context + 63u, value);
+    printf((const char *)psx_addr(0x8008D520u, 1u));
+    category = (sint16)r_u16(0x800BEA20u);
+    printf((const char *)psx_addr(0x8008D55Cu, 1u), category, part);
+    context = r_u32(0x800BEA64u);
+    value = r_u8(context + 63u);
+    printf((const char *)psx_addr(0x8008D788u, 1u), value);
+    return 3u;
 }

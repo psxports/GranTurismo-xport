@@ -3,16 +3,15 @@
 
 uint32 gtmain_race_standard_hud_draw(void)
 {
-    uint32 ordering = r_u32(0x800B6368u);
     sint32 mode = (sint16)r_u16(0x800B63D6u);
+    uint32 ordering = r_u32(0x800B6368u);
     if (mode == 6 || mode == 7)
-        gt_draft_8003011C(ordering, 68u, 0x00808080u, 1u, 0u, 0u, 0u, 0u);
+        gtmain_race_label_font3_draw(ordering, 68, 0x00808080u, 1u);
     else if (mode >= 8 && mode < 10)
     {
-        /* TODO Native time roster adapters remain unresolved */
         gtmain_race_time_roster_draw(ordering, 68,
             (sint32)((uint32)r_u16(0x800B63DAu) << 16) >> 19);
-        gt_draft_800308D0(ordering, 15u, 112u, 0u, 0u, 0u, 0u, 0u);
+        gtmain_race_label_panel_draw(ordering, 15u, 112u);
         gtmain_race_screen_rectangle(ordering);
         return 1u;
     }

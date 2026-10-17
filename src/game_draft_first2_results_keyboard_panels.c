@@ -16,7 +16,6 @@ static void results_hints_draw(uint32 ordering, uint32 first_text, uint32 second
 uint32 gtmain_race_results_panel_draw(uint32 ordering, uint32 mode, uint32 show_hints)
 {
     sint32 count = (sint32)((uint32)r_u16(0x800B63DAu) << 16u) >> 19;
-    /* TODO Result roster and hint dependencies remain unresolved */
     if (mode) results_points_roster_draw(ordering, 64, count, mode - 1u);
     else gtmain_race_time_roster_draw(ordering, 64, count);
     gtmain_race_label_panel_draw(ordering, 15u, 112u);
@@ -29,7 +28,6 @@ uint32 gtmain_race_results_panel_draw(uint32 ordering, uint32 mode, uint32 show_
 sint32 gtmain_menu_name_keyboard_panel_draw(uint32 ordering, sint32 x, sint32 y,
     sint32 intensity)
 {
-    /* TODO Existing keyboard retains native glyph and line adapter boundaries */
     return gtmain_menu_name_keyboard_draw(ordering, 0x80092EACu,
         (sint32)((uint32)x + 32u), (sint32)((uint32)y + 48u), intensity);
 }

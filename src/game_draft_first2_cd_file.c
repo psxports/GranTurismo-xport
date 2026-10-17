@@ -3,28 +3,40 @@
 #include "psx_spu.h"
 
 static uint8 decode_ring[32768];
-static uint32 decode_write, decode_available, decode_remaining;
+static uint8 *decode_sectors[16], *decode_target;
 
 /* GTMAIN.EXE 80071B5C */
 sint32 gtmain_cd_decode_ready(void)
 {
-    gtmain_cd_sector_native(decode_ring + 2048u * decode_write, 512);
-    decode_write = decode_write + 1u < 16u ? decode_write + 1u : 0;
-    ++decode_available; --decode_remaining;
-    w_u32(0x800B55A8u, decode_write);
-    w_u32(0x800B55ACu, decode_available);
-    w_u32(0x800B55B0u, decode_remaining);
-    return (sint32)decode_available >= 16 || !decode_remaining;
+    uint32 next, available, remaining;
+    uint8 *target;
+    gtmain_cd_sector_native(decode_target, 512);
+    next = r_u32(0x800B55A8u);
+    available = r_u32(0x800B55ACu);
+    remaining = r_u32(0x800B55B0u);
+    ++next;
+    if ((sint32)next >= 16) next = 0u;
+    ++available;
+    if (next >= 16u)
+        gt_draft_failure("Native CD decode sector table extent", 0x80071BB4u);
+    target = decode_sectors[next];
+    --remaining;
+    w_u32(0x800B55A8u, next);
+    w_u32(0x800B55ACu, available);
+    w_u32(0x800B55B0u, remaining);
+    decode_target = target;
+    return (sint32)available >= 16 || !remaining;
 }
 
 /* GTMAIN.EXE 80071C04 */
 sint32 gtmain_cd_decode_wait(void)
 {
+    uint32 available;
     EnterCriticalSectionPSX();
-    if (decode_available) --decode_available;
-    w_u32(0x800B55ACu, decode_available);
+    available = r_u32(0x800B55ACu);
+    if (available) w_u32(0x800B55ACu, available - 1u);
     ExitCriticalSection();
-    while (!decode_available) {
+    while (!r_u32(0x800B55ACu)) {
         if (gtmain_cd_stream_idle()) {
             if (r_u8(0x800994C1u) == 4u) return -1;
             gtmain_cd_stream_callback(0x80071B5Cu);
@@ -46,13 +58,15 @@ static sint32 decode_byte(uint32 *cursor, uint8 *value, uint32 force_wait)
 sint32 gtmain_cd_file_decode(uint8 *destination, uint32 capacity, uint32 byte_offset,
     uint32 compressed_bytes, uint32 output_bytes)
 {
-    uint32 cursor = byte_offset & 2047u, produced = 0;
+    uint32 cursor = byte_offset & 2047u, produced = 0, index, remaining;
     sint32 result = -1;
     if (output_bytes > capacity || (!destination && output_bytes))
         gt_draft_failure("Native CD decode destination bound", 0x80071CA4u);
-    decode_write = 0; decode_available = 0;
-    decode_remaining = (cursor + compressed_bytes + 2047u) >> 11;
-    w_u32(0x800B55A8u, 0); w_u32(0x800B55ACu, 0); w_u32(0x800B55B0u, decode_remaining);
+    for (index = 0u; index < 16u; ++index)
+        decode_sectors[index] = decode_ring + index * 2048u;
+    decode_target = decode_ring;
+    remaining = (cursor + compressed_bytes + 2047u) >> 11;
+    w_u32(0x800B55A8u, 0); w_u32(0x800B55ACu, 0); w_u32(0x800B55B0u, remaining);
     gtmain_cd_stream_callback(0x80071B5Cu);
     gtmain_cd_stream_start(byte_offset >> 11);
     w_u32(0x800B1AB0u, 5u);

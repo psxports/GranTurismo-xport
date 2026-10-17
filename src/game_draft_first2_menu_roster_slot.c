@@ -6,10 +6,9 @@ static uint32 roster_slot_table(void)
     gt_draft_failure("GTMAIN roster slot table", 0x8002A3ACu);
 }
 
-static uint32 roster_slot_outline(uint32 ordering, const uint32 *corners, uint32 color)
+static uint32 roster_slot_outline(uint32 ordering, const sint16 *corners, uint32 color)
 {
-    /* TODO Bind native packed corners to the original outline service */
-    gt_draft_failure("Native roster slot outline adapter", 0x8006F624u);
+    return gtmain_packet_outline_native(ordering, corners, color);
 }
 
 static sint32 roster_slot_width(sint32 font, const char *text)
@@ -22,7 +21,8 @@ static sint32 roster_slot_width(sint32 font, const char *text)
 sint32 gtmain_menu_roster_slot_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, uint32 slot)
 {
     char digit[8];
-    uint32 corners[2], table, descriptor, shade;
+    uint32 table, descriptor, shade;
+    sint16 corners[4];
     sint32 width;
     digit[0] = 0;
     digit[1] = 0;
@@ -30,8 +30,10 @@ sint32 gtmain_menu_roster_slot_draw(uint32 ordering, sint32 x, sint32 y, sint32 
     descriptor = 0x8009200Cu + ((uint32)r_u8(table + slot) << 4);
     (void)gtmain_menu_sprite(descriptor, ordering, (uint16)((uint32)x - 8u),
         (sint32)((uint32)y + 10u), (uint8)intensity);
-    corners[0] = (uint16)((uint32)x - 9u) | ((uint32)(uint16)((uint32)y + 9u) << 16);
-    corners[1] = (uint16)((uint32)x + 8u) | ((uint32)(uint16)((uint32)y + 26u) << 16);
+    corners[0] = (sint16)((uint32)x - 9u);
+    corners[1] = (sint16)((uint32)y + 9u);
+    corners[2] = (sint16)((uint32)x + 8u);
+    corners[3] = (sint16)((uint32)y + 26u);
     shade = (uint8)(intensity >> 2);
     (void)roster_slot_outline(ordering, corners, shade | (shade << 8) | (shade << 16));
     (void)gtmain_text_color(gtmain_menu_gray((uint8)(intensity >> 1)));

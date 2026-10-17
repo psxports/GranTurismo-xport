@@ -64,7 +64,8 @@ uint32 gtmain_cd_controller_volume_init(void)
 sint32 gtmain_cd_controller_init(void)
 {
     uint32 value, address;
-    puts("CD_init:"); printf("addr=%08x\n", 0x800B2310u);
+    puts((const char *)psx_addr(0x8008EE54u, 1u));
+    printf((const char *)psx_addr(0x8008EE60u, 1u), 0x800B2310u);
     w_u8(0x800B204Du, 0); w_u8(0x800B204Cu, 0);
     w_u32(0x800B2030u, 0); w_u32(0x800B202Cu, 0);
     w_u32(0x800B2040u, 0); w_u32(0x800B203Cu, 0);

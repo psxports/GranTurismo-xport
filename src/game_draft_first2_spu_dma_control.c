@@ -1,15 +1,10 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
-#include "psx_spu.h"
 
 static uint32 dma_read16(uint32 address)
 {
-    uint32 value;
-    if (address >= 0x1F801C00u && address < 0x1F801E00u) {
-        if (!spu_mmio_read(NULL, address, 2, &value))
-            gt_draft_failure("Native SPU halfword read", address);
-        return value;
-    }
+    if (address >= 0x1F801C00u && address < 0x1F801E00u)
+        return r_u16(address);
     if (address >= 0x1F801000u && address < 0x1F802000u)
         gt_draft_failure("Native SPU DMA halfword adapter", address);
     return r_u16(address);
@@ -17,8 +12,7 @@ static uint32 dma_read16(uint32 address)
 static void dma_write16(uint32 address, uint32 value)
 {
     if (address >= 0x1F801C00u && address < 0x1F801E00u) {
-        if (!spu_mmio_write(NULL, address, 2, value, 3))
-            gt_draft_failure("Native SPU halfword write", address);
+        w_u16(address, value);
         return;
     }
     if (address >= 0x1F801000u && address < 0x1F802000u)
@@ -124,6 +118,7 @@ uint32 gtmain_spu_dma_read(uint32 destination, uint32 bytes)
 }
 static uint32 dma_missing(uint32 entry, uint32 a0, uint32 a1, uint32 a2, uint32 a3)
 {
+    if (entry == 0x8008AF28u) return gtmain_bios_critical_exit_result();
     /* TODO Bind actual SDK or BIOS result without fabricated completion */
     (void)a0; (void)a1; (void)a2; (void)a3;
     gt_draft_failure("Native SPU event callback adapter", entry);
@@ -133,8 +128,8 @@ uint32 gtmain_spu_driver_start(void)
     uint32 result = r_u32(0x800B2414u);
     if (result) return result;
     w_u32(0x800B2414u, 1);
-    (void)dma_missing(0x8008AF08u, 0, 0, 0, 0);
-    (void)dma_missing(0x80086748u, 0x80085E48u, 0, 0, 0);
+    (void)EnterCriticalSectionPSX();
+    (void)gtmain_spu_callback_bind(0x80085E48u);
     result = dma_missing(0x8008B278u, 0xF0000009u, 32, 0x2000u, 0);
     w_u32(0x800B23ACu, result);
     (void)dma_missing(0x8008B288u, result, 0, 0, 0);

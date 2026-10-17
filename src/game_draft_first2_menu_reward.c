@@ -6,7 +6,6 @@ sint32 gtmain_menu_reward_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u), animation;
     sint32 result = 0;
-    /* TODO Stream pause dependencies remain partial */
     gtmain_menu_stream_check();
     if (r_s8(input)) {
         sint32 phase = r_s16(0x801D3022u);
@@ -30,8 +29,10 @@ sint32 gtmain_menu_reward_tick(void)
                     w_u16(0x801D2FF4u, 0);
                     w_u32(0x801D2FF0u, step + increment);
                 }
-                if (r_u16(input + 6u) & 0x9000u)
-                    w_u32(0x801D2FE0u, r_u32(0x801D2FF0u) - 1u);
+                if (r_u16(input + 6u) & 0x9000u) {
+                    step = r_u32(0x801D2FF0u);
+                    w_u32(0x801D2FE0u, step - 1u);
+                }
             }
         } else if (phase == 170) {
             if (r_u16(input + 6u) & 0xFF0Fu) {

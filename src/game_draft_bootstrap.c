@@ -92,7 +92,7 @@ uint32 sub_80019EC0(uint32 argument0, uint32 argument1)
         gtmain_run_constructors();
     }
     /* TODO Draft initialization still contains unresolved SDK boundaries */
-    return gt_draft_8001A068(argument0, argument1, 0u, 0u, 0u, 0u, 0u, 0u);
+    return gt_draft_8001A068();
 }
 
 void gtmain_native_main(void)

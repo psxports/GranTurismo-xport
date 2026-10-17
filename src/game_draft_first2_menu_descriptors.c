@@ -14,22 +14,14 @@ static void descriptor_half(uint8 *output, uint32 capacity, uint32 offset, uint3
 }
 static void descriptor_rectangle(uint32 ordering, uint32 first, uint32 second, uint32 color)
 {
-    uint32 corners[2] = {first, second}, packet, comparison, previous;
-    sint32 x0 = (sint16)corners[0], y0 = (sint16)(corners[0] >> 16);
-    sint32 x1 = (sint16)corners[1], y1 = (sint16)(corners[1] >> 16);
-    comparison = y1 < y0; y0 += (sint32)comparison; y1 += (sint32)(comparison ^ 1u);
-    packet = r_u32(0x800BFE4Cu); w_u32(packet, 0x05000000u);
-    comparison = x1 < x0; x0 += (sint32)comparison; x1 += (sint32)(comparison ^ 1u);
-    w_u32(packet + 4u, color ^ 0x29000000u);
-    w_u16(packet + 8u, (uint16)x0); w_u16(packet + 10u, (uint16)y0);
-    w_u16(packet + 12u, (uint16)x1); w_u16(packet + 14u, (uint16)y0);
-    w_u16(packet + 16u, (uint16)x0); w_u16(packet + 18u, (uint16)y1);
-    w_u16(packet + 20u, (uint16)x1); w_u16(packet + 22u, (uint16)y1);
-    /* Preserve the existing packet link byte read and write order */
-    previous = r_u8(ordering); previous |= r_u8(ordering + 1u) << 8; previous |= r_u8(ordering + 2u) << 16;
-    w_u8(ordering, packet); w_u8(ordering + 1u, packet >> 8); w_u8(ordering + 2u, packet >> 16);
-    w_u8(packet, previous); w_u8(packet + 1u, previous >> 8); w_u8(packet + 2u, previous >> 16);
-    w_u32(0x800BFE4Cu, packet + 24u);
+    sint16 corners[4] = {(sint16)first, (sint16)(first >> 16),
+        (sint16)second, (sint16)(second >> 16)};
+    (void)gtmain_packet_rectangle_native(ordering, corners, color);
+}
+static void descriptor_arrow(uint32 owner, uint32 ordering, sint32 x, sint32 y, uint32 color)
+{
+    /* TODO Bind unselected four-argument arrows 8003B5B8 and 8003B600 */
+    (void)gt_draft_unresolved_call(owner, ordering, (uint32)x, (uint32)y, color, 0u, 0u, 0u, 0u);
 }
 
 static void descriptor_scaled_sprite(uint32 descriptor, uint32 ordering, sint16 x, sint16 y, sint32 intensity, uint8 scale)
@@ -65,6 +57,8 @@ uint32 gtmain_menu_indicator_draw(uint32 ordering,sint32 x,sint32 y,sint32 phase
     uint32 texture = r_u32(descriptor+8u), size = r_u16(descriptor+6u), tpage = r_u16(descriptor+4u);
     return indicator_service(ordering,x,y,phase,texture,size,(tpage+(page << 8))&65535u,6,0x7FD3u,flags,style);
 }
+/* TODO Resolve independent arrow and legacy published-buffer services */
+/* GTMAIN.EXE 8003BA30 */
 sint32 gtmain_menu_descriptor_draw(uint32 ordering,uint32 selector,sint32 x,sint32 y,sint32 intensity,uint32 publish,uint8 *output,uint32 capacity)
 {
     sint32 count, selected, half, start, end, target, total, stride, spacing, align, muted;
@@ -101,7 +95,7 @@ sint32 gtmain_menu_descriptor_draw(uint32 ordering,uint32 selector,sint32 x,sint
     target=start;
     cursor=r_u32(selector+4u)+(uint32)start*8u;
     while (start<end) {
-        sint32 brightness=intensity, draw_x=(sint16)x;
+        sint32 brightness=intensity, draw_x=x;
         uint32 type, resource;
         if (publish) descriptor_byte(output,capacity,2u+i,(uint32)start);
         if (r_u8(cursor)&64u) brightness >>= 1;
@@ -123,13 +117,18 @@ sint32 gtmain_menu_descriptor_draw(uint32 ordering,uint32 selector,sint32 x,sint
             if (type==3u || type==7u) {
                 if (!align || align==2) {
                     uint32 width=r_u16(resource+8u), scale=r_u8(cursor+1u);
-                    draw_x=(sint16)((uint32)x-((width*scale) >> (align ? 7 : 8)));
+                    draw_x=(sint32)((uint32)x-((width*scale) >> (align ? 7 : 8)));
                 }
-                descriptor_scaled_sprite(r_u32(cursor+4u),ordering+4u,(sint16)draw_x,(sint16)position,brightness >> 1,(uint8)r_u8(cursor+1u));
+                {
+                    uint8 scale = r_u8(cursor+1u);
+                    uint32 descriptor = r_u32(cursor+4u);
+                    descriptor_scaled_sprite(descriptor,ordering+4u,(sint16)draw_x,
+                        (sint16)position,brightness >> 1,scale);
+                }
             } else {
                 if (!align || align==2) {
                     uint32 width=r_u16(resource+8u); if (!align) width >>= 1;
-                    draw_x=(sint16)((uint32)x-width);
+                    draw_x=(sint32)((uint32)x-width);
                 }
                 (void)gtmain_menu_sprite(resource,ordering+4u,(uint16)draw_x,(sint16)position,(uint8)(brightness >> 1));
             }
@@ -150,7 +149,7 @@ sint32 gtmain_menu_descriptor_draw(uint32 ordering,uint32 selector,sint32 x,sint
             (void)gtmain_text_font(font);
             if (!align || align==2) {
                 sint32 width=gtmain_text_width(font,resource); if (!align) width >>= 1;
-                draw_x=(sint16)((uint32)x-(uint32)width);
+                draw_x=(sint32)((uint32)x-(uint32)width);
             }
             (void)gtmain_font_text_draw(ordering+4u,(sint16)draw_x,(sint16)position,resource);
         }
@@ -163,8 +162,9 @@ sint32 gtmain_menu_descriptor_draw(uint32 ordering,uint32 selector,sint32 x,sint
     }
     if ((sint8)r_u8(0x80091B41u)) {
         uint32 color=gtmain_menu_palette_color(0,intensity);
-        if (target) gt_draft_unresolved_call(0x8003B5B8u,ordering,(uint32)x,(uint32)y-8u,color,0,0,0,0);
-        if (end!=(sint8)r_u8(selector)) gt_draft_unresolved_call(0x8003B600u,ordering,(uint32)x,(uint32)(sint32)(sint16)position+(uint32)offset+9u,color,0,0,0,0);
+        if (target) descriptor_arrow(0x8003B5B8u,ordering,x,descriptor_add(y,-8),color);
+        if (end!=(sint8)r_u8(selector)) descriptor_arrow(0x8003B600u,ordering,x,
+            descriptor_add((sint16)position,descriptor_add(offset,9)),color);
         (void)gtmain_packet_page(ordering,544u);
     }
     if (publish) { descriptor_half(output,capacity,0,(uint32)offset); descriptor_byte(output,capacity,2u+i,255); }

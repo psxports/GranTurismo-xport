@@ -41,10 +41,8 @@ sint32 gtmain_audio_snapshot_upload(uint32 guest_snapshot)
     w_u32(guest_snapshot + 45976u, checksum);
     for (voice = 0; voice < 24; ++voice) {
         uint32 address = 0x1F801C00u + voice * 16u;
-        if (!spu_mmio_write(NULL, address + 2u, 2, 0, 3))
-            gt_draft_failure("Native audio snapshot SPU right volume", address + 2u);
-        if (!spu_mmio_write(NULL, address, 2, 0, 3))
-            gt_draft_failure("Native audio snapshot SPU left volume", address);
+        w_u16(address + 2u, 0u);
+        w_u16(address, 0u);
     }
     (void)gtmain_spu_transfer_address(0x2000u);
     (void)gtmain_spu_transfer_mode(0);

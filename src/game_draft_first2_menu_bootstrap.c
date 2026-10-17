@@ -1,6 +1,12 @@
 #include "game_first2_registry.h"
 #include <stdio.h>
 
+/* Observed dependency GTMAIN.EXE 8001F900 */
+static uint32 menu_bootstrap_finish(void)
+{
+    return gtmain_memory_copy(0x800BC160u, 0x80093C08u, 69u);
+}
+
 uint32 gtmain_menu_status_reset(void)
 {
     uint32 status = r_u16(0x800CB758u), first, second;
@@ -25,6 +31,5 @@ uint32 gtmain_menu_bootstrap(void)
     gtmain_race_frame_reset(5); (void)gtmain_race_loading_screen();
     (void)gtmain_music_sector_init(); (void)gtmain_race_sound_volume_apply();
     gtmain_race_config_reset();
-    /* TODO Bind the actual final startup owner result */
-    gt_draft_failure("Native menu bootstrap final adapter", 0x8001F900u);
+    return menu_bootstrap_finish();
 }

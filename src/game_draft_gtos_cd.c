@@ -9,12 +9,10 @@ void gtos_cd_stream_start(void)
     uint8 response[8] = { 0 }, filter[2];
     CdlLOC location;
     uint32 pending;
-    if (gtos_cd_dispatch()) {
-        gt_draft_unresolved_call(0x80030E0Cu, r_u8(0x8004F6A7u), 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-        return;
-    }
+    if (gtos_cd_dispatch()) return;
     pending = r_u8(0x8004F6A6u);
     w_u32(0x8007A164u, r_u32(0x8007A16Cu));
+    if (pending && pending - 9u >= 10u) return;
     if (pending) {
         /* TODO Resume an already active stream command sequence */
         gt_draft_unresolved_call(0x8002FAD8u, pending, 1u, 0u, 0u, 0u, 0u, 0u, 0u);
@@ -109,6 +107,7 @@ void gt_project_disc_toc_bind(void)
 
 static void gtos_cd_sync(uint8 status, uint8 *result)
 {
+    if (result && (result[0] & 0x10u)) return;
     uint32 value, pending = r_u8(0x8004F6A6u), state = r_u8(0x8004F6A7u);
     if (!result) {
         gt_draft_unresolved_call(0x8002AB38u, status, 0u, pending, 0u, 0u, 0u, 0u, 0u);

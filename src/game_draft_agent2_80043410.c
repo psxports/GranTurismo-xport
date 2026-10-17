@@ -1,33 +1,48 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80043410(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static uint32 parts_resource(sint32 category)
 {
-    sint32 v0 = 0;
-    sint32 v1 = 0;
-    sint32 v2 = 0;
-    uint32 v3 = 0;
-    sint32 v4 = 0;
-    sint32 v5 = 0;
-    sint32 v6 = 0;
-    sint32 result = 0;
-  v0 = gt_draft_unresolved_call(0x8001EB94u, 33, 0, 0, 0, 0, 0, 0, 0);
-  v1 = r_u16(0x800929ACu) - 1;
-  v2 = r_u16(r_u32(0x800BEA64u) + (uint8)r_u8(0x800941DEu));
-    w_u8(r_u32(0x800BEA64u) + 76, v1);
-  v3 = (uint32)(72 * (v2 - 1) + v0);
-  v4 = r_u8(v3 + 1u * (38));
-    w_u8(r_u32(0x800BEA64u) + 70, gt_draft_unresolved_call(0x800419FCu, r_u8(v3 + 1u * (30)), r_u8(v3 + 1u * (31)), v1, v4, 0, 0, 0, 0));
-    w_u8(r_u32(0x800BEA64u) + 72, gt_draft_unresolved_call(0x800419FCu, r_u8(v3 + 1u * (34)), r_u8(v3 + 1u * (35)), v1, v4, 0, 0, 0, 0));
-    w_u8(r_u32(0x800BEA64u) + 71, gt_draft_unresolved_call(0x800419FCu, r_u8(v3 + 1u * (32)), r_u8(v3 + 1u * (33)), v1, v4, 0, 0, 0, 0));
-    w_u8(r_u32(0x800BEA64u) + 73, gt_draft_unresolved_call(0x800419FCu, r_u8(v3 + 1u * (36)), r_u8(v3 + 1u * (37)), v1, v4, 0, 0, 0, 0));
-  v5 = r_u16(0x800929BCu) - 1;
-    w_u8(r_u32(0x800BEA64u) + 89, v5);
-  v6 = r_u8(v3 + 1u * (53));
-    w_u8(r_u32(0x800BEA64u) + 83, gt_draft_unresolved_call(0x800419FCu, r_u8(v3 + 1u * (45)), r_u8(v3 + 1u * (46)), v5, v6, 0, 0, 0, 0));
-    w_u8(r_u32(0x800BEA64u) + 85, gt_draft_unresolved_call(0x800419FCu, r_u8(v3 + 1u * (49)), r_u8(v3 + 1u * (50)), v5, v6, 0, 0, 0, 0));
-    w_u8(r_u32(0x800BEA64u) + 84, gt_draft_unresolved_call(0x800419FCu, r_u8(v3 + 1u * (47)), r_u8(v3 + 1u * (48)), v5, v6, 0, 0, 0, 0));
-  result = gt_draft_unresolved_call(0x800419FCu, r_u8(v3 + 1u * (51)), r_u8(v3 + 1u * (52)), v5, v6, 0, 0, 0, 0);
-    w_u8(r_u32(0x800BEA64u) + 86, result);
-  return result;
+    /* TODO Bind unselected parts resource lookup 8001EB94 */
+    return gt_draft_unresolved_call(0x8001EB94u, (uint32)category, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+static uint32 parts_interpolate(uint32 minimum, uint32 maximum, sint32 level, uint32 count)
+{
+    /* TODO Bind unselected level interpolation 800419FC */
+    return gt_draft_unresolved_call(0x800419FCu, minimum, maximum, (uint32)level, count, 0u, 0u, 0u, 0u);
+}
+
+/* GTMAIN.EXE 80043410 */
+uint32 gt_draft_80043410(void)
+{
+    static const uint8 source_offsets[8] = {30, 34, 32, 36, 45, 49, 47, 51};
+    static const uint8 destination_offsets[8] = {70, 72, 71, 73, 83, 85, 84, 86};
+    uint32 table = parts_resource(33);
+    uint32 offset = r_u8(0x800941DEu);
+    sint32 level = (sint16)r_u16(0x800929ACu) - 1;
+    uint32 context = r_u32(0x800BEA64u);
+    uint32 part = r_u16(context + offset), record, count, minimum, maximum, result, index;
+    w_u8(context + 76u, (uint32)level);
+    record = table + 72u * (part - 1u);
+    count = r_u8(record + 38u);
+    for (index = 0u; index < 4u; ++index) {
+        minimum = r_u8(record + source_offsets[index]);
+        maximum = r_u8(record + source_offsets[index] + 1u);
+        result = parts_interpolate(minimum, maximum, level, count);
+        context = r_u32(0x800BEA64u);
+        w_u8(context + destination_offsets[index], result);
+    }
+    level = (sint16)r_u16(0x800929BCu) - 1;
+    context = r_u32(0x800BEA64u);
+    w_u8(context + 89u, (uint32)level);
+    count = r_u8(record + 53u);
+    for (index = 4u; index < 8u; ++index) {
+        minimum = r_u8(record + source_offsets[index]);
+        maximum = r_u8(record + source_offsets[index] + 1u);
+        result = parts_interpolate(minimum, maximum, level, count);
+        context = r_u32(0x800BEA64u);
+        w_u8(context + destination_offsets[index], result);
+    }
+    return result;
 }

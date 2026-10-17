@@ -19,11 +19,11 @@ static uint32 caption_draw(uint32 ordering, sint32 x, sint32 y, uint32 text)
 }
 
 /* GTMAIN.EXE:8003D9D8 */
+/* TODO Style, width and draw adapters remain unresolved */
 uint32 gtmain_menu_two_line_caption_draw(uint32 ordering, sint32 x, sint32 y,
     uint32 first_text, uint32 second_text, sint32 intensity)
 {
     sint32 width;
-    /* TODO Style, width and draw dependencies remain unresolved */
     caption_style(intensity);
     width = caption_width(first_text);
     caption_draw(ordering, (sint32)((uint32)x - (uint32)(width >> 1) + 160u),

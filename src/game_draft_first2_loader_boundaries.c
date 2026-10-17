@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "game_local_stack.h"
 #include <stdlib.h>
 
 /* GTMAIN.EXE 80071964 */
@@ -13,7 +14,7 @@ void gtmain_loading_callback_noop(void)
 }
 
 static uint32 loader_exec_thunk_missing(uint32 executable, uint32 argument,
-                                        const uint8 *copied_code, uint32 copied_size)
+                                        uint32 copied_code, uint32 copied_size)
 {
     /* TODO Bind the native owner of the original copied BIOS Exec thunk */
     (void)executable; (void)argument; (void)copied_code; (void)copied_size;
@@ -23,11 +24,10 @@ static uint32 loader_exec_thunk_missing(uint32 executable, uint32 argument,
 
 uint32 gtmain_loader_exec_image(uint32 executable)
 {
-    uint8 copied_code[256];
-    uint32 index, argument;
+    uint32 copied_code = gt_local_stack_workspace(0x2400u, 256u, 0x8006A334u);
+    uint32 argument;
     EnterCriticalSectionPSX(); FlushCache();
-    for (index = 0; index != sizeof(copied_code); ++index)
-        copied_code[index] = r_u8(0x8006A2B0u + index);
+    gtmain_memory_copy(copied_code, 0x8006A2B0u, 256u);
     argument = r_u32(0x8009997Cu);
-    return loader_exec_thunk_missing(executable, argument, copied_code, sizeof(copied_code));
+    return loader_exec_thunk_missing(executable, argument, copied_code, 256u);
 }

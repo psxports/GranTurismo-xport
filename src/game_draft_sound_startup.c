@@ -80,7 +80,7 @@ uint32 gtmain_sound_init(uint32 incoming_result)
         gtmain_spu_initialize(0u);
         w_u16(0x1F801D80u, 0x3FFFu);
         w_u16(0x1F801D82u, 0x3FFFu);
-        gtmain_sound_mode(0u);
+        gtmain_spu_transfer_mode(0u);
         sub_8007BD58(0x800B55CCu, 0u, 0x3C8u);
         w_u8(0x800B55CCu, 23u);
         result = gtmain_sound_tempo(60u);
@@ -106,21 +106,42 @@ uint32 gtmain_data_checksum(uint32 address, uint32 size)
     return (sum << 16) | (crc & 0xFFFFu);
 }
 
+static uint32 gtmain_saved_data_read(uint32 buffer, uint32 bytes)
+{
+    uint32 blocks;
+    sint32 completed;
+    /* TODO Bind DMA scheduling and configured callbacks for the native read adapter */
+    if (bytes > 0x7EFF0u) bytes = 0x7EFF0u;
+    blocks = (bytes >> 6) + ((bytes & 63u) != 0u);
+    w_u16(r_u32(0x800B2344u) + 422u, r_u16(0x800B235Cu));
+    w_u32(0x800B2394u, 1u);
+    w_u32(0x800B2398u, buffer);
+    w_u32(0x800B239Cu, blocks);
+    completed = spu_download((uint32)r_u16(0x800B235Cu) << (r_u32(0x800B236Cu) & 31u), psx_addr(buffer, blocks << 6), blocks << 6);
+    if (!completed)
+        gt_draft_failure("Native saved-data SPU download", 0x800862B0u);
+    if (r_u32(0x800B237Cu))
+        gt_draft_failure("Native saved-data SPU read callback", 0x80085898u);
+    w_u32(0x800B2378u, 0u);
+    return bytes;
+}
+
+static sint32 gtmain_saved_data_wait(sint32 mode)
+{
+    sint32 completed = SpuIsTransferCompleted(mode);
+    if (!completed)
+        gt_draft_failure("Native saved-data SPU completion", 0x800858F8u);
+    return completed;
+}
+
 /* GTMAIN.EXE:80069F54 */
 uint32 gtmain_sound_saved_data_init(uint32 buffer)
 {
     uint32 checksum, header, stored;
-    w_u32(0x800B235Cu, 0x2000u >> 3);
-    w_u32(0x800B23B4u, 0u);
-    w_u32(0x800B2360u, 0u);
-    /* TODO Preserve original read and wait state through the native SPU adapter */
-    w_u16(r_u32(0x800B2344u) + 422u, r_u16(0x800B235Cu));
-    w_u32(0x800B2394u, 1u);
-    w_u32(0x800B2398u, buffer);
-    w_u32(0x800B239Cu, 0xB3C0u >> 6);
-    if (!spu_download((uint32)r_u16(0x800B235Cu) << (r_u32(0x800B236Cu) & 31u), psx_addr(buffer, 0xB3C0u), 0xB3C0u))
-        gt_draft_unresolved_call(0x800862B0u, buffer, 0xB3C0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    gtmain_spu_dma_complete();
+    (void)gtmain_spu_transfer_address(0x2000u);
+    (void)gtmain_spu_transfer_mode(0u);
+    (void)gtmain_saved_data_read(buffer, 0xB3C0u);
+    (void)gtmain_saved_data_wait(1);
     checksum = gtmain_data_checksum(buffer, 0xB398u);
     header = r_u32(buffer);
     if (header == 0x47546F73u) {

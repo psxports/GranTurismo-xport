@@ -18,22 +18,40 @@ static uint32 race_call(uint32 address, uint32 first, uint32 second, uint32 thir
     if (address == 0x80029CA4u) return gtmain_race_message_tables_prepare();
     if (address == 0x8002ADDCu) return gtmain_race_resources_load();
     if (address == 0x80028AB4u) return (uint32)gtmain_race_pad_contexts_reset();
-    if (address == 0x80025B68u) return gtmain_race_arcade_roster();
     if (address == 0x8002A500u) return gt_draft_8002A500(0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    if (address == 0x80025C18u) return gt_draft_80025C18(0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    if (address == 0x80025C5Cu) return gt_draft_80025C5C(0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+    if (address == 0x80025C18u) return gt_draft_80025C18();
+    if (address == 0x80025C5Cu) return gtmain_race_results_commit();
+    if (address == 0x8002AD7Cu) return (uint32)gtmain_race_audio_stop_wait();
+    if (address == 0x8002ADA4u) { gtmain_race_rumble_clear(); return 1u; }
+    if (address == 0x800205D0u) return gtmain_race_session_save();
+    if (address == 0x8002B078u) return gtmain_race_result_snapshot_store();
     return gt_draft_unresolved_call(address, first, second, third, fourth, fifth, 0u, 0u, 0u);
 }
 #define RACE_CALL0(address) race_call(address, 0u, 0u, 0u, 0u, 0u)
 #define RACE_CALL1(address, first) race_call(address, first, 0u, 0u, 0u, 0u)
 
-static uint8 *race_native_context;
+static uint32 race_stack_context_address(void)
+{
+    uint32 launch = r_u32(0x8008F1D8u), alternate = r_u32(0x800B1AA4u);
+    uint32 top = alternate ? alternate : launch;
+    uint32 reserve = r_u32(0x800B1B4Cu);
+    uint32 heap = r_u32(0x800B1AACu), bytes = r_u32(0x800B1AA8u);
+    uint32 extent = bytes < 16u ? 16u : bytes, address;
+    /* Session context stays below the separate loading buffer workspace */
+    if (top < 0x80014200u || top > 0x80200000u || (top & 7u))
+        gt_draft_failure("GTMAIN race stack range", 0x8002BBD4u);
+    address = top - 0x4200u;
+    if (address < 0x801FB724u || heap < 0x80010000u || heap > address || extent > address - heap ||
+        (!alternate && (reserve < 0x4200u || address < launch - reserve)))
+        gt_draft_failure("GTMAIN race stack overlap", 0x8002BBD4u);
+    return address;
+}
 
 uint8 *gtmain_race_context_get(void)
 {
-    if (!race_native_context)
-        gt_draft_failure("GTMAIN native race context lifetime", 0x800B3990u);
-    return race_native_context;
+    uint32 address = r_u32(0x800B3990u);
+    if (!address) gt_draft_failure("GTMAIN race context unavailable", 0x800B3990u);
+    return (uint8 *)psx_addr(address, 40u);
 }
 
 static sint32 race_context_run(uint8 *context)
@@ -112,9 +130,9 @@ void gtmain_race_text_bind(uint32 text)
 }
 
 /* GTMAIN.EXE 80031DCC */
-void gtmain_race_render_config(uint32 mode)
+uint32 gtmain_race_render_config(uint32 mode)
 {
-    gtmain_sound_bank_load_original(0x800B49ECu, 0x1010u, 0x801BB70Cu, 1280u, mode);
+    return gtmain_sound_bank_load_original(0x800B49ECu, 0x1010u, 0x801BB70Cu, mode);
 }
 
 /* GTMAIN.EXE 800274EC */
@@ -247,19 +265,22 @@ sint32 gtmain_race_session_prepare(void)
 /* GTMAIN.EXE 8002BBD4 */
 sint32 gtmain_race_session_loop(void)
 {
-    uint32 context_words[10];
-    uint8 *context = (uint8 *)context_words;
+    uint32 context_address = race_stack_context_address();
+    uint8 *context = (uint8 *)psx_addr(context_address, 40u);
     uint32 restarted = 0u, mode, branch;
     sint32 value, selection;
 restart:
-    race_native_context = context;
-    memset(context, 0, sizeof(context_words));
-    context_words[4] = 0x8002BA60u;
-    context_words[1] = 0x8002B5A4u;
-    context_words[2] = 0x8002B328u;
-    context_words[3] = 0x8002B44Cu;
-    context_words[8] = 0x8002B5D8u;
-    context[36] = r_u8(0x8008FBE3u);
+    w_u32(0x800B3990u, context_address);
+    memset(context, 0, 40u);
+    {
+        uint8 flag = r_u8(0x8008FBE3u);
+        w_u32(context_address + 16u, 0x8002BA60u);
+        w_u32(context_address + 4u, 0x8002B5A4u);
+        w_u32(context_address + 8u, 0x8002B328u);
+        w_u32(context_address + 12u, 0x8002B44Cu);
+        w_u32(context_address + 32u, 0x8002B5D8u);
+        w_u8(context_address + 36u, flag);
+    }
     RACE_CALL0(0x8002A85Cu); RACE_CALL0(0x8002A8B4u); RACE_CALL0(0x8002AE40u);
     RACE_CALL0(0x80029CA4u); RACE_CALL0(0x8002ADDCu); gtmain_race_updates_reset();
     gtmain_race_cars_initialize(); gt_draft_80029DE4(); gt_draft_8002AC8C();
@@ -291,8 +312,25 @@ select:
 done:
     if (value == 7) RACE_CALL0(0x80022FE8u);
     RACE_CALL0(0x800205D0u); RACE_CALL0(0x8002B078u);
-    race_native_context = NULL;
     return value;
+}
+
+static uint32 session_missing0(uint32 address)
+{
+    /* TODO Bind the named unselected no-argument session service */
+    gt_draft_failure("GTMAIN no-argument session service", address);
+}
+
+static uint32 session_missing1(uint32 address, uint32 argument)
+{
+    /* TODO Bind the named unselected one-argument session service */
+    gt_draft_failure("GTMAIN one-argument session service", address);
+}
+
+static sint32 session_panel_run(uint32 address)
+{
+    if (address == 0x80037E00u) return gtmain_menu_quick_end_mode3(1u);
+    return (sint32)session_missing1(address, 1u);
 }
 
 /* GTMAIN.EXE 80027640 */
@@ -310,50 +348,51 @@ sint32 gtmain_race_session_enter(void)
         w_u8(0x800B63BCu, (uint8)gtmain_race_arcade_track(r_u8(0x800B63BCu)));
         w_u8(0x800B63BDu, (uint8)gtmain_race_track_index(r_u8(0x800B63BCu)));
         if (!mode) {
-            w_u8(0x800B6394u, 6u); RACE_CALL0(0x80025B68u);
+            w_u8(0x800B6394u, 6u); gtmain_race_arcade_roster();
         } else {
             w_u16(0x800B634Cu, 2u); w_u8(0x800B6394u, 1u);
-            RACE_CALL0(0x80022018u); gtmain_race_config_reset();
+            session_missing0(0x80022018u); gtmain_race_config_reset();
         }
-        race_call(0x8001E988u, 0x800D6FDCu, 1u, mode, 3u, 0u);
-        gtmain_race_track_invalidate(); RACE_CALL1(0x8002F998u, 0u);
+        gtmain_race_driver_configurations(0x800D6FDCu, 1u, mode, 3u);
+        gtmain_race_track_invalidate(); gtmain_race_header_update(0u);
         if (mode == 1u) {
             gtmain_race_text_bind(0x8008F7A8u); gtmain_race_track_load(r_u8(0x800B63BCu));
             gtmain_race_cars_load(); gtmain_race_car_palettes(r_u8(0x800B63BCu));
-            if ((sint32)RACE_CALL0(0x80037E80u) == -1) return -1;
+            if ((sint32)session_missing0(0x80037E80u) == -1) return -1;
         }
     } else if (mode == 2u) {
-        w_u8(0x800B63D0u, 0u); w_u8(0x800B63D3u, 1u); RACE_CALL0(0x8002748Cu);
+        w_u8(0x800B63D0u, 0u); w_u8(0x800B63D3u, 1u); session_missing0(0x8002748Cu);
         first = r_u8(0x800CB76Bu); w_u8(0x800B6394u, 2u);
         w_u16(0x800B634Cu, r_u8(0x8008F7ACu + first));
-        gtmain_race_config_reset(); race_call(0x8001E988u, 0x800D6FDCu, 1u, 2u, 3u, 0u);
-        gtmain_race_track_invalidate(); RACE_CALL1(0x8002F998u, 0u);
+        gtmain_race_config_reset(); gtmain_race_driver_configurations(0x800D6FDCu, 1u, 2u, 3u);
+        gtmain_race_track_invalidate(); gtmain_race_header_update(0u);
     } else if (mode == 6u) {
+        uint32 course = r_u8(0x800B63BCu);
         w_u32(0x800B6318u, 1u); w_u8(0x800CB7F5u, 1u);
-        w_u8(0x800B63BDu, (uint8)RACE_CALL1(0x800275C0u, first));
-        w_u16(0x800B634Cu, 2u); RACE_CALL0(0x80022018u); w_u8(0x800B6394u, 1u);
-        gtmain_race_config_reset(); race_call(0x8001E988u, 0x800D6FDCu, 1u, 1u, 3u, 0u);
-        gtmain_race_track_invalidate(); RACE_CALL1(0x8002F998u, 0u);
+        w_u8(0x800B63BDu, (uint8)session_missing1(0x800275C0u, course));
+        w_u16(0x800B634Cu, 2u); session_missing0(0x80022018u); w_u8(0x800B6394u, 1u);
+        gtmain_race_config_reset(); gtmain_race_driver_configurations(0x800D6FDCu, 1u, 1u, 3u);
+        gtmain_race_track_invalidate(); gtmain_race_header_update(0u);
     } else return 1;
 setup:
     if (!mode) {
         w_u8(0x800B63D0u, 5u); gtmain_race_cars_invalidate(); w_u16(0x800B634Cu, 2u);
-        w_u8(0x800B6394u, 6u); w_u8(0x800CB7F6u, 1u); RACE_CALL0(0x80025C18u);
+        w_u8(0x800B6394u, 6u); w_u8(0x800CB7F6u, 1u); gt_draft_80025C18();
         if (gtmain_race_session_prepare() != 4) {
-            value = (sint32)RACE_CALL0(0x80025C5Cu); if (value) return value;
+            value = (sint32)gtmain_race_results_commit(); if (value) return value;
         }
     } else if (mode == 1u) {
-        RACE_CALL1(0x80022120u, 1u); w_u8(0x800B63D0u, 0u); RACE_CALL1(0x800260B8u, 0u);
-        if (gtmain_race_session_prepare() != 4) RACE_CALL1(0x80026138u, 0u);
+        session_missing1(0x80022120u, 1u); w_u8(0x800B63D0u, 0u); session_missing1(0x800260B8u, 0u);
+        if (gtmain_race_session_prepare() != 4) session_missing1(0x80026138u, 0u);
     } else if (mode == 2u) {
-        RACE_CALL0(0x80026430u); if (gtmain_race_session_prepare() != 4) RACE_CALL0(0x80026448u);
+        session_missing0(0x80026430u); if (gtmain_race_session_prepare() != 4) session_missing0(0x80026448u);
     } else {
-        w_u8(0x800B63D0u, 0u); RACE_CALL1(0x800260B8u, 1u);
-        if (gtmain_race_session_prepare() != 4) RACE_CALL1(0x80026138u, 1u);
+        w_u8(0x800B63D0u, 0u); session_missing1(0x800260B8u, 1u);
+        if (gtmain_race_session_prepare() != 4) session_missing1(0x80026138u, 1u);
     }
     for (;;) {
         uint32 address = !mode ? 0x80037E00u : mode == 1u ? 0x80037E40u : mode == 2u ? 0x80037F40u : 0x80037DC0u;
-        branch = (sint32)RACE_CALL1(address, 1u);
+        branch = (sint32)session_panel_run(address);
         if (branch == -1) return -1;
         if (branch) goto setup;
         w_u32(0x800B630Cu, 1u); gtmain_race_session_loop();
@@ -384,12 +423,14 @@ sint32 gtmain_race_session_restore(void)
     source = r_u8(0x800CBC17u);
     w_u8(0x800CB7F4u, (uint8)first); w_u8(0x800CB7F6u, (uint8)second);
     w_u8(0x800B63D0u, (uint8)third); w_u8(0x800B6394u, (uint8)fourth); w_u16(0x800B634Cu, (uint16)source);
-    gtmain_race_render_config(mode == 4u); RACE_CALL1(0x8002F998u, 0u);
+    gtmain_race_render_config(mode == 4u); gtmain_race_header_update(0u);
     if (r_u8(0x800CB7F4u) == 1u) w_u8(0x800B63BDu, (uint8)gtmain_race_track_index(r_u8(0x800B63BCu)));
     mode = r_u8(0x800CB7F5u);
-    if (mode == 4u) RACE_CALL0(0x8002A500u);
-    else if (mode == 5u) RACE_CALL1(0x800239E0u, r_u8(0x800CB7F6u));
-    race_call(0x8001E988u, 0x800D6FDCu, 3u, r_u8(0x800CB7F5u), r_u8(0x800CBC15u), 0u);
+    if (mode == 4u) gtmain_course_route_caption_update();
+    else if (mode == 5u) session_missing1(0x800239E0u, r_u8(0x800CB7F6u));
+    mode = r_u8(0x800CB7F5u);
+    source = r_u8(0x800CBC15u);
+    gtmain_race_driver_configurations(0x800D6FDCu, 3u, mode, source);
     w_u32(0x800B630Cu, 1u);
     return gtmain_race_session_loop();
 }

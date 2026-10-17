@@ -1,63 +1,36 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
-#include "game_draft_agent3_support.h"
 
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO Call 8003BA30 has additional inferred arguments requiring integration review */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_80044394(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static void menu_selection_centered_text(uint32 ordering, uint32 text, sint32 x, sint32 y, sint32 intensity)
 {
-  uint32 v12;
-  uint32 v13;
-  sint32 v14;
-  sint32 v15;
-  sint32 v16;
-  sint32 v18;
-  sint32 v19;
-  sint32 v20;
-  sint32 vars0;
-  sint32 vars0a;
-  sint32 vars4;
-  sint32 vars8;
-  uint32 varsC;
-  gt_draft_8003BA30(a0, 0x80092BDCu, (sint32)((uint32)((sint32)a1) + (uint32)(74)), (sint32)((uint32)((sint32)a2) + (uint32)(80)), (sint32)a3, (sint32)a4, 0, 0);
-  if (((sint8)r_u8((uint32)(0x800B5304)) >= 4))
-  {
-    v12 = a0;
-    if (((sint8)r_u8((uint32)(0x800B5304)) != 4))
-      goto LABEL_11;
-    v13 = 0x80092C88u;
-    v14 = (sint32)((uint32)((sint32)a1) + (uint32)(160));
-    v15 = (sint32)((uint32)((sint32)a2) + (uint32)(192));
-  }
-  else
-    if (((sint8)r_u8((uint32)(0x800B5304)) >= 2))
-  {
-    v12 = a0;
-    v13 = 0x80092C68u;
-    v14 = (sint32)((uint32)((sint32)a1) + (uint32)(160));
-    v15 = (sint32)((uint32)((sint32)a2) + (uint32)(192));
-  }
-  else
-  {
-    v12 = a0;
-    if (((sint8)r_u8((uint32)(0x800B5304)) != 1))
-    {
-      LABEL_11:
-      gt_draft_unresolved_call(0x80043F34u, (sint32)(a0), (uint32)(r_u32((uint32)((0x80092BECu + 4u * (uint32)((sint8)r_u8((uint32)(0x80092BDDu))))))), (sint32)a1, (sint32)a2, (sint32)a4,0u,0u,0u);
-
-      v16 = (sint32)(a0);
-      goto LABEL_12;
-    }
-    v13 = 0x80092C78u;
-    v14 = (sint32)((uint32)((sint32)a1) + (uint32)(160));
-    v15 = (sint32)((uint32)((sint32)a2) + (uint32)(192));
-  }
-  gtmain_menu_choice_transition_draw(v12, v13, v14, v15, (sint32)a4, v13 == 0x80092C88u ? 0u : 1u, 0u, 0u);
-  v16 = (sint32)(a0);
-  LABEL_12:
-  gtmain_menu_vehicle_course_labels_draw(v16, (sint32)a1, (sint32)a2, (sint32)a4);
-
-  return 0;
+    /* TODO Bind unrecorded centered text renderer 80043F34 */
+    (void)gt_draft_unresolved_call(0x80043F34u, ordering, text,
+        (uint32)x, (uint32)y, (uint32)intensity, 0u, 0u, 0u);
 }
 
+/* GTMAIN.EXE 80044394 */
+uint32 gt_draft_80044394(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
+{
+    sint32 mode;
+    uint32 descriptor, publish;
+    gtmain_menu_descriptor_draw(ordering, 0x80092BDCu,
+        (sint32)((uint32)x + 74u), (sint32)((uint32)y + 80u),
+        intensity, 0u, NULL, 0u);
+    mode = (sint8)r_u8(0x800B5304u);
+    if (mode >= 1 && mode <= 4)
+    {
+        descriptor = mode == 1 ? 0x80092C78u : mode == 4 ? 0x80092C88u : 0x80092C68u;
+        publish = mode == 4 ? 0u : 1u;
+        gtmain_menu_choice_transition_draw(ordering, descriptor,
+            (sint32)((uint32)x + 160u), (sint32)((uint32)y + 192u),
+            intensity, publish, 0u, 0u);
+    }
+    else
+    {
+        sint32 choice = (sint8)r_u8(0x80092BDDu);
+        descriptor = r_u32(0x80092BECu + (uint32)choice * 4u);
+        menu_selection_centered_text(ordering, descriptor, x, y, intensity);
+    }
+    gtmain_menu_vehicle_course_labels_draw(ordering, x, y, intensity);
+    return 0u;
+}

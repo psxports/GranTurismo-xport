@@ -1,12 +1,12 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 
 uint32 gtmain_shutdown(void)
 {
     uint32 i;
     sint32 frames = (sint32)r_u32(0x800C0A88u);
     for (i = 0u; (sint32)i < (sint16)r_u16(0x800BC1A6u); ++i) {
-        /* TODO Translate active car shutdown callbacks */
-        gt_draft_unresolved_call(0x8003169Cu, 0x800B6850u + i * 0xD34u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+        (void)gtmain_race_sound_car_stop(0x800B6850u + i * 0xD34u);
     }
     w_u32(0x800C4C00u, 0x47546F73u);
     w_u32(0x800C4C40u, r_u32(0x800C4C40u) + (uint32)(frames / 60));

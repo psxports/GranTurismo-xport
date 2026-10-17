@@ -63,6 +63,14 @@ uint32 gtmain_menu_name_slots_draw(uint32 ordering, uint32 request, sint32 x,
     return result;
 }
 
+static void name_wide_field_draw(uint32 ordering, uint32 request, sint32 x,
+    sint32 y, sint32 intensity)
+{
+    /* TODO Bind unselected five-argument wide name field 8003C6C8 */
+    (void)gt_draft_unresolved_call(0x8003C6C8u, ordering, request,
+        (uint32)x, (uint32)y, (uint32)intensity, 0u, 0u, 0u);
+}
+
 /* GTMAIN.EXE 8003C990 */
 sint32 gtmain_menu_name_keyboard_draw(uint32 ordering, uint32 request, sint32 x,
     sint32 y, sint32 intensity)
@@ -77,8 +85,7 @@ sint32 gtmain_menu_name_keyboard_draw(uint32 ordering, uint32 request, sint32 x,
     gtmain_text_color(gtmain_menu_gray((uint8)(intensity >> 1)));
     label_y = (sint16)((uint32)y + 141u);
     if (r_u16(request + 8u)) {
-        /* TODO Translate the unselected wide name field8003C6C8 */
-        gt_draft_failure("Wide name field draw", 0x8003C6C8u);
+        name_wide_field_draw(ordering, request, name_draw_add(x, 128), y, intensity);
     } else gtmain_menu_name_slots_draw(ordering, request, name_draw_add(x, 128), y, intensity);
     selected_row = r_s8(request + 13u);
     if (selected_row < 6) {

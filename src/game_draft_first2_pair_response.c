@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "game_local_stack.h"
 
 static uint32 pair_wide(sint32 a, sint32 b)
 {
@@ -15,8 +16,7 @@ static uint32 pair_low(uint32 a, uint32 b, sint32 divisor)
 void gtmain_race_pair_response(uint32 cars, sint32 count)
 {
     sint32 outer, inner;
-    sint16 normal[3];
-    uint32 normal_valid = 0;
+    uint32 normal = gt_local_stack_workspace(0x2E00u, 6u, 0x80062D18u);
     for (outer = 1; outer < count; ++outer) {
         for (inner = 0; inner < outer; ++inner) {
             sint16 first = r_s16(0x800BFE00u + 2u * (uint32)outer + 10u * (uint32)inner - 2u);
@@ -44,31 +44,27 @@ void gtmain_race_pair_response(uint32 cars, sint32 count)
                 for (axis = 0; axis < 3; ++axis) {
                     uint32 component = r_u16(vector + axis * 2u);
                     if (selector == 1 || selector == 2) component = 0u - component;
-                    normal[axis] = (sint16)(uint16)component;
+                    w_u16(normal + axis * 2u, component);
                 }
-                normal_valid = 1;
-            } else if (!normal_valid) {
-                /* TODO Resolve the original first invalid selector's uninitialized normal */
-                gt_draft_failure("GTMAIN undefined initial pair normal", 0x80062D18u);
             }
             for (axis = 0; axis < 3; ++axis) {
                 uint32 va = pair_wide(r_s16(a + 1702u), r_s32(a + 1712u + axis * 4u));
                 uint32 vb = pair_wide(r_s16(b + 1702u), r_s32(b + 1712u + axis * 4u));
-                sum += pair_wide(normal[axis], (sint32)(va - vb));
+                sum += pair_wide((sint16)r_u16(normal + axis * 2u), (sint32)(va - vb));
             }
             quotient = (sint32)(uint32)gtmain_signed_divide64((sint64)(sint32)sum * 4096,
                 (sint64)r_s16(a + 1702u) + r_s16(b + 1702u), 0x800631D0u);
-            for (axis = 0; axis < 3; ++axis) impulse[axis] = pair_wide(normal[axis], quotient);
+            for (axis = 0; axis < 3; ++axis) impulse[axis] = pair_wide((sint16)r_u16(normal + axis * 2u), quotient);
             magnitude = quotient < 0 ? 0u - (uint32)quotient : (uint32)quotient;
             intensity = pair_low(magnitude,
                 r_s8(a + 1689u) == 4 || r_s8(b + 1689u) == 4 ? 41u : 164u, 4096);
             w_u16(a + 42u, (uint16)(r_u16(a + 42u) + intensity));
             w_u16(b + 42u, (uint16)(r_u16(b + 42u) + intensity));
             if (r_s8(a + 1689u) == 4) {
-                w_u16(b + 1972u, (uint16)normal[1]);
+                w_u16(b + 1972u, r_u16(normal + 2u));
                 w_u8(b + 1u, 0);
                 w_u8(b + 1706u, (uint8)side);
-                w_u16(b + 1974u, (uint16)(0u - (uint32)normal[0]));
+                w_u16(b + 1974u, (uint16)(0u - (uint32)(sint16)r_u16(normal)));
                 gtmain_race_contact_response(b);
                 weight_a = 0; weight_b = 8192;
                 w_u8(a + 1698u, r_u8(a + 1698u) | 2u);
@@ -86,7 +82,7 @@ void gtmain_race_pair_response(uint32 cars, sint32 count)
                 w_u32(b + offset, r_u32(b + offset) + pair_wide((sint16)weight_b, (sint32)impulse[axis]));
             }
             for (axis = 0; axis < 3; ++axis) {
-                sint32 shove = (sint32)pair_low((uint32)(sint32)normal[axis], 5690, 4096);
+                sint32 shove = (sint32)pair_low((uint32)(sint32)(sint16)r_u16(normal + axis * 2u), 5690, 4096);
                 uint32 offset = 1712u + axis * 4u;
                 w_u32(a + offset, r_u32(a + offset) - pair_wide((sint16)weight_a, shove));
                 w_u32(b + offset, r_u32(b + offset) + pair_wide((sint16)weight_b, shove));
@@ -105,7 +101,7 @@ void gtmain_race_pair_response(uint32 cars, sint32 count)
                     w_u32(b + offset, r_u32(b + offset) + pair_wide((sint16)weight_b, delta[axis]));
                 }
                 for (axis = 0; axis < 3; ++axis) {
-                    sint32 shove = (sint32)normal[axis] >> 5;
+                    sint32 shove = (sint32)(sint16)r_u16(normal + axis * 2u) >> 5;
                     uint32 offset = 60u + axis * 4u;
                     w_u32(a + offset, r_u32(a + offset) - pair_low(weight_a, (uint32)shove, 4096));
                     w_u32(b + offset, r_u32(b + offset) + pair_low(weight_b, (uint32)shove, 4096));
@@ -119,7 +115,7 @@ void gtmain_race_pair_response(uint32 cars, sint32 count)
                 w_u32(0x1F8000C0u, 0);
                 w_u32(0x1F8000D0u, 0);
                 for (axis = 0; axis < 3; ++axis) {
-                    sint32 shove = (sint32)normal[axis] >> 3;
+                    sint32 shove = (sint32)(sint16)r_u16(normal + axis * 2u) >> 3;
                     w_u32(0x1F8000B4u + axis * 4u, r_u32(0x1F8000B4u + axis * 4u) - pair_wide((sint16)weight_a, shove));
                     w_u32(0x1F8000C4u + axis * 4u, r_u32(0x1F8000C4u + axis * 4u) + pair_wide((sint16)weight_b, shove));
                 }

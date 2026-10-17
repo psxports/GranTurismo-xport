@@ -1,4 +1,5 @@
 #include "game_first2_registry.h"
+#include "game_sound_stack.h"
 
 static uint8 *texture_workspace;
 static uint32 texture_workspace_capacity;
@@ -203,49 +204,58 @@ uint32 gtmain_race_sound_bank_load(uint32 destination, uint32 spu_base,
     uint32 image = gtmain_archive_section_load(path, table, sector, section_index, 0x801BB70Cu, 0);
     gtmain_memory_copy(destination, image, r_u32(image + 8u));
     gtmain_sound_engine_relocate(image, spu_base);
-    gtmain_sound_engine_relocate(destination, spu_base);
-    gtmain_sound_sample_upload(r_u32(destination + 12u), r_u32(image + 20u), r_u32(image + 16u));
+    {
+        uint32 relocated = gtmain_sound_engine_relocate(destination, spu_base);
+        uint32 address = r_u32(destination + 12u);
+        uint32 source = r_u32(image + 20u);
+        uint32 size = r_u32(image + 16u);
+        (void)gtmain_sound_sample_upload(address, source, size, relocated);
+    }
     return destination;
 }
 
 /* GTMAIN.EXE 80031F18 */
 void gtmain_race_sound_banks_update(void)
 {
-    sint32 selectors[4];
+    uint32 selectors = gt_sound_stack_workspace(0x4160u, 4128u, 0x80031F18u);
     uint32 count = 3, changed = 0, index;
-    uint8 temporary[4096];
-    uint32 sector;
-    GTMainArchiveTable table;
-    selectors[1] = r_u16(0x800BB9D0u);
-    selectors[0] = r_u16(0x800BB9C6u);
+    uint32 temporary = selectors + 16u, sector_address = temporary + 4096u;
+    uint32 table;
+    {
+        uint32 second = r_u16(0x800BB9D0u), first = r_u16(0x800BB9C6u);
+        w_u32(selectors + 4u, second);
+        w_u32(selectors, first);
+    }
     if (r_u8(0x800CB7F5u) == 2u) {
         count = 4;
-        selectors[2] = r_u16(0x800BBB48u);
-        selectors[3] = r_u16(0x800BBB52u);
+        uint32 third = r_u16(0x800BBB48u), fourth = r_u16(0x800BBB52u);
+        w_u32(selectors + 8u, third);
+        w_u32(selectors + 12u, fourth);
     } else {
-        selectors[2] = 54;
-        selectors[3] = -1;
+        w_u32(selectors + 8u, 54u);
+        w_u32(selectors + 12u, 0xFFFFFFFFu);
     }
     for (index = 0; index < 4u; ++index) {
-        if (index < count && (sint32)(sint16)r_u16(0x800B52ECu + 2u * index) != selectors[index])
+        if (index < count && (sint32)(sint16)r_u16(0x800B52ECu + 2u * index) != (sint32)r_u32(selectors + 4u * index))
             changed = 1;
-        w_u16(0x800B52ECu + 2u * index, (uint16)selectors[index]);
+        w_u16(0x800B52ECu + 2u * index, r_u16(selectors + 4u * index));
     }
     if (changed) {
         uint32 path = gtmain_sound_path();
         uint32 destination_offset = 0, spu_base = 0x2C800u;
-        /* TODO Recover original sector provenance when no path query supplies it */
-        if (!path) gt_draft_failure("Native sound archive sector provenance", 0x80031F18u);
-        sector = 0;
-        table = gtmain_archive_table_load(path, &sector, temporary, 0, sizeof(temporary));
+        table = gtmain_archive_table_load_guest(path, sector_address, temporary, 4096u);
         for (index = 0; index < count; ++index) {
             uint32 destination = 0x800B4EECu + destination_offset;
-            uint32 loaded;
+            uint32 loaded, header_size, sample_size, section, sector;
             w_u32(0x800B49DCu + 4u * index, destination);
-            loaded = gtmain_race_sound_bank_load(destination, spu_base, table.bytes, sector,
-                (uint32)selectors[index] + 3u);
-            destination_offset += (r_u32(loaded + 8u) + 3u) & ~3u;
-            spu_base += (r_u32(loaded + 16u) + 15u) & ~15u;
+            section = r_u32(selectors + 4u * index) + 3u;
+            sector = r_u32(sector_address);
+            loaded = gtmain_race_sound_bank_load(destination, spu_base,
+                table ? (uint8 *)psx_addr(table, 1u) : NULL, sector, section);
+            header_size = r_u32(loaded + 8u);
+            sample_size = r_u32(loaded + 16u);
+            spu_base += (sample_size + 15u) & ~15u;
+            destination_offset += (header_size + 3u) & ~3u;
         }
     }
 }

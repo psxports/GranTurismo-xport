@@ -2,12 +2,14 @@
 #include "game_draft_registry.h"
 #include <stdio.h>
 
+/* TODO Resolve independent inventory and equipment child services */
+/* GTMAIN.EXE 8004ACB8 */
 sint32 gtmain_menu_parts_check(uint32 target)
 {
     static const uint8 fields[6] = { 30, 34, 4, 12, 16, 24 };
     uint32 context, table, target_number, current_number, i;
     sint32 type, result, equal = 1;
-    fputs((const char *)psx_addr(0x8008DD98u, 23u), stdout);
+    printf((const char *)psx_addr(0x8008DD98u, 1u));
     context = r_u32(0x800BEA64u);
     target_number = r_u16(target);
     current_number = r_u16(context);

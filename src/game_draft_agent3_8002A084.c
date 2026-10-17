@@ -1,17 +1,28 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
-#include "game_draft_agent3_support.h"
 
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_8002A084(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static void mode_request_draw(uint32 ordering, uint32 first_text, uint32 second_text, uint32 request)
 {
-  sint32 v0;
-  sint32 result;
-  v0 = r_u32((uint32)((gtmain_race_mode_record() + 4u * (uint32)(4))));
-  gt_draft_unresolved_call(0x80029740u, r_u32((uint32)(0x800B6368)), (sint32)(0u - (uint32)(2146707413)), (sint32)(0u - (uint32)(2146707111)), v0, 0u, 0u, 0u, 0u);
-  result = gt_draft_unresolved_call(0x800298B4u, v0, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-  w_u8((uint32)(0x8008F890u), (uint32)(result));
-  return result;
+    /* TODO Bind unselected four-argument mode request renderer 80029740 */
+    (void)gt_draft_unresolved_call(0x80029740u, ordering, first_text,
+        second_text, request, 0u, 0u, 0u, 0u);
 }
 
+static uint32 mode_request_input(uint32 request)
+{
+    /* TODO Bind unselected one-argument mode request handler 800298B4 */
+    return gt_draft_unresolved_call(0x800298B4u, request,
+        0u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+/* GTMAIN.EXE 8002A084 */
+uint32 gt_draft_8002A084(void)
+{
+    uint32 record = gtmain_race_mode_record();
+    uint32 request = r_u32(record + 16u);
+    uint32 ordering = r_u32(0x800B6368u), result;
+    mode_request_draw(ordering, 0x800BD82Bu, 0x800BD959u, request);
+    result = mode_request_input(request);
+    w_u8(0x8008F890u, result);
+    return result;
+}

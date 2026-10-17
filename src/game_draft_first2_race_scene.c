@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "game_local_stack.h"
 #include "psx_gte.h"
 
 /* TODO Bind remaining original scene owners */
@@ -115,6 +116,12 @@ void gtmain_race_lap_time_append(uint32 time)
     w_u8(0x800B399Cu, (uint8)index);
 }
 
+static void race_two_player_balance(uint32 first, uint32 second)
+{
+    /* TODO Bind the unselected original two-player pair service */
+    gt_draft_unresolved_call(0x80061AACu, first, second, 0, 0, 0, 0, 0, 0);
+}
+
 /* GTMAIN.EXE 80052C48 */
 void gtmain_race_physics_tick(void)
 {
@@ -146,11 +153,11 @@ void gtmain_race_physics_tick(void)
             sint32 second = r_s8(0x800BFE40u + (uint32)index);
             gtmain_race_balance_update(0x800B6878u + 3380u * (uint32)first, 0x800B6878u + 3380u * (uint32)second);
         }
-    } else if (mode == 2u) scene_call(0x80061AACu, 0x800B6878u, 0x800B75ACu, 0, 0, 0);
+    } else if (mode == 2u) race_two_player_balance(0x800B6878u, 0x800B75ACu);
 }
 
 /* GTMAIN.EXE 8001E07C */
-void gtmain_race_camera_tick(uint32 camera)
+uint32 gtmain_race_camera_tick(uint32 camera)
 {
     uint32 mode = r_u32(0x800B630Cu), x, y, z, fourth, last;
     sint32 kind, shift;
@@ -180,6 +187,7 @@ void gtmain_race_camera_tick(uint32 camera)
     x = r_u32(camera + 160u); y = r_u32(camera + 164u); z = r_u32(camera + 168u); fourth = r_u32(camera + 172u);
     w_u32(camera + 188u, x); w_u32(camera + 192u, y); w_u32(camera + 196u, z); w_u32(camera + 200u, fourth);
     last = r_u32(camera + 176u); w_u32(camera + 204u, last);
+    return last;
 }
 
 /* GTMAIN.EXE 8001E218 */
@@ -262,23 +270,22 @@ void gtmain_race_effects_draw(void)
 }
 
 /* GTMAIN.EXE 8002FFB4 */
-void gtmain_race_player_hud_draw(sint32 player, uint32 source)
+uint32 gtmain_race_player_hud_draw(sint32 player, uint32 source)
 {
     uint32 top = player == 0 ? 12u : 0u, lower = top ^ 12u;
     uint32 link = r_u32(0x800B6368u) + 4u;
     gtmain_race_status_draw(link, player ? 20 : 8, source);
-    scene_call(0x8002FCD4u, link, 16u, 16u - top, source, 0);
-    scene_call(0x8002FBA8u, link, 64u, 16u - top, player ? 0x800912B4u : 0x800912BCu, source);
-    scene_call(0x8002C318u, link, 238u, lower + 30u, source, 0);
-    (void)gtmain_race_meter_panel_draw(link, 16u, lower + 72u, source);
+    (void)gtmain_race_lap_counter_draw(link, 16, (sint32)(16u - top), source);
+    (void)gtmain_race_position_draw(link, 64, (sint32)(16u - top), player ? 0x800912B4u : 0x800912BCu, source);
+    (void)gtmain_race_instruments_draw(link, 238, (sint32)(lower + 30u), source);
+    return gtmain_race_meter_panel_draw(link, 16u, lower + 72u, source);
 }
 
 /* GTMAIN.EXE 8002B6CC */
 uint32 gtmain_race_demo_view_draw(uint32 context)
 {
-    /* TODO Establish the unused local view padding contract */
-    uint32 storage[46];
-    uint8 *view = (uint8 *)storage, *vector = view + 120u, *matrix = view + 140u;
+    uint32 storage = gt_local_stack_workspace(0x2780u, 184u, 0x8002B6CCu);
+    uint8 *view = (uint8 *)psx_addr(storage, 184u), *vector = view + 120u, *matrix = view + 140u;
     uint32 camera, y, depth, horizontal, vertical;
     xport_store_le16(view + 4u, 110); xport_store_le16(view + 6u, 32); xport_store_le16(view + 10u, 16);
     xport_store_le16(view, 0); xport_store_le16(view + 2u, 0); xport_store_le16(view + 8u, 55);
@@ -298,7 +305,7 @@ uint32 gtmain_race_demo_view_draw(uint32 context)
     y = r_u32(0x800BFF6Cu) == 0u ? 240u : 0u;
     gtmain_packet_draw_area(r_u32(0x800B6388u), y << 11, y << 10, ((y + 239u) << 10) | 319u);
     w_u32(context + 772u, r_u32(0x800B6388u) + 16768u);
-    (void)gt_draft_8001A0E0(context, 0, 0, 0, 0, 0, 0, 0);
+    (void)gt_draft_8001A0E0(context);
     gtmain_course_scene_draw(context, r_u32(0x800B6388u), 1);
     (void)gtmain_race_cars_secondary_draw(context, r_u32(0x800B6388u));
     (void)gtmain_packet_outline(r_u32(0x800B6388u), 0x8008FB4Cu, 0);
@@ -307,7 +314,7 @@ uint32 gtmain_race_demo_view_draw(uint32 context)
 }
 
 /* GTMAIN.EXE 8002ABC0 */
-void gtmain_race_stream_start(sint32 entry, sint32 parameter)
+uint32 gtmain_race_stream_start(sint32 entry, sint32 parameter)
 {
     uint32 enabled = r_u8(0x800CB767u);
     w_u8(0x800B63D9u, 0);
@@ -318,5 +325,7 @@ void gtmain_race_stream_start(sint32 entry, sint32 parameter)
         w_u8(0x800B63D9u, 1);
         w_u8(0x800B63C1u, (uint8)(parameter ? entry : -1));
         w_u8(0x800B6314u, (uint8)parameter);
+        return 0xFFFFFFFFu;
     }
+    return enabled;
 }

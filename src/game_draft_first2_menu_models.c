@@ -1,44 +1,44 @@
 #include "game_first2_registry.h"
+#include "game_local_stack.h"
+#include <string.h>
 
 static uint32 menu_model_gte_read(uint32 index)
 {
-    /* TODO Bind the real GTE data register service */
-    (void)index; gt_draft_failure("Menu model GTE data read",0x8003D354u);
+    return xport_gte_read_data(index);
 }
 static void menu_model_gte_write(uint32 index,uint32 value)
 {
-    /* TODO Bind the real GTE data register service */
-    (void)index; (void)value; gt_draft_failure("Menu model GTE data write",0x8003D354u);
+    xport_gte_write_data(index,value);
 }
 static void menu_model_gte_control(uint32 index,uint32 value)
 {
-    /* TODO Bind the real GTE control register service */
-    (void)index; (void)value; gt_draft_failure("Menu model GTE control write",0x8003D354u);
+    xport_gte_write_control(index,value);
 }
 static void menu_model_gte_command(uint32 command)
 {
-    /* TODO Bind the original GTE command */
-    (void)command; gt_draft_failure("Menu model GTE command",0x8003D354u);
+    xport_gte_execute(command);
 }
-static void menu_model_view_prepare(uint8 view[120])
+static void menu_model_view_prepare(uint8 view[180])
 {
-    /* TODO Bind native view provenance to the actual projection owner */
-    (void)view; gt_draft_failure("Menu model native projection view",0x8006B3E0u);
+    (void)gtmain_view_projection_prepare_native(view);
 }
-static void menu_model_orientation(uint8 view[120],uint32 reference)
+static void menu_model_orientation(uint8 view[180],uint32 reference)
 {
-    /* TODO Bind native view provenance to the actual orientation owner */
-    (void)view; (void)reference; gt_draft_failure("Menu model native orientation view",0x8006B40Cu);
+    (void)gtmain_model_orientation_native(view, reference);
 }
-static void menu_model_view_copy(uint32 destination,const uint8 view[120])
+static void menu_model_view_copy(uint32 destination,const uint8 view[180])
 {
-    /* TODO Bind native view source to actual render view copy */
-    (void)destination; (void)view; gt_draft_failure("Menu model native view copy",0x80070448u);
+    uintptr_t base = (uintptr_t)DRAM, source = (uintptr_t)view;
+    if (source < base || source - base > PSX_DRAM_SIZE - 180u)
+        gt_draft_failure("Menu model view outside DRAM stack", 0x80070448u);
+    (void)gtmain_render_view_copy(destination, 0x80000000u + (uint32)(source - base));
 }
-static void menu_model_vector_init(uint8 vector[12])
+static void menu_model_vector_init(uint8 vector[40])
 {
-    /* TODO Bind native initialization without inventing initial field values */
-    (void)vector; gt_draft_failure("Menu model native vector initialization",0x80071268u);
+    memset(vector, 0, 40u);
+    xport_store_le16(vector + 20u, 4096u);
+    xport_store_le16(vector + 28u, 4096u);
+    xport_store_le16(vector + 36u, 4096u);
 }
 static void menu_model_half(uint8 *out,uint32 offset,uint32 value) { out[offset]=(uint8)value; out[offset+1u]=(uint8)(value >> 8); }
 static void menu_model_word(uint8 *out,uint32 offset,uint32 value)
@@ -49,10 +49,16 @@ static uint32 menu_model_read_word(const uint8 *in,uint32 offset)
 {
     return in[offset] | ((uint32)in[offset+1u] << 8) | ((uint32)in[offset+2u] << 16) | ((uint32)in[offset+3u] << 24);
 }
+static void menu_asset_release_missing(void)
+{
+    /* TODO Bind the unselected no-argument asset release */
+    gt_draft_failure("Native menu asset release", 0x8003A2DCu);
+}
+
 uint32 gtmain_menu_asset_activate(uint32 index)
 {
     sint32 entry;
-    if ((sint8)r_u8(0x800B52FAu)) gt_draft_unresolved_call(0x8003A2DCu,0,0,0,0,0,0,0,0);
+    if ((sint8)r_u8(0x800B52FAu)) menu_asset_release_missing();
     w_u8(0x800B52FAu,1);
     entry=gtmain_stream_entry_find(index);
     return (uint32)gtmain_stream_entry_prepare((uint32)entry,1);
@@ -81,9 +87,27 @@ uint32 gtmain_menu_scaled_sprite(uint32 descriptor,uint32 ordering,sint16 x,sint
     w_u32(0x800BFE4Cu,packet+40u);
     return result;
 }
+static void menu_model_ring_link(uint32 head,uint32 packet,uint32 initial_link)
+{
+    uint32 head_end=head+2u, head_base=head_end&~3u;
+    uint32 head_count=(head_end&3u)+1u, head_shift=(4u-head_count)*8u;
+    uint32 packet_end=packet+2u, packet_base=packet_end&~3u;
+    uint32 packet_count=(packet_end&3u)+1u, packet_shift=(4u-packet_count)*8u;
+    uint32 old_link=initial_link, new_link=packet << 8u, i;
+    /* Capture the old addressed lanes before either partial store */
+    for (i=0u;i<head_count;++i) {
+        uint32 shift=head_shift+i*8u;
+        uint32 value=r_u8(head_base+i);
+        old_link=(old_link&~(0xFFu << shift))|(value << shift);
+    }
+    for (i=0u;i<head_count;++i) w_u8(head_base+i,new_link >> (head_shift+i*8u));
+    for (i=0u;i<packet_count;++i) w_u8(packet_base+i,old_link >> (packet_shift+i*8u));
+}
 uint32 gtmain_menu_model_draw(uint32 ordering,sint16 x,sint16 y,sint16 phase,uint32 model,uint16 depth,uint16 palette,uint32 command,uint16 page,sint32 projection,uint32 flags)
 {
-    uint8 view[120], vector[12], matrix[20], temporary[24];
+    /* The render source needs a guest address while its primitives are built */
+    uint8 *view = (uint8 *)psx_addr(gt_local_stack_workspace(0x4480u, 180u, 0x8003D354u), 180u);
+    uint8 *vector = view + 120u, *matrix = view + 140u, *temporary = view + 160u;
     uint32 difference,result;
     menu_model_half(view,0,0); menu_model_half(view,2,0); menu_model_half(view,4,320); menu_model_half(view,6,240);
     menu_model_half(view,8,(uint16)x); menu_model_half(view,10,(uint16)y); menu_model_half(view,14,64); menu_model_half(view,16,64); menu_model_half(view,12,(uint32)projection);
@@ -94,12 +118,20 @@ uint32 gtmain_menu_model_draw(uint32 ordering,sint16 x,sint16 y,sint16 phase,uin
     (void)gtmain_model_rotate_vector(vector,matrix,vector);
     menu_model_orientation(view,0x80099490u); menu_model_view_copy(0x1F800000u,view);
     (void)gtmain_render_fog_set(0x1F800000u,0,256,0);
-    menu_model_gte_control(26,r_u16(0x1F800020u));
-    menu_model_gte_control(24,r_u32(0x1F800018u)); menu_model_gte_control(25,r_u32(0x1F80001Cu));
+    {
+        uint32 h = r_u16(0x1F800020u), ofx = r_u32(0x1F800018u), ofy;
+        menu_model_gte_control(26,h);
+        ofy = r_u32(0x1F80001Cu);
+        menu_model_gte_control(24,ofx); menu_model_gte_control(25,ofy);
+    }
     w_u32(0x1F800394u,page | ((command|32u) << 16)); w_u16(0x1F800398u,64); w_u16(0x1F80039Au,64); w_u16(0x1F80039Cu,0);
     w_u32(0x1F800388u,(uint32)palette << 16); w_u32(0x1F800390u,0x10000000u); w_u16(0x1F80038Eu,6);
     (void)gtmain_render_context_init(0x1F800360u);
-    difference=((uint32)(sint32)(sint16)r_u16(model+50u)-(uint32)(sint32)(sint16)r_u16(model+18u)) << 4;
+    {
+        uint32 upper = (uint32)(sint32)(sint16)r_u16(model+50u);
+        uint32 lower = (uint32)(sint32)(sint16)r_u16(model+18u);
+        difference = (upper-lower) << 4;
+    }
     w_u16(0x1F80038Cu,0); w_u32(0x1F8003A0u,ordering); w_u32(0x1F800364u,difference);
     (void)gtmain_model_transform_draw(0x1F800000u,model+60u,1);
     {
@@ -132,9 +164,7 @@ uint32 gtmain_menu_model_draw(uint32 ordering,sint16 x,sint16 y,sint16 phase,uin
         table_shift=bits-18u; shift=bits-12u; if ((sint32)shift<0) shift=0;
         vx=(uint32)((sint32)vx >> (shift&31u)); vy=(uint32)((sint32)vy >> (shift&31u)); vz=(uint32)((sint32)vz >> (shift&31u));
         menu_model_gte_write(0,(vx&65535u) | (vy << 16)); menu_model_gte_write(1,vz);
-        /* TODO Recover the original uninitialized twenty byte matrix provenance */
-        (void)temporary;
-        gt_draft_failure("Menu model projection matrix provenance",0x8007070Cu);
+        /* Orientation writes the matrix at camera offset160 */
         (void)gtmain_matrix_bind_negated_axes(temporary);
         menu_model_gte_command(0x486012u);
         vx=menu_model_gte_read(25); vy=menu_model_gte_read(26); vz=menu_model_gte_read(27);
@@ -146,16 +176,16 @@ uint32 gtmain_menu_model_draw(uint32 ordering,sint16 x,sint16 y,sint16 phase,uin
         vx=(uint32)((sint32)(sint16)r_u16(0x800942BCu) >> (table_shift&31u)); vz=(uint32)((sint32)(sint16)r_u16(0x80094ABCu) >> (table_shift&31u));
         previous=menu_model_gte_read(14);
         do {
-            uint32 index,old,link;
+            uint32 index,old,table_x,table_z;
             menu_model_gte_write(0,vx&65535u); menu_model_gte_write(1,vz); menu_model_gte_command(0x180001u);
             angle+=64u; index=angle&4095u;
-            vx=(uint32)((sint32)(sint16)r_u16(0x8009423Cu+index*2u) >> (table_shift&31u));
-            vz=(uint32)((sint32)(sint16)r_u16(0x80094A3Cu+index*2u) >> (table_shift&31u));
+            table_x=(uint32)(sint32)(sint16)r_u16(0x8009423Cu+index*2u);
+            table_z=(uint32)(sint32)(sint16)r_u16(0x80094A3Cu+index*2u);
+            vx=(uint32)((sint32)table_x >> (table_shift&31u));
+            vz=(uint32)((sint32)table_z >> (table_shift&31u));
             old=previous; previous=menu_model_gte_read(14); current=packet;
             w_u32(current,0x06000000u); w_u32(current+16u,old); w_u32(current+4u,0x32404040u); w_u32(current+8u,center); w_u32(current+12u,0); w_u32(current+20u,0); w_u32(current+24u,previous);
-            link=r_u8(ordering+4096u); link|=r_u8(ordering+4097u) << 8; link|=r_u8(ordering+4098u) << 16;
-            w_u8(ordering+4096u,current); w_u8(ordering+4097u,current >> 8); w_u8(ordering+4098u,current >> 16);
-            w_u8(current,link); w_u8(current+1u,link >> 8); w_u8(current+2u,link >> 16);
+            menu_model_ring_link(ordering+4096u,current,table_x);
             packet+=28u;
         } while ((sint32)angle<4097);
         w_u32(0x800BFE4Cu,packet); (void)gtmain_packet_page(ordering+4096u,544);

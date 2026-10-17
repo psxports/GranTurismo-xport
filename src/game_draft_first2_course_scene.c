@@ -241,51 +241,64 @@ uint32 gtmain_model_billboards_draw(uint32 context, uint32 records, uint32 count
     return records;
 }
 
+static void scene_secondary_render_missing(uint32 context, uint32 segment)
+{
+    /* TODO Bind unselected two-argument secondary renderer */
+    gt_draft_failure("GTMAIN secondary course renderer", 0x8002723Cu);
+}
+
 static void scene_render_missing(uint32 owner, uint32 context, uint32 segment, uint32 mode)
 {
     if (owner == 0x80011DA0u) {
-        (void)gt_draft_80011DA0(context, segment, mode, 0, 0, 0, 0, 0);
+        (void)gt_draft_80011DA0(context, segment, mode);
         return;
     }
     if (owner == 0x80010154u) {
         (void)gtmain_course_segment_draw(context, segment, mode);
         return;
     }
-    /* TODO Bind the remaining selected course renderers */
-    (void)gt_draft_unresolved_call(owner, context, segment, mode, 0, 0, 0, 0, 0);
+    scene_secondary_render_missing(context, segment);
 }
 
 uint32 gtmain_course_scene_draw(uint32 context, uint32 camera, uint32 mode)
 {
     uint32 buckets[3][64], counts[3] = {0, 0, 0};
     uint32 course, segment, list, total, index, all_flags = 0, axis;
+    uint32 packet_cursor, camera_state, attributes, matrix_first, matrix_second;
     sint32 angle;
     gtmain_model_translation(context, 0);
     gtmain_matrix_bind_packed_negation(psx_addr(context + 64u, 20u));
     gtmain_lighting_bind(context);
+    packet_cursor = r_u32(0x800BFE4Cu);
     course = r_u32(0x800BC1A8u);
-    w_u32(context + 948u, camera + 64u); w_u32(context + 952u, r_u32(0x800BFE4Cu));
-    w_u32(context + 940u, 0x801A900Cu); w_u32(context + 944u, r_u32(course + 8u));
-    angle = (sint16)r_u16(0x8009423Cu + ((r_u16(r_u32(0x800B6638u) + 134u) & 0xFFFu) << 1));
+    camera_state = r_u32(0x800B6638u);
+    w_u32(context + 948u, camera + 64u); w_u32(context + 952u, packet_cursor);
+    attributes = r_u32(course + 8u);
+    w_u32(context + 940u, 0x801A900Cu); w_u32(context + 944u, attributes);
+    angle = (sint16)r_u16(0x8009423Cu + ((r_u16(camera_state + 134u) & 0xFFFu) << 1));
     w_u16(context + 920u, angle / 2);
-    angle = (sint16)r_u16(0x80094A3Cu + ((r_u16(r_u32(0x800B6638u) + 134u) & 0xFFFu) << 1));
+    angle = (sint16)r_u16(0x80094A3Cu + ((r_u16(camera_state + 134u) & 0xFFFu) << 1));
     w_u32(context + 924u, mode);
-    segment = r_u32(course + (r_u32(0x8008F71Cu) << 2) + 12u);
+    index = r_u32(0x8008F71Cu);
     w_u16(context + 922u, angle / 2);
+    segment = r_u32(course + (index << 2) + 12u);
     list = r_u32(segment + 160u); total = r_u16(list); list += 2u;
     for (index = 0; index < total; ++index)
     {
         uint32 item = r_u16(list), group = item >> 14, bounds, near_y, far_y, point;
         sint32 classification; uint32 visibility;
+        uint32 camera_x, camera_y, camera_z, near_height, far_height;
         segment = r_u32(r_u32(0x800BC1A8u) + ((item & 0x3FFFu) << 2) + 12u);
         list += 2u; all_flags |= r_u32(segment + 12u);
         bounds = segment + (mode ? 108u : 68u);
-        near_y = r_u32(bounds + 32u) - r_u32(context + 48u);
-        far_y = r_u32(bounds + 36u) - r_u32(context + 48u);
+        camera_x = r_u32(context + 44u); camera_z = r_u32(context + 52u);
+        near_height = r_u32(bounds + 32u); camera_y = r_u32(context + 48u);
+        far_height = r_u32(bounds + 36u);
+        near_y = near_height - camera_y; far_y = far_height - camera_y;
         for (point = 0; point < 8; ++point)
         {
             uint32 corner = bounds + ((point & 3u) << 3);
-            uint32 x = r_u32(corner) - r_u32(context + 44u), z = r_u32(corner + 4u) - r_u32(context + 52u), y = point & 4u ? far_y : near_y;
+            uint32 x = r_u32(corner) - camera_x, z = r_u32(corner + 4u) - camera_z, y = point & 4u ? far_y : near_y;
             uint32 ax = (sint32)x < 0 ? 0u - x : x, ay = (sint32)y < 0 ? 0u - y : y, az = (sint32)z < 0 ? 0u - z : z;
             sint32 shift = (sint32)(19u - scene_lz_count(ax | ay | az));
             if (shift < 0) { uint32 amount = (0u - (uint32)shift) & 31u; x <<= amount; y <<= amount; z <<= amount; }
@@ -307,10 +320,15 @@ uint32 gtmain_course_scene_draw(uint32 context, uint32 camera, uint32 mode)
         w_u16(context + 868u, b); w_u16(context + 866u, c); w_u16(context + 870u, 0u - a);
         a = r_u16(context + 72u); b = r_u16(context + 74u); c = r_u16(context + 76u);
         w_u16(context + 874u, 0u - a); w_u16(context + 872u, 0u - b);
+        matrix_first = r_u32(context + 64u);
         a = r_u16(context + 78u); b = r_u16(context + 80u);
         w_u16(context + 876u, c); w_u16(context + 880u, a); w_u16(context + 878u, b);
     }
-    scene_matrix(context + 64u, 8);
+    matrix_second = r_u32(context + 68u); scene_ctc(8u, matrix_first);
+    matrix_first = r_u32(context + 72u); scene_ctc(9u, matrix_second);
+    matrix_second = r_u32(context + 76u); scene_ctc(10u, matrix_first);
+    matrix_first = r_u32(context + 80u); scene_ctc(11u, matrix_second);
+    scene_ctc(12u, matrix_first);
     {
         uint32 p[3], coarse[3];
         for (axis = 0; axis < 3; ++axis) { p[axis] = r_u32(context + 44u + 4u * axis); coarse[axis] = p[axis] & 0xFFF00000u; }
@@ -327,8 +345,10 @@ uint32 gtmain_course_scene_draw(uint32 context, uint32 camera, uint32 mode)
         uint32 owner = r_u32(0x800B630Cu) == 1u && r_u16(context + 32u) >= 387u ? 0x80010154u : 0x8002723Cu;
         for (index = 0; index < counts[2]; ++index) scene_render_missing(owner, context, buckets[2][index], 0);
     }
-    w_u32(0x800BFE4Cu, r_u32(context + 952u));
-    if ((sint8)r_u8(0x8008FBE4u))
+    packet_cursor = r_u32(context + 952u);
+    angle = r_s8(0x8008FBE4u);
+    w_u32(0x800BFE4Cu, packet_cursor);
+    if (angle)
     {
         gtmain_text_font(0);
         uint32 words[5] = {counts[0], counts[1], counts[2], total, all_flags};

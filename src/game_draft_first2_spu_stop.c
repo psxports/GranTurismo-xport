@@ -2,6 +2,7 @@
 
 static uint32 stop_bios(uint32 owner, uint32 argument)
 {
+    if (owner == 0x8008AF28u) return gtmain_bios_critical_exit_result();
     /* TODO Bind the actual BIOS event or critical-return service */
     gt_draft_failure("Native SPU stop BIOS adapter", owner);
 }

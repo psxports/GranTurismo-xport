@@ -3,23 +3,30 @@
 #include <stdio.h>
 #include <string.h>
 
+static uint32 graph_reset_callback(uint32 token, uint32 argument)
+{
+    if (token == 0x80088DB4u) return (uint32)gtmain_gpu_device_reset(argument);
+    /* TODO Bind unknown one-argument GPU reset callback */
+    gt_draft_failure("GTMAIN GPU reset table callback", token);
+}
+
 uint32 gtmain_graph_reset(uint32 mode)
 {
     uint32 selected = mode & 7u;
-    uint32 result, callback;
+    uint32 result, callback, width;
     if (selected == 0u || selected == 3u || selected == 5u) {
         if (selected != 5u)
             printf("ResetGraph:jtb=%08x,env=%08x\n", 0x800B246Cu, 0x800B24B4u);
         memset(psx_addr(0x800B24B4u, 128u), 0, 128u);
         ResetCallback();
-        /* Initialize the native GPU and window without BIOS command thunks */
-        if (ResetGraph(0) < 0)
-            gt_draft_unresolved_call(0x80088DB4u, mode, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-        result = (uint32)GetGraphType();
+        gtmain_bios_gpu_link(r_u32(0x800B24ACu) & 0xFFFFFFu);
+        result = (uint32)gtmain_gpu_device_reset(mode);
         w_u8(0x800B24B4u, result);
-        w_u8(0x800B24B5u, 1u);
         result = r_u8(0x800B24B4u);
-        w_u16(0x800B24B8u, r_u16(0x800B2534u + result * 4u));
+        w_u8(0x800B24B5u, 1u);
+        width = r_u16(0x800B2534u + result * 4u);
+        result = r_u8(0x800B24B4u);
+        w_u16(0x800B24B8u, width);
         w_u16(0x800B24BAu, r_u16(0x800B2540u + result * 4u));
         memset(psx_addr(0x800B24C4u, 92u), 0xFF, 92u);
         memset(psx_addr(0x800B2520u, 20u), 0xFF, 20u);
@@ -28,14 +35,11 @@ uint32 gtmain_graph_reset(uint32 mode)
     if (r_u8(0x800B24B6u) >= 2u) {
         callback = r_u32(0x800B24B0u);
         if (callback == 0x8008B7D8u) printf("ResetGraph(%d)...\n", (sint32)mode);
-        else gt_draft_unresolved_call(callback, 0x8008EF1Cu, mode, 0u, 0u, 0u, 0u, 0u, 0u);
+        else gt_draft_failure("GTMAIN GPU debug printer callback", callback);
     }
-    /* Soft reset retains native VRAM and display state */
-    w_u32(0x800B25B0u, 0u);
-    w_u32(0x800B25ACu, 0u);
-    w_u32(0x1F801814u, 0x02000000u);
-    w_u32(0x1F801814u, 0x01000000u);
-    return 0u;
+    callback = r_u32(0x800B24ACu);
+    callback = r_u32(callback + 52u);
+    return graph_reset_callback(callback, 1u);
 }
 
 static uint32 *native_frame_node;
@@ -90,7 +94,15 @@ static void native_frame_node_dispatch(uint32 previous, uint32 next)
     }
 }
 
-static void gtmain_vblank(void)
+static void vblank_callback_dispatch(uint32 token)
+{
+    if (token == 0x80019EE8u) { gt_draft_80019EE8(); return; }
+    if (token == 0x8006F124u) { gtmain_frame_vblank(); return; }
+    /* TODO Bind remaining original no-argument VBlank callback identities */
+    gt_draft_failure("GTMAIN VBlank callback target", token);
+}
+
+static uint32 gtmain_vblank(void)
 {
     uint32 node = r_u32(0x800B1A20u), previous = 0u;
     uint32 first_ticks, second_ticks;
@@ -99,13 +111,7 @@ static void gtmain_vblank(void)
         native_frame_node_dispatch(previous, node);
         uint32 callback = r_u32(node + 8u);
         uint32 next = r_u32(node + 4u);
-        /* TODO Dispatch translated callbacks as they become reachable */
-        if (callback == 0x80019EE8u)
-            gt_draft_80019EE8(0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-        else if (callback == 0x8006F124u)
-            gtmain_frame_vblank();
-        else if (callback)
-            gt_draft_unresolved_call(callback, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+        if (callback) vblank_callback_dispatch(callback);
         previous = node;
         node = next;
     }
@@ -115,6 +121,13 @@ static void gtmain_vblank(void)
     w_u32(0x800C0A88u, first_ticks + 1u);
     w_u32(0x800C0A8Cu, second_ticks + 1u);
     vblank_dispatching = 0u;
+    return first_ticks + 1u;
+}
+
+/* Native VSync callbacks have a void ABI */
+static void gtmain_vblank_native(void)
+{
+    (void)gtmain_vblank();
 }
 
 uint32 gtmain_frame_init(uint32 mode)
@@ -125,7 +138,7 @@ uint32 gtmain_frame_init(uint32 mode)
     w_u32(0x800C0A8Cu, 0u);
     gtmain_graph_reset(mode);
     w_u32(0x800B1A20u, 0u);
-    VSyncCallback(gtmain_vblank);
+    VSyncCallback(gtmain_vblank_native);
     return 0u;
 }
 
@@ -134,10 +147,11 @@ uint32 gtmain_frame_events_init(void)
     uint32 i;
     for (i = 0u; i < 8u; ++i) {
         uint32 row = 0x800B1A2Cu + i * 12u;
-        uint32 event = (uint32)OpenEventGuest(r_u32(row), r_u32(row + 4u), 0x1000u, r_u32(row + 8u));
-        if (event != 0xFFFFFFFFu && !EnableEvent(event))
-            gt_draft_unresolved_call(0x8007B734u, event, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-        w_u32(0x800C0A60u + i * 4u, event);
+        uint32 event_class = r_u32(row);
+        uint32 specification = r_u32(row + 4u);
+        uint32 callback = r_u32(row + 8u);
+        sint32 event = gtmain_frame_event_open(event_class, specification, 0x1000u, callback);
+        w_u32(0x800C0A60u + i * 4u, (uint32)event);
     }
     return 16u;
 }

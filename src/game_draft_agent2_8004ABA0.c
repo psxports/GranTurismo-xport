@@ -1,39 +1,47 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include <stdio.h>
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_8004ABA0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static uint32 part_inventory(uint32 inventory, sint32 type)
 {
-    sint32 v2 = 0;
-    sint32 result = 0;
-    sint32 v5 = 0;
-    sint32 v6 = 0;
-  if ( !r_u8(v2 + 95) || (result = 0, a1 == 34) )
-  {
-    v5 = r_u16(a0 + (uint8)r_u8(0x800941BDu + 1u * (a1)));
-    result = 0;
-    if ( r_u16(a0 + (uint8)r_u8(0x800941BDu + 1u * (a1))) )
-    {
-      v6 = r_u8(gt_draft_unresolved_call(0x8006C12Cu, r_u32(0x800BEA68u), a1, 0, 0, 0, 0, 0, 0) + ((v5 - 1) >> 3)) & (1 << ((v5 - 1) & 7));
-      gt_draft_unresolved_call(0x8008B7D8u, "\t    check a parts : type %d --- <%d> :", a1, v5, 0, 0, 0, 0, 0);
-      if ( v6 )
-      {
-        if ( gt_draft_unresolved_call(0x8006C058u, r_u32(r_u32(0x800BEA64u)) & 0xFFF, a1, v5, -2146603044, 0, 0, 0, 0) )
-        {
-          gt_draft_unresolved_call(0x8008B7D8u, 0x8008DD94u, 0, 0, 0, 0, 0, 0, 0);
-          return 0;
-        }
-        else
-        {
-          gt_draft_unresolved_call(0x8008B7D8u, 0 /* TODO Address for 0x8008DD7Cu */, 0, 0, 0, 0, 0, 0, 0);
-          return -3;
-        }
-      }
-      else
-      {
-        gt_draft_unresolved_call(0x8008B7D8u, 0 /* TODO Address for 0x8008DD70u */, 0, 0, 0, 0, 0, 0, 0);
+    /* TODO Bind unselected inventory bit-table lookup 8006C12C */
+    return gt_draft_unresolved_call(0x8006C12Cu, inventory, (uint32)type,
+        0u, 0u, 0u, 0u, 0u, 0u);
+}
+static uint32 part_equipment_fit(uint32 car, sint32 type, uint32 item, uint32 output)
+{
+    /* TODO Bind unselected four-argument equipment check 8006C058 */
+    return gt_draft_unresolved_call(0x8006C058u, car, (uint32)type,
+        item, output, 0u, 0u, 0u, 0u);
+}
+static void part_status_log(uint32 format)
+{
+    printf((const char *)psx_addr(format, 1u));
+}
+
+/* TODO Resolve independent inventory and equipment services */
+/* GTMAIN.EXE 8004ABA0 */
+sint32 gt_draft_8004ABA0(uint32 target, sint32 part_type, uint32 context)
+{
+    uint32 offset, item, bits, index, available, current, car;
+    if (r_u8(context + 95u) && part_type != 34) return 0;
+    offset = r_u8(0x800941BDu + (uint32)part_type);
+    item = r_u16(target + offset);
+    if (!item) return 0;
+    bits = part_inventory(r_u32(0x800BEA68u), part_type);
+    index = item - 1u;
+    available = r_u8(bits + (index >> 3)) & (1u << (index & 7u));
+    printf((const char *)psx_addr(0x8008DD48u, 1u), (int)part_type, (int)item);
+    if (!available) {
+        part_status_log(0x8008DD70u);
         return -2;
-      }
     }
-  }
-  return result;
+    current = r_u32(0x800BEA64u);
+    car = r_u16(current) & 4095u;
+    if (!part_equipment_fit(car, part_type, item, 0x800D6FDCu)) {
+        part_status_log(0x8008DD7Cu);
+        return -3;
+    }
+    part_status_log(0x8008DD94u);
+    return 0;
 }

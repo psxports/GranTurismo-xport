@@ -22,6 +22,13 @@ uint32 gtmain_race_driver_selection(uint32 index, uint32 archive)
     return value;
 }
 
+static void race_saved_selection(uint32 index, uint32 selection, uint32 archive)
+{
+    /* TODO Bind unrecorded saved-selection service 8001E810 when observed */
+    gt_draft_unresolved_call(0x8001E810u, index, selection, archive, 0, 0, 0, 0, 0);
+}
+
+/* Independent record lookup and name-binding owners retain their TODOs */
 /* GTMAIN.EXE 8001E988 */
 uint32 gtmain_race_driver_configurations(uint32 archive, uint32 kind,
     uint32 mode, uint32 section)
@@ -30,17 +37,16 @@ uint32 gtmain_race_driver_configurations(uint32 archive, uint32 kind,
     w_u8(0x800CBC15u, (uint8)section);
     gtmain_car_archive_records_load(archive);
     gtmain_opponent_configurations(archive, section);
-    /* TODO Bind unrecorded saved-selection call 8001E810 if actually reached */
     if (mode == 1u) {
-        gt_draft_unresolved_call(0x8001E810u, 1u, 0x800CDDD8u, archive, 0, 0, 0, 0, 0);
+        race_saved_selection(1u, 0x800CDDD8u, archive);
         count = 2u;
     } else if (mode == 2u) {
         if (kind == 1u) {
             gtmain_race_driver_selection(0u, archive);
             gtmain_race_driver_selection(1u, archive);
         } else if (kind == 2u) {
-            gt_draft_unresolved_call(0x8001E810u, 0u, 0x800CB7FAu, archive, 0, 0, 0, 0, 0);
-            gt_draft_unresolved_call(0x8001E810u, 1u, 0x800CB85Au, archive, 0, 0, 0, 0, 0);
+            race_saved_selection(0u, 0x800CB7FAu, archive);
+            race_saved_selection(1u, 0x800CB85Au, archive);
         }
         count = 2u;
         goto Build;

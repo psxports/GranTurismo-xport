@@ -1,5 +1,11 @@
 #include "game_first2_registry.h"
 
+static void menu_arrow(uint32 address, uint32 ordering, sint32 x, sint32 y, uint32 color)
+{
+    /* TODO Bind unselected original arrow bodies 8003B5B8, 8003B600, 8003B690 and 8003B648 */
+    (void)gt_draft_unresolved_call(address, ordering, (uint32)x, (uint32)y, color, 0u, 0u, 0u, 0u);
+}
+
 /* GTMAIN.EXE 800412F0 */
 uint32 gtmain_menu_item_transition_draw(uint32 output, uint32 ordering,
     uint32 selector, sint32 x, sint32 y, sint32 intensity, uint32 flags)
@@ -48,25 +54,22 @@ uint32 gtmain_menu_item_transition_draw(uint32 output, uint32 ordering,
         uint32 orientation = r_u8(selector + 12u);
         if (!(orientation & 32u) && (sint8)r_u8(0x80091B41u) && (flags & 1u)) {
             orientation &= 31u;
-            /* TODO Bind the four unrecorded original arrow bodies */
             if (orientation == 1u) {
                 offset = (sint16)r_u16(selector + 4u) >> 1;
-                (void)gt_draft_unresolved_call(0x8003B5B8u, ordering, (sint16)x,
-                    (uint32)(sint32)(sint16)y - (uint32)offset - 12u, color, 0, 0, 0, 0);
+                menu_arrow(0x8003B5B8u, ordering, (sint16)x,
+                    (sint32)((uint32)(sint32)(sint16)y - (uint32)offset - 12u), color);
                 offset = (sint16)r_u16(selector + 4u) >> 1;
-                (void)gt_draft_unresolved_call(0x8003B600u, ordering, (sint16)x,
-                    (uint32)(sint32)(sint16)y + (uint32)offset + 12u, color, 0, 0, 0, 0);
+                menu_arrow(0x8003B600u, ordering, (sint16)x,
+                    (sint32)((uint32)(sint32)(sint16)y + (uint32)offset + 12u), color);
             } else if (!orientation) {
                 offset = (sint16)r_u16(selector + 2u) >> 1;
-                (void)gt_draft_unresolved_call(0x8003B690u, ordering,
-                    (uint32)(sint32)(sint16)x - (uint32)offset - 12u, (sint16)y, color, 0, 0, 0, 0);
+                menu_arrow(0x8003B690u, ordering,
+                    (sint32)((uint32)(sint32)(sint16)x - (uint32)offset - 12u), (sint16)y, color);
                 offset = (sint16)r_u16(selector + 2u) >> 1;
-                (void)gt_draft_unresolved_call(0x8003B648u, ordering,
-                    (uint32)(sint32)(sint16)x + (uint32)offset + 12u, (sint16)y, color, 0, 0, 0, 0);
+                menu_arrow(0x8003B648u, ordering,
+                    (sint32)((uint32)(sint32)(sint16)x + (uint32)offset + 12u), (sint16)y, color);
             }
             (void)gtmain_packet_page(ordering, 544);
-            step = (sint8)r_u8(selector + 15u);
-            current_intensity = (255 * step) / 12;
         }
     }
     step = (sint8)r_u8(selector + 1u);

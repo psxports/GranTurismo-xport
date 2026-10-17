@@ -40,7 +40,7 @@ gt_draft_gte_write(25, 1, carrier_v0);
   v6 = r_u32(0x800BFF6Cu) == 0 ? 0xF0 : 0;
   gt_draft_unresolved_call(0x8006F498u, r_u32(0x800B6388u), v6 << 11, v6 << 10, ((v6 + 239) << 10) | 0x13F, 0, 0, 0, 0);
     w_u32(a0 + 772, r_u32(0x800B6388u) + 16768);
-  gt_draft_8001A0E0((uint32)a0, 0, 0, 0, 0, 0, 0, 0);
+  gt_draft_8001A0E0((uint32)a0);
   gt_draft_unresolved_call(0x800250C8u, a0, r_u32(0x800B6388u), 1, 0, 0, 0, 0, 0);
   gt_draft_unresolved_call(0x80021EE4u, a0, r_u32(0x800B6388u), 0, 0, 0, 0, 0, 0);
   gt_draft_unresolved_call(0x8006F624u, r_u32(0x800B6388u), 0x8008FB4Cu, 0, 0, 0, 0, 0, 0);

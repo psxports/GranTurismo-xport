@@ -1,9 +1,9 @@
 #include "game_first2_registry.h"
+#include <stdlib.h>
 
-static void decimal_put(char buffer[64], sint32 at, uint8 value)
+static void decimal_put(char *buffer, size_t capacity, size_t at, uint8 value)
 {
-    /* TODO Resolve storage contract for precision exceeding native buffer */
-    if (at < 0 || at >= 63) gt_draft_failure("Menu decimal native storage", 0x80043CB0u);
+    if (at >= capacity - 1u) gt_draft_failure("Menu decimal native storage", 0x80043CB0u);
     buffer[at] = (char)value;
 }
 
@@ -19,14 +19,23 @@ static void decimal_draw(uint32 ordering, sint32 x, sint32 y, const char *text, 
     gt_draft_failure("Menu decimal style draw", 0x80036068u);
 }
 
+/* GTMAIN.EXE 80043CB0 */
 uint32 gtmain_menu_decimal_draw(uint32 ordering, sint32 x, sint32 y,
     sint32 value, sint32 precision, uint32 suffix, uint8 intensity, uint32 style)
 {
-    char buffer[64];
-    sint32 at = 62, count = 0, quotient, draw_x;
-    uint32 descriptor = 0, icon_x = (uint32)x;
+    char local[32], *buffer = local;
+    size_t capacity = sizeof(local), end, at;
+    sint32 quotient, draw_x;
+    uint32 count = 0, descriptor = 0, icon_x = (uint32)x, result;
     uint32 color = intensity | ((uint32)intensity << 8) | ((uint32)intensity << 16) | 0x01000000u;
-    buffer[63] = 0;
+    if (precision > 29) {
+        capacity = (size_t)(uint32)precision + 3u;
+        buffer = (char *)malloc(capacity);
+        if (!buffer) gt_draft_failure("Menu decimal native allocation", 0x80043CB0u);
+    }
+    end = capacity - 2u;
+    at = end;
+    buffer[end + 1u] = 0;
     while (precision < 0)
     {
         value = (sint32)((uint32)value * 10u);
@@ -38,27 +47,27 @@ uint32 gtmain_menu_decimal_draw(uint32 ordering, sint32 x, sint32 y,
         uint8 digit = (uint8)((uint32)value + 48u - 10u * (uint32)quotient);
         value /= 10;
         --precision;
-        decimal_put(buffer, at, digit);
+        decimal_put(buffer, capacity, at, digit);
         quotient = value / 10;
         if (!precision)
         {
             --at; ++count;
-            decimal_put(buffer, at, '.');
+            decimal_put(buffer, capacity, at, '.');
         }
         if (!value) break;
         ++count; --at;
     } while (count < 16);
     if (precision > 0)
     {
-        at = 62 - count - 1;
+        at = end - count - 1u;
         do
         {
             ++count; --precision;
-            decimal_put(buffer, at, '0');
+            decimal_put(buffer, capacity, at, '0');
             if (!precision)
             {
                 --at; ++count;
-                decimal_put(buffer, at, '.');
+                decimal_put(buffer, capacity, at, '.');
             }
             --at;
         } while (precision > 0);
@@ -66,12 +75,12 @@ uint32 gtmain_menu_decimal_draw(uint32 ordering, sint32 x, sint32 y,
     if (!precision)
     {
         ++count;
-        decimal_put(buffer, 62 - count, '0');
+        decimal_put(buffer, capacity, end - count, '0');
     }
     draw_x = x;
     if (style != 1u)
-        draw_x = (sint32)((uint32)x - (uint32)decimal_width(style, buffer + 62 - count));
-    decimal_draw(ordering, draw_x, y, buffer + 62 - count, style);
+        draw_x = (sint32)((uint32)x - (uint32)decimal_width(style, buffer + end - count));
+    decimal_draw(ordering, draw_x, y, buffer + end - count, style);
     switch (suffix)
     {
     case 1: icon_x -= 4u; descriptor = 12; break;
@@ -88,5 +97,7 @@ uint32 gtmain_menu_decimal_draw(uint32 ordering, sint32 x, sint32 y,
         uint32 dimensions = r_u32(record + 8u);
         gtmain_packet_sprite(ordering, (icon_x & 65535u) | ((uint32)y << 16), texture, dimensions, color);
     }
-    return gtmain_packet_page(ordering, 552);
+    result = gtmain_packet_page(ordering, 552);
+    if (buffer != local) free(buffer);
+    return result;
 }

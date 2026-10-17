@@ -1,10 +1,13 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
 #include <string.h>
 
 static uint32 gtmain_card_read(uint32 channel, uint32 sector, uint32 buffer)
 {
     sint32 port = (sint32)channel / 16;
     uint32 offset = (uint32)port * 4u;
+    /* Empty sockets take the existing directory read-failure path */
+    if (!gtmain_card_native_present(channel)) return 0u;
     if (!(r_u8(0x7568u + (uint32)port) & 1u) || (sint32)sector < 0 || sector >= 0x401u)
         return 0u;
     w_u32(0x7514u, 0u);

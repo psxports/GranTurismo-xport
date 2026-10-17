@@ -1,5 +1,23 @@
 #include "game_first2_registry.h"
 
+static uint32 menu_request(uint32 address, uint32 owner)
+{
+    /* TODO Bind unselected request bodies 80047CA0 and 800477E0 */
+    return gt_draft_unresolved_call(address, owner, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+static uint32 menu_index_request(uint32 owner, sint32 index)
+{
+    /* TODO Bind unselected indexed request 80049898 */
+    return gt_draft_unresolved_call(0x80049898u, owner, (uint32)index, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+static uint32 menu_detail_request(uint32 owner, uint32 index, uint32 first, uint32 second, uint32 flags, uint32 kind)
+{
+    /* TODO Bind unselected six-argument request 800492EC */
+    return gt_draft_unresolved_call(0x800492ECu, owner, index, first, second, flags, kind, 0u, 0u);
+}
+
 /* GTMAIN.EXE 8003DC70 */
 uint32 gtmain_menu_mode_dispatch(sint32 mode)
 {
@@ -79,16 +97,15 @@ uint32 gtmain_menu_mode_dispatch(sint32 mode)
     case 40: case 41: case 42: case 43: case 45: case 46:
         w_u16(0x801F2030u, 65535u);
         return 0xFFFFFFFFu;
-    /* TODO Bind unrecorded original game request bodies */
     case 27:
-        return gt_draft_unresolved_call(0x80047CA0u, r_u32(0x801F1FDCu), 0, 0, 0, 0, 0, 0, 0);
+        return menu_request(0x80047CA0u, r_u32(0x801F1FDCu));
     case 35:
-        return gt_draft_unresolved_call(0x800477E0u, r_u32(0x801F1FDCu), 0, 0, 0, 0, 0, 0, 0);
+        return menu_request(0x800477E0u, r_u32(0x801F1FDCu));
     case 37:
         owner = r_u32(0x801F1FDCu);
         index = (sint16)r_u16(0x801F229Eu);
         w_u8(0x801F202Cu, 1u);
-        return gt_draft_unresolved_call(0x80049898u, owner, (uint32)index, 0, 0, 0, 0, 0, 0);
+        return menu_index_request(owner, index);
     case 38:
         fourth = r_u8(0x801F2037u);
         owner = r_u32(0x801F1FDCu);
@@ -96,7 +113,7 @@ uint32 gtmain_menu_mode_dispatch(sint32 mode)
         fifth = r_u8(0x801F2040u);
         second = (uint32)(sint32)(sint8)r_u8(0x801F2034u);
         third = (uint32)(sint32)(sint8)r_u8(0x801F2035u);
-        return gt_draft_unresolved_call(0x800492ECu, owner, first, second, third, fourth, fifth, 0, 0);
+        return menu_detail_request(owner, first, second, third, fourth, fifth);
     default:
         return result;
     }

@@ -16,13 +16,13 @@ uint32 gtmain_font_spaced_draw(uint32 guest_font, uint32 ordering_link, sint32 x
     sint32 next = (sint8)r_u8(text);
     uint32 clut = r_u16(guest_font + 24u), link = result;
     if (next) {
-        uint32 link_byte = link + 2u, field = packet + 2u;
+        uint32 field = packet + 2u;
         do {
             uint32 character = (uint8)next, glyph = glyphs + character * 8u;
             uint32 shape = r_u32(glyph), metrics = r_u32(glyph + 4u);
             uint32 height = shape >> 24;
             if (height) {
-                uint32 previous_high;
+                uint32 previous_link;
                 w_u32(packet, 0x04000000u);
                 w_u16(field + 8u, y_word + ((metrics >> 8) & 255u));
                 w_u16(field + 14u, (shape >> 16) & 255u);
@@ -31,10 +31,13 @@ uint32 gtmain_font_spaced_draw(uint32 guest_font, uint32 ordering_link, sint32 x
                 w_u16(field + 16u, height);
                 w_u16(field + 10u, shape);
                 w_u16(field + 12u, clut);
-                /* LWL and SWL update only the high link byte at these aligned offsets */
-                previous_high = r_u8(link_byte);
+                /* LWL and SWL carry all three link bytes at the aligned tag */
+                previous_link = r_u8(link) | ((uint32)r_u8(link + 1u) << 8) |
+                    ((uint32)r_u8(link + 2u) << 16);
                 w_u8(link, packet); w_u8(link + 1u, packet >> 8); w_u8(link + 2u, packet >> 16);
-                w_u8(field, previous_high);
+                w_u8(packet, previous_link);
+                w_u8(packet + 1u, previous_link >> 8);
+                w_u8(packet + 2u, previous_link >> 16);
                 field += 20u; packet += 20u;
             }
             ++text;

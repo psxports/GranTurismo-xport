@@ -14,7 +14,6 @@ sint32 gtmain_menu_result_list_tick(void)
     sint32 result = 0;
     uint32 phase;
     (void)gtmain_menu_phase_tick();
-    /* TODO Stream pause dependencies remain partial */
     gtmain_menu_stream_check();
     phase = r_u16(0x801D2FE4u);
     switch (phase) {

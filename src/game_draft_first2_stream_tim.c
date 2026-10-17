@@ -1,21 +1,26 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 #include "psx_spu.h"
+#include <stdint.h>
 
 static void stream_playlist_shuffle(uint32 data, uint32 count)
 {
     /* TODO Bind the unselected shuffle owner with its meaningful count argument */
-    (void)data; (void)count;
     gt_draft_failure("GTMAIN stream playlist shuffle", 0x8007917Cu);
 }
 
 static uint32 texture_source_extent(uint32 resource)
 {
-    uint32 segment = resource & 0xE0000000u, physical = resource & 0x1FFFFFFFu;
-    /* TODO Bind resources outside the actual GTMAIN initialized-data container */
-    if (segment != 0x80000000u || physical < 0x8B848u || physical > 0xB38F4u - 16u)
-        gt_draft_failure("GTMAIN compressed texture container unavailable", 0x80070598u);
-    return 0xB38F4u - (physical + 16u);
+    uintptr_t source = (uintptr_t)psx_addr(resource + 16u, 1u);
+    uintptr_t dram = (uintptr_t)psx_addr(0x80000000u, 0x200000u);
+    uintptr_t scratch = (uintptr_t)psx_addr(0x1F800000u, 0x400u);
+    if (source >= dram && source - dram < 0x200000u)
+        return 0x200000u - (uint32)(source - dram);
+    if (source >= scratch && source - scratch < 0x400u)
+        return 0x400u - (uint32)(source - scratch);
+    /* TODO Bind nonmapped native resource ownership and readable extent */
+    gt_draft_failure("GTMAIN texture mapped source span unavailable", 0x80070598u);
+    return 0u;
 }
 
 uint8 *gtmain_texture_decode_native(uint8 *destination, uint32 capacity, uint32 resource)
@@ -23,6 +28,9 @@ uint8 *gtmain_texture_decode_native(uint8 *destination, uint32 capacity, uint32 
     uint32 bytes = r_u32(resource + 12u), source_capacity;
     if (!destination)
         gt_draft_failure("Native texture destination unavailable", 0x80070598u);
+    if ((sint32)bytes <= 0)
+        return gtmain_lz_decode(destination, capacity,
+            (const uint8 *)(uintptr_t)(resource + 16u), 0u, (sint32)bytes);
     source_capacity = texture_source_extent(resource);
     return gtmain_lz_decode(destination, capacity, psx_addr(resource + 16u, source_capacity),
         source_capacity, (sint32)bytes);
@@ -124,14 +132,17 @@ void gtmain_stream_begin_if_loaded(void)
 /* GTMAIN.EXE 80070144 */
 uint32 gtmain_stream_playlist_next(uint32 playlist)
 {
-    uint32 index = r_u8(playlist), count = r_u8(playlist + 1u);
+    uint32 index = r_u8(playlist);
+    uint32 count = r_u8(playlist + 1u), entry;
     ++index;
+    entry = playlist + index;
     if (index == count) {
         stream_playlist_shuffle(playlist + 2u, index);
         index = 0u;
+        entry = playlist;
     }
     w_u8(playlist, index);
-    return r_u8(playlist + index + 2u);
+    return r_u8(entry + 2u);
 }
 
 /* GTMAIN.EXE 800701E4 */
@@ -219,6 +230,9 @@ uint32 gtmain_texture_decode(uint32 destination, uint32 resource)
         destination = gtmain_heap_alloc(bytes);
         if (!destination) return 0u;
     }
+    if ((sint32)bytes <= 0)
+        return (uint32)(uintptr_t)gtmain_lz_decode((uint8 *)(uintptr_t)destination, 0u,
+            (const uint8 *)(uintptr_t)(resource + 16u), 0u, (sint32)bytes);
     source_capacity = texture_source_extent(resource);
     gtmain_lz_decode((uint8 *)psx_addr(destination, bytes), bytes,
         (const uint8 *)psx_addr(resource + 16u, source_capacity), source_capacity, (sint32)bytes);

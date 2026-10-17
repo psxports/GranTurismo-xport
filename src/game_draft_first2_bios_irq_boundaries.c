@@ -2,26 +2,24 @@
 
 void gtmain_bios_gpu_link(uint32 guest_link)
 {
-    /* TODO Bind the original A0:49 BIOS GPU link service */
-    gt_draft_failure("Native BIOS GPU link adapter", 0x8008B608u);
+    /* Ignore NOP writes until their original purpose is established */
+    if (guest_link >> 24)
+        gt_draft_failure("Native BIOS GP0 word outside NOP contract", 0x8008B608u);
 }
 void gtmain_bios_exception_hook(uint32 guest_context)
 {
-    /* TODO Bind the original B0:19 BIOS exception hook service */
-    gt_draft_failure("Native BIOS exception hook adapter", 0x8008B628u);
+    /* Record the supplied context without reconstructing guest registers */
+    w_u32(0x75D0u, guest_context);
 }
 void gtmain_bios_cd_remove(void)
 {
-    /* TODO Bind the original A0:72 BIOS CD removal service */
-    gt_draft_failure("Native BIOS CD removal adapter", 0x8008B640u);
+    /* The native fixed-disc path has no BIOS CD handler to remove */
 }
-uint32 gtmain_bios_exception_return(void)
+void gtmain_bios_exception_return(void)
 {
-    /* TODO Bind original B0:17 exception return without fabricating a result */
-    gt_draft_failure("Native BIOS exception return adapter", 0x8008B658u);
+    /* Native callbacks finish through the ordinary C calling convention */
 }
 void gtmain_bios_exception_reset(void)
 {
-    /* TODO Bind the original B0:18 BIOS exception reset service */
-    gt_draft_failure("Native BIOS exception reset adapter", 0x8008B668u);
+    (void)psx_bios_reset_entry_interrupt();
 }

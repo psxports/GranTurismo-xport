@@ -3,15 +3,30 @@
 #include <stdint.h>
 #include <string.h>
 
+static const uint8 *lz_read_span(const uint8 *owner, uint32 capacity,
+    uintptr_t address, uint32 bytes)
+{
+    uintptr_t base = (uintptr_t)owner;
+    uintptr_t dram = (uintptr_t)psx_addr(0x80000000u, 0x200000u);
+    uintptr_t scratch = (uintptr_t)psx_addr(0x1F800000u, 0x400u);
+    if (!owner) gt_draft_failure("Native LZ readable memory owner", 0x80071698u);
+    if (base >= dram && base - dram < 0x200000u) {
+        base = dram;
+        capacity = 0x200000u;
+    } else if (base >= scratch && base - scratch < 0x400u) {
+        base = scratch;
+        capacity = 0x400u;
+    }
+    if (address < base || address - base > capacity ||
+        bytes > capacity - (uint32)(address - base))
+        gt_draft_failure("Native LZ readable memory span", 0x80071698u);
+    return (const uint8 *)address;
+}
+
 static uint32 lz_source_word(const uint8 *source, uint32 capacity, uintptr_t address)
 {
     uint32 word;
-    uintptr_t base = (uintptr_t)source;
-    if (address < base || address - base > capacity || capacity - (uint32)(address - base) < 4u) {
-        /* TODO Supply the original aligned source read span */
-        gt_draft_failure("Native LZ aligned source extent", 0x80071698u);
-    }
-    memcpy(&word, (const void *)address, 4u);
+    memcpy(&word, lz_read_span(source, capacity, address, 4u), 4u);
     return word;
 }
 
@@ -24,13 +39,14 @@ uint8 *gtmain_lz_decode(uint8 *destination, uint32 destination_capacity,
     if (remaining <= 0) return destination;
     if (!destination || (uint32)remaining > destination_capacity)
         gt_draft_failure("Native LZ output extent", 0x80071698u);
+    (void)lz_read_span(destination, destination_capacity, (uintptr_t)destination, (uint32)remaining);
     while (remaining > 0) {
         uint32 word, amount, distance, i;
         uintptr_t address;
         flags >>= 1;
         if (!bit) {
-            if (cursor >= source_capacity) gt_draft_failure("Native LZ flag extent", 0x80071698u);
-            flags = source[cursor++];
+            flags = *lz_read_span(source, source_capacity, (uintptr_t)source + cursor, 1u);
+            ++cursor;
         }
         address = (uintptr_t)source + cursor;
         word = lz_source_word(source, source_capacity, address & ~(uintptr_t)3u) >> (8u * (uint32)(address & 3u));
@@ -50,18 +66,16 @@ uint8 *gtmain_lz_decode(uint8 *destination, uint32 destination_capacity,
             remaining -= (sint32)amount;
             if (remaining < 0) amount = (uint32)((sint32)amount + remaining);
             ++distance;
-            if (distance > produced) {
-                /* TODO Establish the original preceding output span for malformed streams */
-                gt_draft_failure("Native LZ backreference extent", 0x80071698u);
-            }
             if (distance >= 4u) while (amount >= 4u) {
                 uint8 bytes[4];
-                memcpy(bytes, destination + produced - distance, 4u);
+                memcpy(bytes, lz_read_span(destination, destination_capacity,
+                    (uintptr_t)destination + produced - distance, 4u), 4u);
                 memcpy(destination + produced, bytes, 4u);
                 produced += 4u; amount -= 4u;
             }
             for (i = 0; i < amount; ++i) {
-                uint8 value = destination[produced - distance];
+                uint8 value = *lz_read_span(destination, destination_capacity,
+                    (uintptr_t)destination + produced - distance, 1u);
                 destination[produced++] = value;
             }
         }

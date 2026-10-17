@@ -55,7 +55,7 @@ uint32 gt_draft_80025EAC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
         result = 2;
         if ((v0 >= ((uint32)(((uint32)(15) * (uint32)(r_u32((uint32)(0x800BF518))))) + (uint32)(56))))
           goto LABEL_15;
-        v3 = (gt_draft_80030B20(r_u32((uint32)(0x800BF518)), 0u, 0u, 0u, 0u, 0u, 0u, 0u) < 0);
+        v3 = (gt_draft_80030B20() < 0);
         result = 2;
         if (!v3)
           goto LABEL_15;

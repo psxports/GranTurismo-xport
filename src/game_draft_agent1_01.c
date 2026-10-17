@@ -7,12 +7,11 @@ uint32 gt_draft_800380B4(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint3
     return gtmain_menu_countdown_toggle_tail((sint32)a4);
 }
 
-uint32 gt_draft_8001A068(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint32 a5,uint32 a6,uint32 a7)
+uint32 gt_draft_8001A068(void)
 {
-    /* TODO Arguments absent from the pseudocode remain unresolved */
-    gt_draft_80019F10(a0,a1,a2,a3,a4,a5,a6,a7);
+    gt_draft_80019F10();
     gtmain_mode_init();
-    return gt_draft_8001A098(0,0,0,0,0,0,0,0);
+    return gt_draft_8001A098();
 }
 
 uint32 gt_draft_8001DF30(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint32 a5,uint32 a6,uint32 a7)

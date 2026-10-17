@@ -20,7 +20,6 @@ uint32 gtmain_menu_race_roster_draw(uint32 ordering, sint32 x, sint32 y, sint32 
     uint32 row;
     digit[0] = 0;
     digit[1] = 0;
-    /* TODO Descriptor arrows and indicator dependencies remain partial */
     (void)gtmain_menu_descriptor_draw(ordering + 4u, 0x80091BD8u,
         (sint32)((uint32)x + 32u), (sint32)((uint32)y + 72u), intensity, 1, descriptor, sizeof descriptor);
     gtmain_text_flags(0);

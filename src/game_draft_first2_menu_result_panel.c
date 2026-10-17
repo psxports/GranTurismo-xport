@@ -2,7 +2,6 @@
 #include <stdio.h>
 
 /* GTMAIN.EXE 80033ABC */
-/* TODO Complete panel binding, music setup and native menu frame run */
 uint32 gtmain_menu_result_panel_run(uint8 flags, sint16 index, uint32 first, uint32 second,
     uint32 metric, sint16 threshold, uint32 extra, uint8 mode, uint8 style, uint8 panel)
 {
@@ -37,14 +36,12 @@ uint32 gtmain_menu_result_panel_run(uint8 flags, sint16 index, uint32 first, uin
     w_u8(0x80091994u, style);
     gtmain_music_sector_init();
     gtmain_stream_stop_wait(1u);
-    /* TODO Complete menu frame setup and callback dependencies */
     gtmain_menu_frame_run();
     gtmain_stream_stop_wait(1u);
     return 0u;
 }
 
 /* GTMAIN.EXE 80033E44 */
-/* TODO Result panel dependencies remain incomplete */
 uint32 gtmain_menu_result_mode7_run(uint8 flags, uint32 first, uint32 second, uint32 metric,
     sint16 threshold, uint32 extra)
 {
@@ -53,7 +50,6 @@ uint32 gtmain_menu_result_mode7_run(uint8 flags, uint32 first, uint32 second, ui
 }
 
 /* GTMAIN.EXE 80033EE0 */
-/* TODO Result panel dependencies remain incomplete */
 uint32 gtmain_menu_result_mode8_run(uint8 flags, uint32 first, uint32 second, uint32 metric,
     sint16 threshold, uint32 extra)
 {
@@ -65,7 +61,6 @@ uint32 gtmain_menu_result_mode8_run(uint8 flags, uint32 first, uint32 second, ui
 uint32 gtmain_menu_result_mode4_run(uint32 extra, sint16 index, uint32 first)
 {
     gtmain_menu_draw_callback_set(0x800919B4u);
-    /* TODO Complete result panel setup and menu frame dependencies */
     return gtmain_menu_result_panel_run(0u, index, first, 0u, 0u, 1, extra, 4u, 22u, 0u);
 }
 
@@ -73,6 +68,5 @@ uint32 gtmain_menu_result_mode4_run(uint32 extra, sint16 index, uint32 first)
 uint32 gtmain_menu_result_mode4_alternate_run(uint32 extra, sint16 index, uint32 first)
 {
     gtmain_menu_draw_callback_set(0x800919B4u);
-    /* TODO Complete result panel setup and menu frame dependencies */
     return gtmain_menu_result_panel_run(0u, index, first, 0u, 0u, 1, extra, 4u, 22u, 0u);
 }

@@ -1,20 +1,21 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 /* Unverified draft adapted from existing phase polygon translation */
-/* TODO Preserve byte lane bus semantics in an eventual unaligned access adapter */
-uint32 gt_draft_8001A0E0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* GTMAIN.EXE 8001A0E0 */
+uint32 gt_draft_8001A0E0(uint32 context)
 {
     uint32 positions[3][4], lengths[3], colors[3];
     uint32 config = r_u32(0x8008F220u);
+    uint32 top = r_u16(context + 66u), height = r_u16(context + 78u);
     uint32 material_first = r_u32(config + 16u), material_second = r_u32(config + 20u);
-    uint32 height = r_u16(a0 + 78u), coordinate = r_u16(a0 + 72u);
-    w_u16(a0 + 784u, r_u16(a0 + 66u));
-    uint8 *source = gtmain_render_source(a0);
-    w_u16(a0 + 788u, height);
+    uint32 coordinate = r_u16(context + 72u);
+    w_u16(context + 784u, top);
+    uint8 *source = gtmain_render_source(context);
+    w_u16(context + 788u, height);
     uint8 *vertices = source + 36u;
-    w_u16(a0 + 786u, coordinate);
-    uint32 head = r_u32(a0 + 772u) + 4u;
-    uint32 phase = gtmain_view_plane_intersections_native(source, psx_addr(a0 + 784u, 6u));
+    w_u16(context + 786u, coordinate);
+    uint32 head = r_u32(context + 772u) + 4u;
+    uint32 phase = gtmain_view_plane_intersections_native(source, psx_addr(context + 784u, 6u));
     uint32 opaque_first = (phase < 8u ? material_first : material_second) & 0xF7FFFFFFu;
     uint32 translucent_first = (phase < 8u ? material_first : material_second) | 0x08000000u;
     uint32 opaque_second = (phase < 8u ? material_second : material_first) & 0xF7FFFFFFu;
@@ -78,6 +79,8 @@ uint32 gt_draft_8001A0E0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
             uint32 current = r_u32(0x800BFE4Cu), next = 0;
             w_u32(0x800BFE4Cu, current + 8u + 4u * lengths[0]);
             for (uint32 packet = 0; packet < packets; ++packet) {
+                if ((head | current) & 3u)
+                    gt_draft_failure("Native phase ordering/packet alignment", 0x8001A0E0u);
                 uint32 tag = r_u8(head) | ((uint32)r_u8(head + 1u) << 8) | ((uint32)r_u8(head + 2u) << 16);
                 w_u8(head, current); w_u8(head + 1u, current >> 8); w_u8(head + 2u, current >> 16);
                 w_u8(current, tag); w_u8(current + 1u, tag >> 8); w_u8(current + 2u, tag >> 16);

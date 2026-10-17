@@ -35,7 +35,7 @@ uint32 gtmain_menu_settings_row_draw(uint32 ordering, sint32 x, sint32 y, sint32
     char text[32];
     uint8 values[64], detail[112];
     sint32 palette, length, number;
-    uint32 product, high;
+    uint32 product, high, alternate, units;
     sint32 text_y = (sint32)((uint32)y + 4u), label_y = (sint32)((uint32)y + 16u);
     corners[0] = (sint16)((uint32)x + 24u);
     corners[1] = (sint16)((uint32)y + 25u);
@@ -44,9 +44,10 @@ uint32 gtmain_menu_settings_row_draw(uint32 ordering, sint32 x, sint32 y, sint32
     gtmain_packet_outline_native(ordering, corners,
         gtmain_menu_palette_color(5, (sint32)((uint32)intensity << 1u)) | 0x02000000u);
     gtmain_text_font(2);
+    alternate = r_u8(0x800BEA24u);
     text[0] = (char)((uint32)row + 49u); text[1] = '.'; text[2] = 0;
     palette = 6;
-    if ((sint8)r_u8(0x800BEA24u))
+    if (alternate)
     {
         sint32 index = row < 4 ? row : 3;
         palette = (sint8)r_u8(0x80091B28u + 4u * (uint32)index + (r_u8(0x80091B40u) & 3u));
@@ -66,8 +67,9 @@ uint32 gtmain_menu_settings_row_draw(uint32 ordering, sint32 x, sint32 y, sint32
     number = settings_summary(descriptor, values, detail);
     settings_number(text, number, 0x800BCF1Eu);
     settings_text(ordering, (sint32)((uint32)x + 88u), label_y, text, 8, 1);
+    units = r_u8(0x800C4C3Du);
     number = (sint16)r_u16(descriptor + 90u);
-    if (!r_u8(0x800C4C3Du))
+    if (!units)
     {
         product = (uint32)number * 22046u;
         high = (uint32)((uint64)((sint64)(sint32)product * 0x68DB8BAD) >> 32u);

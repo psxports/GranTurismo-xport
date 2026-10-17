@@ -1,4 +1,5 @@
 #include "game_first2_registry.h"
+#include "game_draft_registry.h"
 
 static sint32 menu_high_divide(sint32 value, uint32 multiplier, uint32 shift)
 {
@@ -60,9 +61,29 @@ uint32 gtmain_menu_sprite(uint32 guest_descriptor, uint32 ordering, uint16 x, si
     (void)gtmain_packet_sprite(ordering, (uint32)x | ((uint32)y << 16), uv, dimensions, color);
     return gtmain_packet_page(ordering, (uint16)(r_u16(guest_descriptor) | 0x220u));
 }
+static uint32 menu_panel_callback_dispatch(uint32 token, uint32 ordering, sint32 x,
+    sint32 y, uint32 display_y, uint32 fade)
+{
+    switch (token) {
+    case 0x800365ECu:
+        return gtmain_menu_race_list_draw(ordering, x, y, (sint32)fade);
+    case 0x8003F6A4u:
+        return gtmain_menu_record_screen_draw(ordering, x, y, display_y, (sint32)fade);
+    case 0x80044A48u:
+        return gtmain_menu_settings_rows_draw(ordering, x, y, (sint32)display_y, (sint32)fade);
+    case 0x80045128u:
+        return gt_draft_80045128(ordering, x, y, (sint32)display_y, (sint32)fade);
+    case 0x80045718u:
+        return gt_draft_80045718(ordering, x, y, (sint32)display_y, (sint32)fade);
+    case 0x80045CF0u:
+        return gt_draft_80045CF0(ordering, x, y, display_y, (sint32)fade);
+    default:
+        /* TODO Bind remaining original five-argument callback targets */
+        gt_draft_failure("GTMAIN menu panel callback target", token);
+    }
+}
+
 uint32 gtmain_menu_panel_callback(uint32 token, uint32 ordering, sint32 x, sint32 y, uint32 display_y, uint32 fade)
 {
-    /* TODO Dispatch original token with five semantic arguments and actual result */
-    (void)ordering; (void)x; (void)y; (void)display_y; (void)fade;
-    gt_draft_failure("Native menu panel callback adapter", token);
+    return menu_panel_callback_dispatch(token, ordering, x, y, display_y, fade);
 }

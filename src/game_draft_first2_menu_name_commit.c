@@ -20,9 +20,8 @@ static void name_log_message(uint32 format)
 /* GTMAIN.EXE:800336D8 */
 sint32 gtmain_menu_name_commit_tick(void)
 {
-    uint32 input = r_u32(0x800BDD08u), copy_default = 0, descriptor;
+    uint32 input = r_u32(0x800BDD08u), copy_default = 0, descriptor, record;
     sint32 selected, index;
-    /* TODO Stream pause dependencies remain partial */
     gtmain_menu_stream_check();
     if (!r_s8(input)) return 0;
     selected = gtmain_menu_name_edit(0x8009196Cu, input + 2u);
@@ -50,7 +49,8 @@ sint32 gtmain_menu_name_commit_tick(void)
         if (index >= 0) {
             (void)gtmain_string_copy(r_u32(0x801D2FF4u) + 20u * (uint32)index, 0x801D300Cu);
             index = r_s16(0x801D2FEEu);
-            name_log_string(0x8008CA78u, r_u32(0x801D2FF4u) + 20u * (uint32)index);
+            record = r_u32(0x801D2FF4u) + 20u * (uint32)index;
+            name_log_string(0x8008CA78u, record);
         }
         break;
     case 3: case 4:
@@ -58,7 +58,8 @@ sint32 gtmain_menu_name_commit_tick(void)
         if (index >= 0) {
             (void)gtmain_string_copy(r_u32(0x801D2FF0u) + 28u * (uint32)index, 0x801D300Cu);
             index = r_s16(0x801D2FEEu);
-            name_log_record(0x8008CA98u, index, 0x801D300Cu, r_u32(0x801D2FF0u) + 28u * (uint32)index);
+            record = r_u32(0x801D2FF0u) + 28u * (uint32)index;
+            name_log_record(0x8008CA98u, index, 0x801D300Cu, record);
         }
         copy_default = 1;
         break;

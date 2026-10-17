@@ -55,11 +55,13 @@ sint32 gtmain_race_sound_voice(uint32 owner, sint32 instrument_index, sint32 vol
 /* GTMAIN.EXE 8003173C */
 void gtmain_race_sound_car(uint32 scratch, uint32 car, uint32 car_index, uint32 priority_base)
 {
+    sint32 car_volume = (sint32)r_u32(car + 2204u);
     sint32 global_volume = (sint32)r_u32(0x80099548u);
-    sint32 volume = race_mul((sint32)r_u32(car + 2204u), global_volume) / 0x4000;
+    sint32 car_type = (sint16)r_u16(car + 26u);
+    sint32 volume = race_mul(car_volume, global_volume) / 0x4000;
     uint32 channel1 = car + 2120u, channel2 = car + 2160u;
     uint32 mode = r_u32(0x800B630Cu);
-    uint32 special = (uint32)((sint32)(sint16)r_u16(car + 26u) - 1) < 2u;
+    uint32 special = (uint32)(car_type - 1) < 2u;
     sint32 pitch_scale, pan = 64, first_volume, second_volume, effect_volume;
     sint16 sound_id;
     if (!volume) return;
@@ -87,8 +89,10 @@ void gtmain_race_sound_car(uint32 scratch, uint32 car, uint32 car_index, uint32 
         }
         pitch_scale = numerator / denominator;
         gtmain_matrix_rotate_short(psx_addr(scratch, 8u), psx_addr(listener + 188u, 20u), psx_addr(scratch, 8u));
-        w_u16(scratch + 16u, r_u16(scratch));
-        w_u16(scratch + 18u, r_u16(scratch + 4u));
+        uint16 rotated_x = r_u16(scratch);
+        uint16 rotated_z = r_u16(scratch + 4u);
+        w_u16(scratch + 16u, rotated_x);
+        w_u16(scratch + 18u, rotated_z);
         gtmain_vector_normalize_xy(psx_addr(scratch + 16u, 4u), psx_addr(scratch + 16u, 4u));
         pan = (sint16)r_u16(scratch + 16u);
         if (distance <= 0x7FFF) pan = (race_mul(pan, distance >> 3) >> 12) >> 5;
@@ -148,11 +152,15 @@ void gtmain_race_sound_car(uint32 scratch, uint32 car, uint32 car_index, uint32 
         gtmain_race_sound_voice(car + 2220u, 21, scaled, pan,
             (sint32)(priority_base + 4u), pitch_scale);
     }
-    if (!mode && (sint32)(sint16)r_u16(car + 74u) == (sint32)r_u32(0x800BF518u)) {
-        sint32 scaled = (sint32)(sint16)r_u16(car + 82u) * 8;
-        if (scaled >= 4096) scaled = 4096;
-        gt_draft_80031370(13u, (uint32)(race_mul(volume, scaled) >> 12),
-            (uint32)pan, priority_base + 3u, 0, 0, 0, 0);
+    if (!mode) {
+        sint32 car_tick = (sint16)r_u16(car + 74u);
+        sint32 tick_rate = (sint32)r_u32(0x800BF518u);
+        if (car_tick == tick_rate) {
+            sint32 scaled = (sint16)r_u16(car + 82u) * 8;
+            if (scaled >= 4096) scaled = 4096;
+            gtmain_race_sound_effect(13, race_mul(volume, scaled) >> 12,
+                pan, (sint32)(priority_base + 3u));
+        }
     }
 }
 

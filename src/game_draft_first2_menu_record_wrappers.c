@@ -15,7 +15,6 @@ uint32 gtmain_race_resources_load(void)
     uint32 course = r_u8(0x800B63BCu);
     uint32 camera = r_u8(gtmain_course_entry(course)) & 127u;
     gtmain_stream_mode_set(128u);
-    /* TODO Resolve native workspaces in the retained resource loaders */
     gtmain_camera_resource_load(camera);
     gtmain_race_track_load(course);
     gtmain_race_cars_load();
@@ -302,6 +301,7 @@ sint32 gtmain_race_pad_contexts_reset(void)
     return (sint8)second;
 }
 
+/* TODO Complete the independent general formatter 8007C014 */
 /* GTMAIN.EXE 8002F998 */
 uint32 gtmain_race_header_update(uint32 session)
 {
@@ -314,7 +314,6 @@ uint32 gtmain_race_header_update(uint32 session)
     destination = r_u32(0x80091224u);
     arguments[0] = r_u32(0x80091190u + session * 4u);
     arguments[1] = 0x800BDA65u;
-    /* TODO General formatter retains its documented transitive boundaries */
     gtmain_string_format(destination, 0x8008C7D4u, arguments, 2u);
     name = gtmain_resource_name(r_u32(0x800B716Cu));
     gtmain_string_copy(r_u32(0x8009126Cu), name);

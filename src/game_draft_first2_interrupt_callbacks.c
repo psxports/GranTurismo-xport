@@ -88,6 +88,11 @@ uint32 gtmain_dma_interrupt_start(void)
     (void)interrupt_bind_boundary(3, 0x8008ACB4u);
     return 0x8008AE34u;
 }
+/* Native critical exit is an authorized no-op */
+static void interrupt_finalize_native(void)
+{
+    gt_native_critical_exit();
+}
 uint32 gtmain_interrupt_start(void)
 {
     uint32 status, mask, result;
@@ -107,20 +112,24 @@ uint32 gtmain_interrupt_start(void)
     result = gtmain_dma_interrupt_start();
     w_u32(r_u32(0x800B3834u) + 4u, result);
     gtmain_bios_cd_remove();
-    /* TODO Bind unselected original interrupt finalization */
-    gt_draft_failure("Native interrupt finalization adapter", 0x8008AF28u);
+    interrupt_finalize_native();
     return 0x800B27ACu;
+}
+/* Native critical entry does not suspend callback dispatch */
+static void interrupt_suspend_native(void)
+{
+    (void)gt_native_critical_enter();
 }
 uint32 gtmain_interrupt_stop(void)
 {
-    uint32 mask, status, dma;
+    uint32 mask, status, dma, saved_dma;
     if (!r_u16(0x800B27ACu)) return 0;
-    /* TODO Bind unselected original interrupt suspension */
-    gt_draft_failure("Native interrupt suspension adapter", 0x8008AF08u);
+    interrupt_suspend_native();
     mask = r_u32(0x800B383Cu); dma = r_u32(0x800B3840u);
     w_u16(0x800B27DEu, interrupt_read16(mask));
+    saved_dma = interrupt_read32(dma);
     status = r_u32(0x800B3838u);
-    w_u32(0x800B27E0u, interrupt_read32(dma));
+    w_u32(0x800B27E0u, saved_dma);
     interrupt_write16(mask, 0);
     interrupt_write16(status, interrupt_read16(mask));
     dma = r_u32(0x800B3840u);
@@ -153,12 +162,13 @@ uint32 gtmain_interrupt_callback(uint32 index, uint32 callback_token)
     interrupt_write16(r_u32(0x800B383Cu), selected_mask);
     return old;
 }
-uint32 gtmain_interrupt_dispatch(void)
+void gtmain_interrupt_dispatch(void)
 {
     uint32 pending, status, mask, index, table;
     if (!r_u16(0x800B27ACu)) {
         printf("unexpected interrupt(%04x)\n", (unsigned)interrupt_read16(r_u32(0x800B3838u)));
-        (void)gtmain_bios_exception_return();
+        gtmain_bios_exception_return();
+        return;
     }
     status = r_u32(0x800B3838u);
     pending = r_u16(0x800B27DCu);
@@ -190,7 +200,7 @@ uint32 gtmain_interrupt_dispatch(void)
         }
     } else w_u32(0x800B3844u, 0);
     w_u16(0x800B27AEu, 0);
-    return gtmain_bios_exception_return();
+    gtmain_bios_exception_return();
 }
 uint32 gtmain_dma_interrupt_dispatch(void)
 {

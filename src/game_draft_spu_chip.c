@@ -7,7 +7,19 @@ void gtmain_spu_delay(void)
     for (iteration = 0u; iteration < 60u; ++iteration) value *= 13u;
 }
 
-void gtmain_spu_dma_complete(void)
+static uint32 spu_transfer_callback(uint32 callback)
+{
+    /* TODO Bind the configured guest callback with its actual return */
+    return gt_draft_unresolved_call(callback, 0xF0000000u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+static uint32 spu_transfer_event(void)
+{
+    /* TODO Bind BIOS DeliverEvent with its actual result */
+    return gt_draft_unresolved_call(0x8008B5D8u, 0xF0000009u, 0x20u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+uint32 gtmain_spu_dma_complete(void)
 {
     uint32 registers;
     uint32 callback;
@@ -20,21 +32,24 @@ void gtmain_spu_dma_complete(void)
             if (!(r_u16(registers + 426u) & 0x30u)) break;
     }
     callback = r_u32(0x800B237Cu);
-    if (callback) {
-        /* TODO Dispatch a configured guest transfer callback */
-        gt_draft_unresolved_call(callback, 0xF0000000u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-    } else {
-        w_u32(0x800B2378u, 1u);
-    }
+    if (callback) return spu_transfer_callback(r_u32(0x800B237Cu));
+    return spu_transfer_event();
+}
+
+static uint32 spu_transfer_timeout(uint32 message)
+{
+    /* TODO Bind the original diagnostic service with its actual return */
+    return gt_draft_unresolved_call(0x8008B7D8u, 0x8008EE78u, message, 0u, 0u, 0u, 0u, 0u, 0u);
 }
 
 uint32 gtmain_spu_transfer(uint32 source, uint32 size)
 {
     uint32 registers = r_u32(0x800B2344u);
+    uint32 address = r_u16(0x800B235Cu);
     uint32 initial_status = r_u16(registers + 430u) & 0x7FFu;
     uint32 result;
     uint32 polls;
-    w_u16(registers + 422u, r_u16(0x800B235Cu));
+    w_u16(registers + 422u, address);
     gtmain_spu_delay();
     while (size) {
         uint32 chunk = size < 65u ? size : 64u;
@@ -52,7 +67,7 @@ uint32 gtmain_spu_transfer(uint32 source, uint32 size)
             for (polls = 1u; polls < 0xF01u; ++polls)
                 if (!(r_u16(r_u32(0x800B2344u) + 430u) & 0x400u)) break;
             if (polls == 0xF01u)
-                gt_draft_unresolved_call(0x8008B7D8u, 0x8008EE78u, 0x8008EE98u, 0u, 0u, 0u, 0u, 0u, 0u);
+                (void)spu_transfer_timeout(0x8008EE98u);
         }
         size -= chunk;
         gtmain_spu_delay();
@@ -66,7 +81,7 @@ uint32 gtmain_spu_transfer(uint32 source, uint32 size)
             result = r_u16(r_u32(0x800B2344u) + 430u) & 0x7FFu;
             if (result == initial_status) return result;
         }
-        return gt_draft_unresolved_call(0x8008B7D8u, 0x8008EE78u, 0x8008EEACu, 0u, 0u, 0u, 0u, 0u, 0u);
+        return spu_transfer_timeout(0x8008EEACu);
     }
     return result;
 }
@@ -93,7 +108,7 @@ uint32 gtmain_spu_chip_init(uint32 mode)
         for (polls = 1u; polls < 0xF01u; ++polls)
             if (!(r_u16(r_u32(0x800B2344u) + 430u) & 0x7FFu)) break;
         if (polls == 0xF01u)
-            gt_draft_unresolved_call(0x8008B7D8u, 0x8008EE78u, 0x8008EE88u, 0u, 0u, 0u, 0u, 0u, 0u);
+            (void)spu_transfer_timeout(0x8008EE88u);
     }
     w_u32(0x800B2368u, 2u);
     w_u32(0x800B236Cu, 3u);
@@ -134,8 +149,9 @@ uint32 gtmain_spu_chip_init(uint32 mode)
         w_u16(registers + 398u, 255u);
         for (index = 0u; index < 4u; ++index) gtmain_spu_delay();
     }
+    registers = r_u32(0x800B2344u);
     w_u32(0x800B2378u, 1u);
-    w_u16(r_u32(0x800B2344u) + 426u, 0xC000u);
+    w_u16(registers + 426u, 0xC000u);
     w_u32(0x800B237Cu, 0u);
     w_u32(0x800B2380u, 0u);
     return 0u;

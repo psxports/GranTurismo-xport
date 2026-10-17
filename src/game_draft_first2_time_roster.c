@@ -18,7 +18,7 @@ static void time_roster_format(char output[64], uint32 format, const sint32 *arg
     gt_draft_failure("GTMAIN time roster formatting", 0x8007C014u);
 }
 
-static sint32 time_roster_width(const char text[64])
+static sint32 time_roster_width(sint32 font, const char text[64])
 {
     /* TODO Bind native string to font2 width service */
     gt_draft_failure("GTMAIN time roster native width", 0x8006C900u);
@@ -29,7 +29,6 @@ void gtmain_race_time_roster_draw(uint32 ordering, sint32 y, sint32 count)
 {
     uint32 node, leader_time, row = 0u;
     char text[64];
-    /* TODO Native fixed-text and formatting adapters remain unresolved */
     gtmain_text_font(2);
     gtmain_text_advance(10);
     node = r_u32(0x8008F3E4u);
@@ -50,7 +49,7 @@ void gtmain_race_time_roster_draw(uint32 ordering, sint32 y, sint32 count)
         } else if (r_u32(node + 32u) == 0xFFFFFFFFu) {
             sint32 width;
             time_roster_format(text, 0x800BD9FFu, NULL, 0u);
-            width = time_roster_width(text);
+            width = time_roster_width(2, text);
             gtmain_font_string_draw_native(0x800C0070u, ordering,
                 (sint32)(304u - (uint32)width), y, text);
         } else {

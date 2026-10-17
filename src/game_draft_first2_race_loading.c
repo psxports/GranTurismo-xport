@@ -7,11 +7,27 @@ static void gtmain_loading_packets_bind(uint32 *first, uint32 *second, uint32 co
     gtmain_frame_tables_bind(first, second, count);
 }
 
-static void gtmain_loading_primitives_bind(uint8 *first, uint8 *second, uint32 bytes)
+static void gtmain_loading_primitives_bind(uint32 first, uint32 second, uint32 bytes)
 {
-    /* TODO Bind the two native primitive buffers */
-    (void)first; (void)second; (void)bytes;
-    gt_draft_failure("GTMAIN native loading primitives", 0x8006F0A0u);
+    gtmain_packet_buffers(first, second, bytes);
+}
+
+static uint32 loading_stack_locals(void)
+{
+    uint32 launch = r_u32(0x8008F1D8u), alternate = r_u32(0x800B1AA4u);
+    uint32 top = alternate ? alternate : launch;
+    uint32 reserve = r_u32(0x800B1B4Cu);
+    uint32 heap = r_u32(0x800B1AACu), bytes = r_u32(0x800B1AA8u);
+    uint32 extent = bytes < 16u ? 16u : bytes, base;
+    /* Live callers are 10000, 19EC0, 1A068, 2881C and 27330 */
+    const uint32 callers = 0x20u + 0x18u + 0x18u + 0x18u + 0x18u;
+    if (top < 0x80010000u + callers + 0x4140u || top > 0x80200000u || (top & 7u))
+        gt_draft_failure("GTMAIN loading stack range", 0x80028994u);
+    base = top - callers - 0x4140u;
+    if (base < 0x801FB724u || heap < 0x80010000u || heap > base || extent > base - heap ||
+        (!alternate && (reserve < callers + 0x4140u || base < launch - reserve)))
+        gt_draft_failure("GTMAIN loading stack overlap", 0x80028994u);
+    return base;
 }
 
 static sint32 gtmain_loading_context_run(const uint32 *context)
@@ -69,13 +85,15 @@ void gtmain_race_loading_draw(void)
 /* GTMAIN.EXE 80028994 */
 sint32 gtmain_race_loading_screen(void)
 {
-    uint32 ordering_first[32], ordering_second[32], context[10];
-    uint8 primitive_first[8192], primitive_second[8192];
-    gtmain_loading_packets_bind(ordering_first, ordering_second, 32u);
-    gtmain_loading_primitives_bind(primitive_first, primitive_second, 8192u);
-    /* TODO Resolve the remaining selected game frame-service bindings */
+    uint32 workspace = loading_stack_locals();
+    uint32 *context;
+    sint32 result;
+    context = (uint32 *)psx_addr(workspace + 0x10u, 40u);
+    gtmain_loading_packets_bind((uint32 *)psx_addr(workspace + 0x38u, 128u),
+        (uint32 *)psx_addr(workspace + 0xB8u, 128u), 32u);
+    gtmain_loading_primitives_bind(workspace + 0x138u, workspace + 0x2138u, 8192u);
     gtmain_display_mode_init(1u);
-    memset(context, 0, sizeof(context));
+    memset(context, 0, 40u);
     context[4] = 0x800288F4u;
     context[2] = 0x80028968u;
     context[3] = 0x80028984u;
@@ -86,6 +104,7 @@ sint32 gtmain_race_loading_screen(void)
     VSync(0);
     gtmain_race_frame_reset(5u);
     w_u32(0x8008F880u, 4u);
-    return gtmain_loading_context_run(context);
+    result = gtmain_loading_context_run(context);
+    return result;
 }
 

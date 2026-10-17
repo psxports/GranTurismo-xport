@@ -16,20 +16,17 @@ static void frame_tables_publish(uint32 *first, uint32 *second, uint32 count)
         0x80000000u + (uint32)(b - base), count);
 }
 
-static uint8 *native_frame_context;
-
 uint8 *gtmain_frame_context_get(void)
 {
-    if (native_frame_context) return native_frame_context;
     return (uint8 *)psx_addr(r_u32(0x800C0098u), 40u);
 }
 
 static void frame_context_publish(uint8 *context)
 {
-    /* TODO Bind nested native frame contexts */
-    if (!context || native_frame_context)
-        gt_draft_failure("GTMAIN native frame context lifetime", 0x800C0098u);
-    native_frame_context = context;
+    uintptr_t base = (uintptr_t)DRAM, address = (uintptr_t)context;
+    if (!context || address < base || address - base > PSX_DRAM_SIZE - 40u)
+        gt_draft_failure("GTMAIN frame context outside DRAM", 0x800C0098u);
+    w_u32(0x800C0098u, 0x80000000u + (uint32)(address - base));
 }
 
 static void frame_event_install(uint32 *event)
@@ -60,6 +57,9 @@ static sint32 frame_callback(uint32 token, uint32 argument)
     if (token == 0x8002B328u) { gtmain_race_frame_tick(); return 0; }
     if (token == 0x8002B44Cu) return gtmain_race_frame_status();
     if (token == 0x8002BA60u) { gtmain_race_frame_draw(); return 0; }
+    if (token == 0x80035810u) return (sint32)gtmain_menu_draw();
+    if (token == 0x80035AF0u) return (sint32)gtmain_menu_tick();
+    if (token == 0x80035978u) return (sint32)gtmain_menu_exit_requested();
     if (token == 0x80035D90u) return gtmain_menu_overlay_tick();
     if (token == 0x80038304u) return (sint32)gtmain_menu_end_panel_tick();
     if (token == 0x80036350u) return gtmain_menu_race_selection_tick();
@@ -68,6 +68,22 @@ static sint32 frame_callback(uint32 token, uint32 argument)
     if (token == 0x800325C4u) return gtmain_menu_result_list_tick();
     /* TODO Resolve remaining native callback identities and their typed arguments */
     gt_draft_failure("GTMAIN native frame callback", token);
+}
+
+static void frame_wait_missing(void)
+{
+    /* TODO Bind the unselected no-argument frame wait */
+    gt_draft_failure("GTMAIN frame wait service", 0x8007A1FCu);
+}
+
+static sint32 frame_status_callback(uint32 token)
+{
+    if (token == 0x8006F11Cu) return (sint32)token;
+    /* TODO Bind meaningful results of callbacks translated with a void ABI */
+    if (!token || token == 0x800288F4u || token == 0x8002B5A4u ||
+        token == 0x8002B328u || token == 0x8002BA60u)
+        gt_draft_failure("GTMAIN native frame status result", token);
+    return frame_callback(token, 0u);
 }
 
 /* GTMAIN.EXE 8006A21C */
@@ -104,10 +120,11 @@ void gtmain_font_texture_upload(uint32 destination, sint32 page, const uint8 *da
 }
 
 /* GTMAIN.EXE 8006F078 */
-void gtmain_frame_tables_bind(uint32 *first, uint32 *second, uint32 count)
+uint32 gtmain_frame_tables_bind(uint32 *first, uint32 *second, uint32 count)
 {
     frame_tables_publish(first, second, count);
     gtmain_frame_tables_clear(2);
+    return 0;
 }
 
 /* GTMAIN.EXE 80070240 */
@@ -172,8 +189,7 @@ void gtmain_frame_swap(uint32 wait_mode)
     w_u32(0x800BFF6Cu, first);
     if (wait_mode == 1u || wait_mode == 2u) {
         if (wait_mode == 2u) DrawSync(0);
-        /* TODO Bind the unselected frame wait service */
-        gt_draft_unresolved_call(0x8007A1FCu, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+        frame_wait_missing();
     }
     gtmain_frame_environments_apply();
     if (!r_u32(0x800BFF70u)) gtmain_display_mask(1u);
@@ -194,34 +210,40 @@ sint32 gtmain_frame_run(uint8 *context)
     VSync(0);
     gtmain_frame_display_begin();
     for (;;) {
-        frame_callback(frame_context_word(context, 4u), 0u);
+        callback = frame_context_word(context, 4u);
+        if (callback) frame_callback(callback, 0u);
         if (!context[38]) gtmain_frame_prepare(0u);
-        frame_callback(frame_context_word(context, 8u), 0u);
+        callback = frame_context_word(context, 8u);
+        if (callback) frame_callback(callback, 0u);
         callback = frame_context_word(context, 12u);
-        if (callback) { result = frame_callback(callback, 0u); if (result) break; }
-        frame_callback(frame_context_word(context, 16u), 0u);
+        if (callback) { result = frame_status_callback(callback); if (result) break; }
+        callback = frame_context_word(context, 16u);
+        if (callback) frame_callback(callback, 0u);
         if (!context[36]) DrawSync(0);
-        frame_callback(frame_context_word(context, 20u), 0u);
+        callback = frame_context_word(context, 20u);
+        if (callback) frame_callback(callback, 0u);
         {
             sint32 required = (sint32)r_u32(0x800BFF74u);
-            while ((sint32)r_u32(0x800C009Cu) < required) VSync(0);
+            while ((sint32)r_u32(0x800C009Cu) < required) VSync(-1);
         }
         if (context[37]) {
             w_u32(0x800C009Cu, 0u);
             while (!r_u32(0x800C009Cu)) {
-                frame_callback(frame_context_word(context, 24u), 0u);
-                VSync(0);
+                callback = frame_context_word(context, 24u);
+                if (callback) frame_callback(callback, 0u);
+                VSync(-1);
             }
         }
         w_u32(0x800C009Cu, 0u);
         if (context[36]) ResetGraph(1);
-        frame_callback(frame_context_word(context, 28u), 0u);
+        callback = frame_context_word(context, 28u);
+        if (callback) frame_callback(callback, 0u);
         gtmain_frame_swap(0u);
-        frame_callback(frame_context_word(context, 32u), 0u);
+        callback = frame_context_word(context, 32u);
+        if (callback) frame_callback(callback, 0u);
         if (!context[38]) gtmain_frame_submit(1u);
     }
     DrawSync(0);
     frame_event_remove(event);
-    native_frame_context = NULL;
     return result;
 }

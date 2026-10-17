@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "game_local_stack.h"
 #include <stdlib.h>
 #include "psx_gte.h"
 
@@ -247,16 +248,28 @@ uint32 gtmain_camera_spline_position(uint32 spline, uint8 *position12)
 }
 
 
-uint32 gtmain_roster_generate(uint32 guest_list, uint32 count, uint32 mode, uint32 spec)
+static uint32 *roster_stack_list(uint32 address, uint32 count)
+{
+    uint64 bytes = (sint32)count > 0 ? (uint64)count * 4u : 0u;
+    if (bytes > PSX_DRAM_SIZE)
+        gt_draft_failure("GTMAIN roster mapped list extent", 0x8001F5C8u);
+    return (uint32 *)psx_addr(address, (size_t)bytes);
+}
+
+void gtmain_roster_generate(uint32 guest_list, uint32 count, uint32 mode, uint32 spec)
 {
     gtmain_race_config_reset();
+    uint32 workspace = gt_local_stack_workspace(0x28C0u, 56u, 0x8001F5C8u);
+    uint32 fixed_seed = r_u32(0x800B630Cu);
     uint32 initial = r_u32(0x800B6640u);
-    if (!r_u32(0x800B630Cu)) initial = gtmain_timer_random();
-    uint32 seed = initial, selected[6], variants[6];
-    if ((sint32)count > 6) boundary("GTMAIN native roster six-element extent TODO", 0x8001F5C8u);
-    gtmain_roster_select(selected, guest_list, (sint32)count, &seed, mode, 0u);
-    gtmain_roster_variants(variants, selected, (sint32)count, &seed, spec);
-    return gtmain_roster_commit(selected, variants, (sint32)count, initial);
+    if (!fixed_seed) initial = gtmain_timer_random();
+    uint32 *selected = roster_stack_list(workspace, count);
+    uint32 *variants = roster_stack_list(workspace + 24u, count);
+    uint32 *seed = (uint32 *)psx_addr(workspace + 48u, 4u);
+    w_u32(workspace + 48u, initial);
+    gtmain_roster_select(selected, guest_list, (sint32)count, seed, mode, 0u);
+    gtmain_roster_variants(variants, selected, (sint32)count, seed, spec);
+    gtmain_roster_commit(selected, variants, (sint32)count, initial);
 }
 
 uint32 gtmain_car_start_delays(uint32 base_time)
@@ -285,6 +298,19 @@ uint32 gtmain_car_start_delays(uint32 base_time)
     return result;
 }
 
+static void race_secondary_settings_apply(uint32 value)
+{
+    /* TODO Bind the unselected original secondary settings service */
+    gt_draft_unresolved_call(0x80051F04u, value, 0, 0, 0, 0, 0, 0, 0);
+}
+
+static void roster_single_player_complete(void)
+{
+    /* TODO Bind the unselected original single-player roster service */
+    gt_draft_unresolved_call(0x8001FAE0u, 0, 0, 0, 0, 0, 0, 0, 0);
+}
+
+/* GTMAIN.EXE 8001F930 */
 uint32 gtmain_race_settings_snapshot(void)
 {
     gtmain_memory_copy(0x80093C08u, 0x800BC160u, 69);
@@ -292,9 +318,11 @@ uint32 gtmain_race_settings_snapshot(void)
     sint32 preset = gtmain_race_preset_index();
     if (preset >= 0) gtmain_memory_copy(0x80093C50u, 0x8008FC18u + (uint32)preset * 32u, 32);
     if (r_u8(0x800CB7F5u) == 2) {
-        w_u8(0x80093C0Eu, r_u8(0x800CBC06u));
-        gtmain_race_assist_preset(r_u8(0x800CBC0Eu));
-        call2(0x80051F04u, r_u8(0x800CBC07u), 0);
+        uint32 primary = r_u8(0x800CBC06u);
+        uint32 assist = r_u8(0x800CBC0Eu);
+        w_u8(0x80093C0Eu, primary);
+        gtmain_race_assist_preset(assist);
+        race_secondary_settings_apply(r_u8(0x800CBC07u));
     }
     uint32 toggle = r_u8(0x800CB75Eu) + 1u;
     if (toggle >= 2u) toggle = 0;
@@ -302,6 +330,7 @@ uint32 gtmain_race_settings_snapshot(void)
     return 0x80093C3Fu;
 }
 
+/* GTMAIN.EXE 8001FBAC */
 uint32 gtmain_roster_initialize(void)
 {
     uint32 mode;
@@ -309,7 +338,7 @@ uint32 gtmain_roster_initialize(void)
     gtmain_roster_opponents();
     mode = r_u8(0x800CB7F5u);
     if (mode == 1u) {
-        gtmain_roster_player(0); call0(0x8001FAE0u);
+        gtmain_roster_player(0); roster_single_player_complete();
     } else if (mode == 2u) {
         gtmain_roster_player(0); gtmain_roster_player(1);
     } else {
@@ -360,7 +389,7 @@ uint32 gtmain_race_cars_initialize(void)
     uint32 index = 0, course = (uint32)gtmain_course_start_segment();
     while ((sint32)index < (sint16)r_u16(0x800BC1A6u)) {
         uint32 car = 0x800B6850u + index * 3380u, descriptor = 0x800B6670u + index * 76u;
-        bytes_zero(car, 3380);
+        sub_8007BD58(car, 0u, 3380u);
         uint32 control = 1;
         w_u16(car + 16u, (uint16)index); w_u32(car + 32u, 0xffffffffu);
         w_u32(car + 2336u, r_u32(descriptor + 8u));
@@ -390,15 +419,17 @@ uint32 gtmain_race_cars_initialize(void)
                 variant = transmission = rpm = 0;
             }
         }
+        uint32 flags = r_u32(car + 12u);
         w_u16(car + 24u, (uint16)type); w_u16(car + 26u, (uint16)subtype);
-        w_u32(car + 12u, r_u32(car + 12u) | control);
+        w_u32(car + 12u, flags | control);
         uint32 body_id = body < 0 ? 0u - (uint32)body : r_u16(0x8008F3A8u + (uint32)body * 2u);
         w_u32(car + 2332u, r_u16(descriptor));
         sint32 z = (sint32)r_u32(car + 2236u) >> 4;
         sint32 x = (sint32)r_u32(car + 2228u) >> 4;
         sint32 sine = (sint16)r_u16(0x8009423Cu + (r_u16(car + 2242u) & 4095u) * 2u);
         sint32 cosine = (sint16)r_u16(0x80094A3Cu + (r_u16(car + 2242u) & 4095u) * 2u);
-        gtmain_race_vehicle_initialize(car + 40u, 0x800BB850u + index * 386u, r_u32(car + 20u), x, z,
+        uint32 segment = r_u32(car + 20u);
+        gtmain_race_vehicle_initialize(car + 40u, 0x800BB850u + index * 386u, segment, x, z,
             sine, cosine, body_id, (uint8)variant, (uint8)physics_mode, transmission);
         model = r_u32(car + 2336u);
         w_u32(car + 2008u, (uint32)sar64((uint64)((sint64)rpm * 600000), 12));
@@ -434,7 +465,7 @@ uint32 gtmain_race_cars_initialize(void)
     sint32 remaining_count = (sint16)r_u16(0x800B6666u);
     while ((sint32)index < remaining_count) {
         uint32 car = 0x800B6850u + index * 3380u;
-        bytes_zero(car, 3380); w_u16(car + 16u, (uint16)index);
+        sub_8007BD58(car, 0u, 3380u); w_u16(car + 16u, (uint16)index);
         uint32 value = r_u16(0x800B6670u + index * 76u);
         remaining_count = (sint16)r_u16(0x800B6666u);
         ++index;

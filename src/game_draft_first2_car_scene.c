@@ -125,6 +125,7 @@ sint32 gtmain_car_model_draw(uint32 context, uint32 car, uint32 mode)
 {
     sint32 fraction = (sint32)(uint32)gtmain_signed_divide64((sint64)(sint32)r_u32(car + 2008u) * 4096, 600000, 0x800219FCu);
     uint32 model, tile, value, classification, distance, detail, wheel;
+    uint32 camera_x, model_x, camera_z, model_z, camera_y, model_y;
     if (fraction >= 4096) fraction = 4096;
     w_u16(context + 924u, fraction); model = r_u32(car + 2336u);
     car_scene_copy40(context + 864u, car + 2228u);
@@ -139,7 +140,10 @@ sint32 gtmain_car_model_draw(uint32 context, uint32 car, uint32 mode)
         gtmain_packet_three_tiles(r_u32(0x800B63F8u), tile, 0x1FF0120u);
         gtmain_packet_three_tiles(r_u32(0x800B6308u), tile, 0x1FF0120u);
     }
-    distance = car_scene_distance(r_u32(context + 864u) - r_u32(context + 44u), r_u32(context + 868u) - r_u32(context + 48u), r_u32(context + 872u) - r_u32(context + 52u));
+    camera_x = r_u32(context + 44u); model_x = r_u32(context + 864u);
+    camera_z = r_u32(context + 52u); model_z = r_u32(context + 872u);
+    camera_y = r_u32(context + 48u); model_y = r_u32(context + 868u);
+    distance = car_scene_distance(model_x - camera_x, model_y - camera_y, model_z - camera_z);
     fraction = (sint32)(uint32)gtmain_signed_divide64((sint64)(sint32)(12u * distance), (sint64)(sint32)xport_load_le32(gtmain_render_source(context) + 24u), 0x80021BE4u);
     if (fraction <= 0x3FFFFF)
     {
@@ -148,15 +152,18 @@ sint32 gtmain_car_model_draw(uint32 context, uint32 car, uint32 mode)
         w_u16(context + 936u, tile); w_u16(context + 938u, r_u16(car + 2342u));
         for (wheel = 0; wheel < 4; ++wheel)
         {
-            sint32 angle = 0, rotation, contact;
+            sint32 angle = 0, rotation, contact, position_x, position_y, position_z;
             uint32 record = car + wheel * 24u, a, b, c;
             if (wheel & 2u) rotation = (sint16)r_u16(car + 1498u);
-            else { rotation = (sint16)r_u16(car + 1496u); angle = -(sint16)r_u16(car + 54u); }
+            else { angle = -(sint16)r_u16(car + 54u); rotation = (sint16)r_u16(car + 1496u); }
             contact = (sint16)r_u16(car + wheel * 68u + 178u);
             if (wheel & 1u) { angle -= 1024; contact = -contact; } else angle += 1024;
             gtmain_model_rotation(psx_addr(context + 960u, 18u), (sint16)angle, (sint16)rotation, (sint16)contact);
             gtmain_model_wheel_matrix(context, (sint16)r_u16(record + 2046u));
-            gtmain_model_position(context, (sint16)r_u16(record + 2036u), (sint16)r_u16(record + 2038u), (sint16)r_u16(record + 2040u));
+            position_x = (sint16)r_u16(record + 2036u);
+            position_y = (sint16)r_u16(record + 2038u);
+            position_z = (sint16)r_u16(record + 2040u);
+            gtmain_model_position(context, position_x, position_y, position_z);
             a = r_u32(context + 940u); b = r_u32(context + 944u); c = r_u32(context + 948u);
             w_u32(record + 2024u, a); w_u32(record + 2028u, b); w_u32(record + 2032u, c);
             gtmain_model_wheel_draw(context, (sint32)((uint32)(sint32)(sint16)r_u16(record + 2044u) << 4), detail);

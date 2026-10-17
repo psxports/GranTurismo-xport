@@ -1,11 +1,28 @@
 #include "game_first2_registry.h"
+#include "game_local_stack.h"
 #include <string.h>
+#include <stdio.h>
+
+/* GTMAIN.EXE 8003A438 */
+static sint32 menu_frame_buffers_initialize(void)
+{
+    gtmain_frame_tables_bind((uint32 *)psx_addr(0x801A8FDCu, 0x5000u),
+        (uint32 *)psx_addr(0x801ADFDCu, 0x5000u), 0x1400u);
+    gtmain_packet_buffers(0x801B2FDCu, 0x801C2FDCu, 0x10000u);
+    printf("otag 1 : %x\n", 0x801A8FDCu);
+    printf("otag 2 : %x\n", 0x801ADFDCu);
+    printf("otag size : %x\n", 0x1400u);
+    printf("packet 1 : %x\n", 0x801B2FDCu);
+    printf("packet 2 : %x\n", 0x801C2FDCu);
+    printf("packet size : %x\n", 0x10000u);
+    printf("save data area : %x (size=%x)\n", 0x801D2FDCu, 0x1F000u);
+    return printf("kanji cache area : %x (size=%x)\n", 0x801F3FDCu, 0x801F480Cu);
+}
 
 /* GTMAIN.EXE 8003A540 */
 uint32 gtmain_menu_frame_context_initialize(uint8 *context)
 {
-    /* TODO Translate unselected original menu setup after an observed native blocker */
-    gt_draft_failure("GTMAIN menu initial setup", 0x8003A438u);
+    menu_frame_buffers_initialize();
     gtmain_display_mode_init(1u);
     w_u8(0x800B1A8Cu, 30u);
     w_u8(0x800B1A8Du, 10u);
@@ -38,11 +55,12 @@ uint32 gtmain_menu_input_context_initialize(uint32 context)
 /* GTMAIN.EXE 8003A720 */
 sint32 gtmain_menu_frame_run(void)
 {
-    uint8 context[40];
+    /* The completed race frame has released this stack-region slot */
+    uint8 *context = (uint8 *)psx_addr(gt_local_stack_workspace(0x4200u, 40u, 0x8003A720u), 40u);
     w_u8(0x800B52FAu, 0u);
     gtmain_menu_frame_context_initialize(context);
     gtmain_menu_input_context_initialize(0x800BDD10u);
-    /* TODO Complete setup and callback dependencies of the actual native frame context */
+    /* The frame loop consumes the initialized native context */
     return gtmain_frame_run(context) == 2 ? -1 : 0;
 }
 

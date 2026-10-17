@@ -25,9 +25,9 @@ uint32 gtmain_cd_controller_service(void)
     uint8 response[8];
     uint32 flags, status_address, count = 0, i, errors = 0, value;
     service_write8(r_u32(0x800B22F4u), 1);
-    flags = service_read8(r_u32(0x800B2300u)) & 7u;
-    if (!flags) return 0;
     status_address = r_u32(0x800B2300u);
+    flags = service_read8(status_address) & 7u;
+    if (!flags) return 0;
     while (flags != (service_read8(status_address) & 7u))
         flags = service_read8(status_address) & 7u;
     do {
@@ -47,12 +47,12 @@ uint32 gtmain_cd_controller_service(void)
         w_u32(0x800B2040u, response[1]);
     }
     if (flags == 5 && (sint32)r_u32(0x800B2038u) > 0) {
-        printf("DiskError: ");
+        printf((const char *)psx_addr(0x8008ED90u, 1u));
         if ((sint32)r_u32(0x800B2038u) > 0) {
             uint32 command = r_u8(0x800B204Du);
             uint32 first = r_u32(0x800B203Cu), second = r_u32(0x800B2040u);
             uint32 name = r_u32(0x800B2054u + 4u * command);
-            printf("com=%s,code=(%02x:%02x)\n", (const char *)psx_addr(name, 1), first, second);
+            printf((const char *)psx_addr(0x8008ED9Cu, 1u), (const char *)psx_addr(name, 1u), first, second);
         }
     }
     switch (flags) {
@@ -94,7 +94,8 @@ uint32 gtmain_cd_controller_service(void)
         service_publish(0x800B5F54u, response);
         return 6;
     default:
-        puts("CDROM: unknown intr"); printf("(%d)\n", flags);
+        puts((const char *)psx_addr(0x8008EDB8u, 1u));
+        printf((const char *)psx_addr(0x8008EDCCu, 1u), flags);
         return 0;
     }
 }

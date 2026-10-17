@@ -6,7 +6,6 @@ sint32 gtmain_race_selected_vehicle_initialize(void)
     sint32 start_segment, x, z, sine, cosine;
     uint32 segment, angle_sine, angle_cosine;
     uint8 body, variant, transmission;
-    /* TODO Selected vehicle initializer retains native geometry and state boundaries */
     gtmain_model_marker(r_u32(0x800B7170u), 0x800BB850u);
     start_segment = gtmain_course_start_segment();
     gtmain_car_grid_place(0x800B6850u, r_u8(0x800B6673u), (uint32)start_segment);

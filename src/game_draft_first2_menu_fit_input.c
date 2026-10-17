@@ -1,5 +1,17 @@
 #include "game_first2_registry.h"
 
+static void menu_selector_layout_missing(uint32 selector)
+{
+    /* TODO Bind the unselected selector layout */
+    gt_draft_failure("Menu selector layout", 0x8003B88Cu);
+}
+
+static sint32 menu_overlay_draw_missing(uint32 context)
+{
+    /* TODO Bind the unselected overlay draw and actual result */
+    gt_draft_failure("Menu overlay draw", 0x8006F798u);
+}
+
 /* GTMAIN.EXE 80036B34 */
 sint32 gtmain_menu_parameter_page_tick(void)
 {
@@ -9,8 +21,7 @@ sint32 gtmain_menu_parameter_page_tick(void)
     if (!r_s8(input)) return 0;
     gtmain_menu_parameter_selector_input(0x80092324u, input + 2u);
     selected = gtmain_menu_selector_input(0x80092314u, input + 2u);
-    /* TODO Translate unselected layout update for selector80092314 */
-    gt_draft_failure("Menu selector layout at80092314", 0x8003B88Cu);
+    menu_selector_layout_missing(0x80092314u);
     if (selected == -1) return 0;
     gtmain_menu_sound(selected == -2 ? 2 : 4);
     return 1;
@@ -20,10 +31,7 @@ sint32 gtmain_menu_parameter_page_tick(void)
 sint32 gtmain_menu_overlay_tick(void)
 {
     sint32 enabled = r_s8(0x80091B39u);
-    if (enabled) {
-        /* TODO Translate unselected overlay draw for801F3FDC */
-        gt_draft_failure("Menu overlay draw at801F3FDC", 0x8006F798u);
-    }
+    if (enabled) return menu_overlay_draw_missing(0x801F3FDCu);
     return enabled;
 }
 
@@ -82,7 +90,6 @@ uint32 gtmain_menu_text_fit(uint32 text, sint32 width)
 }
 
 /* GTMAIN.EXE 8003A304 */
-/* TODO Return carrier for callers that consume original v0 */
 void gtmain_menu_stream_check(void)
 {
     if ((sint8)r_u8(0x800B52FAu) == 1) {

@@ -40,13 +40,29 @@ static void pad_reset_callback(uint32 port)
     if (token == 0x8007FB28u) gtmain_pad_reset_port(port);
     else (void)pad_port_callback(token, port);
 }
-static uint32 pad_noarg_callback(uint32 token)
+static uint32 pad_stage_callback(uint32 token, uint32 port)
 {
-    if (token == 0x80080B28u) return (uint32)gtmain_pad_protocol_step();
+    if (token == 0x80080B28u) return (uint32)gtmain_pad_protocol_step(port);
     if (token == 0x80080FFCu) return gtmain_pad_serial_ack();
     if (token == 0x8008108Cu) return gtmain_pad_serial_wait();
-    /* TODO Bind actual native zero-argument callback */
-    gt_draft_failure("Native pad protocol stage callback", token);
+    /* TODO Bind remaining stage callbacks with their actual port ABI */
+    return gt_draft_unresolved_call(token, port, 0, 0, 0, 0, 0, 0, 0);
+}
+static void pad_prepare_state_callback(uint32 token, uint32 port)
+{
+    /* TODO Bind the unrecorded default prepare callback */
+    if (token == 0x80081554u)
+        gt_draft_failure("Native pad default prepare state", token);
+    (void)pad_stage_callback(token, port);
+}
+static uint32 pad_response_state_callback(uint32 token, uint32 port)
+{
+    /* TODO Bind the unrecorded default response callback */
+    if (token == 0x800815D8u)
+        gt_draft_failure("Native pad default response state", token);
+    if (token == 0x8007FB28u)
+        gt_draft_failure("Native pad callback meaningful return", token);
+    return pad_port_callback(token, port);
 }
 
 /* GTMAIN.EXE 80081500 */
@@ -96,11 +112,7 @@ uint32 gtmain_pad_command_prepare(uint32 port)
     else if (state == 254u) gtmain_pad_config_command(port, 0);
     else if (state && state != 255u) {
         uint32 token = r_u32(port + 20u);
-        if (token) (void)pad_noarg_callback(token);
-        else {
-            /* TODO Bind unselected actual default prepare state service */
-            gt_draft_failure("Native pad default prepare state", 0x80081554u);
-        }
+        pad_prepare_state_callback(token ? token : 0x80081554u, port);
     }
     return 0;
 }
@@ -114,17 +126,21 @@ uint32 gtmain_pad_response_apply(uint32 port)
     w_u8(port + 232u, (uint8)kind);
     if (kind == 15u) w_u8(port + 232u, (uint8)old_kind);
     else {
-        uint32 index;
+        uint32 index = 2u, length;
         w_u8(r_u32(port + 48u), 0);
         input = r_u32(port + 60u);
         {
             uint32 output = r_u32(port + 48u);
             w_u8(output + 1u, r_u8(input));
         }
-        for (index = 2; index < r_u8(port + 68u); ++index) {
+        length = r_u8(port + 68u);
+        while (index < length) {
             uint32 source = r_u32(port + 60u);
             uint32 destination = r_u32(port + 48u);
-            w_u8(destination + index, r_u8(source + index));
+            uint32 value = r_u8(source + index);
+            w_u8(destination + index, value);
+            length = r_u8(port + 68u);
+            ++index;
         }
     }
     if ((!r_u8(r_u32(port + 60u) + 1u) &&
@@ -147,14 +163,7 @@ uint32 gtmain_pad_response_apply(uint32 port)
         if (state == 255u) return 255;
         {
             uint32 token = r_u32(port + 24u);
-            if (token) {
-                if (token == 0x8007FB28u)
-                    gt_draft_failure("Native pad callback meaningful return", token);
-                result = pad_port_callback(token, port);
-            } else {
-                /* TODO Bind unselected actual default response state service */
-                gt_draft_failure("Native pad default response state", 0x800815D8u);
-            }
+            result = pad_response_state_callback(token ? token : 0x800815D8u, port);
             w_u8(port + 70u, (uint8)(r_u8(port + 70u) + result));
             return result;
         }
@@ -186,22 +195,19 @@ uint32 gtmain_pad_serial_ack(void)
 }
 
 /* GTMAIN.EXE 80080B28 */
-sint32 gtmain_pad_protocol_step(void)
+sint32 gtmain_pad_protocol_step(uint32 port)
 {
     uint32 index = r_u32(0x800B1F00u);
     uint32 token = r_u32(0x800B1F40u + 4u * index);
     sint32 result;
     w_u32(0x800B1F00u, index + 1u);
     {
-        uint32 port = r_u32(0x800B1EF0u) + 240u * r_u32(0x800B1EFCu);
         if (token == 0x80081F58u) result = gtmain_pad_packet_start(port);
         else if (token == 0x80081F98u) result = gtmain_pad_packet_command(port);
-        else if (token == 0x80081FA8u) result = gtmain_pad_packet_command_tail(port, r_u32(0x800B1EFCu) == r_u32(0x800B1F0Cu));
         else if (token == 0x80082070u) result = gtmain_pad_packet_length(port);
-        else if (token == 0x80082078u) result = gtmain_pad_packet_length_tail(port, r_u32(0x800B1F3Cu));
         else if (token == 0x80082130u) result = gtmain_pad_packet_ack(port);
         else if (token == 0x800821BCu) result = gtmain_pad_packet_read(port);
-        else result = (sint32)pad_noarg_callback(token);
+        else result = (sint32)pad_stage_callback(token, port);
     }
     if (result < 0) return (sint32)pad_port_callback(r_u32(0x800B1EBCu), (uint32)result);
     if (r_u32(0x800B1F00u)) {
@@ -234,9 +240,9 @@ sint32 gtmain_pad_exchange(uint32 port, sint32 outgoing)
     value = 136;
     if ((r_u8(r_u32(port + 60u)) >> 4) == 8u && r_u8(port + 68u) >= 9u) value = 34;
     {
-        uint32 counter = pad_read16(0x1F801120u);
-        uint32 status;
+        uint32 counter, status;
         control = r_u32(0x800B1F20u);
+        counter = pad_read16(0x1F801120u);
         status = pad_read16(control + 4u);
         w_u32(0x800C4BF4u, 430); w_u32(0x800C4BF0u, counter);
         while (!(status & 2u)) status = pad_read16(control + 4u);

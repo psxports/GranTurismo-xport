@@ -13,6 +13,7 @@ uint32 gtmain_interrupt_callback_enabled(void)
 uint32 gtmain_interrupt_mask_exchange(uint16 mask)
 {
     uint32 address = r_u32(0x800B383Cu), previous;
+    if (address == 0x1F801074u) return psx_irq_native_mask_exchange(mask);
     irq_leaf_boundary(address);
     previous = r_u16(address);
     w_u16(address, mask);

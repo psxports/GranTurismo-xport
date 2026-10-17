@@ -359,18 +359,21 @@ void gtmain_sound_shutdown(void)
 
 
 /* GTMAIN.EXE 8007F128 */
-void gtmain_sound_sample_upload(uint32 spu_address, uint32 source, uint32 size)
+uint32 gtmain_sound_sample_upload(uint32 spu_address, uint32 source, uint32 size, uint32 relocation_result)
 {
     uint32 count;
-    if (!size) return;
-    w_u32(0x800B235Cu, spu_address >> 3);
-    w_u32(0x800B23B4u, 0); w_u32(0x800B2360u, 0);
+    sint32 completed;
+    if (!size) return relocation_result;
+    (void)gtmain_spu_transfer_address(spu_address);
+    (void)gtmain_spu_transfer_mode(0);
     count = size > 0x7EFF0u ? 0x7EFF0u : size;
     if (SpuWrite(psx_addr(source, count), count) != count)
         gt_draft_failure("Native SPU sample write", 0x800859A8u);
     if (!r_u32(0x800B237Cu)) w_u32(0x800B2378u, 0);
-    if (!SpuIsTransferCompleted(1))
+    completed = SpuIsTransferCompleted(1);
+    if (!completed)
         gt_draft_failure("Native SPU sample completion", 0x800858F8u);
+    return (uint32)completed;
 }
 
 

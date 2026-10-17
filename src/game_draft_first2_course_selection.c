@@ -142,68 +142,33 @@ sint32 gtmain_course_progress(uint32 index, const uint8 *position)
     return (sint32)value;
 }
 
-static uint32 gtmain_selection_name_copy(uint8 *out, uint32 capacity, uint32 source)
+static uint32 selection_stack_name(uint32 offset, uint32 bytes)
 {
-    uint32 index;
-    for (index = 0; index < capacity; ++index)
-    {
-        uint8 value = r_u8(source + index);
-        out[index] = value;
-        if (!value) return index;
-    }
-    /* TODO Original oversize names cross local storage and need a separate native contract */
-    gt_draft_failure("Car name exceeds original local capacity", source);
-    return 0;
+    uint32 launch = r_u32(0x8008F1D8u), alternate = r_u32(0x800B1AA4u);
+    uint32 top = alternate ? alternate : launch;
+    uint32 reserve = r_u32(0x800B1B4Cu);
+    uint32 heap = r_u32(0x800B1AACu), heap_bytes = r_u32(0x800B1AA8u);
+    uint32 extent = heap_bytes < 16u ? 16u : heap_bytes, address;
+    if (top < 0x80010000u + offset || top > 0x80200000u || (top & 7u) || bytes > offset)
+        gt_draft_failure("GTMAIN selection name stack range", 0x8006B798u);
+    address = top - offset;
+    if (address < 0x801FB724u || heap < 0x80010000u || heap > address || extent > address - heap ||
+        (!alternate && (reserve < offset || address < launch - reserve)))
+        gt_draft_failure("GTMAIN selection name stack overlap", 0x8006B798u);
+    return address;
 }
-
-static sint32 gtmain_selection_name_equal(uint32 guest_name, const uint8 *name)
-{
-    uint32 index = 0;
-    for (;;)
-    {
-        uint8 value = r_u8(guest_name + index);
-        if (value != name[index]) return 0;
-        if (!value) return 1;
-        ++index;
-    }
-}
-
-static sint32 gtmain_selection_record_find(const uint8 *name, uint32 archive, uint32 section_index, uint32 require_alternate)
-{
-    uint32 section = archive + r_u32(archive + section_index * 12u + 16u);
-    uint32 names = archive + r_u32(archive + 172u) + 24u;
-    uint32 count = r_u16(section + 14u), index;
-    for (index = 0; index < count; ++index)
-    {
-        uint32 record = section + 24u + index * 108u;
-        uint32 id = r_u16(record);
-        if (id && gtmain_selection_name_equal(names + id * 424u - 424u, name))
-            if (!require_alternate || r_u16(record + 34u)) return (sint32)index;
-    }
-    return -1;
-}
-
-static sint32 gtmain_selection_car_find(const uint8 *name)
-{
-    sint32 count = gtmain_car_count(), index;
-    for (index = 0; index < count; ++index)
-        if (gtmain_selection_name_equal(gtmain_car_name((uint32)index), name)) return index;
-    return -1;
-}
-
 sint32 gtmain_car_record_find_variant(uint32 name, uint32 archive, uint32 section)
 {
-    uint8 local_name[8];
-    uint32 length = gtmain_selection_name_copy(local_name, sizeof(local_name), name);
-    sint32 result = gtmain_selection_record_find(local_name, archive, section, 0);
+    uint32 local_name = selection_stack_name(0x4240u, 8u);
+    sint32 result;
+    gtmain_string_copy(local_name, name);
+    result = gtmain_car_record_find(local_name, archive, section, 0u);
     if (result < 0)
     {
-        /* TODO Short names leave the original fifth local byte uninitialized */
-        if (length < 4u) gt_draft_failure("Car variant name fifth byte unavailable", name);
-        if (local_name[4] == 114u)
+        if ((sint8)r_u8(local_name + 4u) == 114)
         {
-            local_name[4] = 110u;
-            result = gtmain_selection_record_find(local_name, archive, section, 1);
+            w_u8(local_name + 4u, 110u);
+            result = gtmain_car_record_find(local_name, archive, section, 1u);
         }
     }
     return result;
@@ -211,11 +176,16 @@ sint32 gtmain_car_record_find_variant(uint32 name, uint32 archive, uint32 sectio
 
 uint32 gtmain_car_selected_record(uint32 index, uint32 archive, uint32 section)
 {
-    sint32 record = gtmain_car_record_find_variant(gtmain_car_name(index), archive, section);
+    uint32 name = gtmain_car_name(index);
+    sint32 record = gtmain_car_record_find_variant(name, archive, section);
+    uint32 section_offset;
     if (record < 0) record = 0;
-    return archive + r_u32(archive + section * 12u + 16u) + 24u + (uint32)record * 108u;
+    section_offset = r_u32(archive + section * 12u + 16u);
+    return archive + section_offset + 24u + (uint32)record * 108u;
 }
 
+/* TODO Resolve name extent in the independent selected-record lookup */
+/* GTMAIN.EXE 8001E8DC */
 sint32 gtmain_opponent_configurations(uint32 archive, uint32 section)
 {
     uint32 index;
@@ -229,26 +199,24 @@ sint32 gtmain_opponent_configurations(uint32 archive, uint32 section)
 
 uint32 gtmain_car_selection_bind(uint32 index, uint32 archive)
 {
-    uint8 name[32];
+    uint32 name = selection_stack_name(0x4260u, 32u);
     uint32 offset = index * 96u;
     uint32 id = r_u16(0x800BB790u + offset) & 0xFFFu;
     uint32 source = archive + r_u32(archive + 172u) + id * 424u - 400u;
-    uint32 length;
     sint32 selected, alternate;
-    length = gtmain_selection_name_copy(name, sizeof(name), source);
-    selected = gtmain_selection_car_find(name);
+    selected = gtmain_car_find(gtmain_string_copy(name, source));
     if (r_u16(0x800BB7B2u + offset))
     {
-        /* TODO Replacing a four-byte name terminator exposes original uninitialized bytes */
-        if (length == 4u) gt_draft_failure("Car selection name tail unavailable", source);
-        name[4] = 114u;
-        alternate = gtmain_selection_car_find(name);
+        w_u8(name + 4u, 114u);
+        alternate = gtmain_car_find(name);
         if (alternate >= 0) selected = alternate;
     }
     w_u16(0x800B63C4u + index * 2u, (uint16)selected);
     return index * 2u;
 }
 
+/* TODO Resolve the independent selection bind name buffer contract */
+/* GTMAIN.EXE 8001E7A0 */
 uint32 gtmain_car_saved_selection_load(uint32 index, uint32 saved_index, uint32 archive)
 {
     gtmain_memory_copy(0x800BB790u + index * 96u, 0x800C4DECu + saved_index * 96u, 96u);
@@ -259,4 +227,5 @@ uint32 gtmain_player_configuration_build(void)
 {
     return gtmain_car_config_build(0x800BB850u, 0x800BB790u, 0x800D6FDCu);
 }
+
 

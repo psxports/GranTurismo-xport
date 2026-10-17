@@ -198,7 +198,7 @@ void gtmain_race_throttle_assist(uint32 car)
 
 static uint32 suspension_lap_ratio(uint32 difference, uint32 span)
 {
-    return (uint32)suspension_div(difference * (r_u8(0x800B6318u) == 1u ? 50u : 100u), (sint32)span);
+    return (uint32)suspension_div(difference * (r_u32(0x800B6318u) == 1u ? 50u : 100u), (sint32)span);
 }
 
 static void suspension_lap_report(uint32 car, sint32 lap, sint32 time, uint32 elapsed, sint32 rank)
@@ -225,7 +225,8 @@ sint32 gtmain_race_lap_crossing(uint32 car, sint32 previous, sint32 rank)
         if (!r_u16(car + 56u)) { w_u16(car + 56u, 1); return 0; }
         ratio = suspension_lap_ratio((uint32)length - (uint32)previous, (uint32)length - (uint32)previous + r_u32(car + 1804u));
         if (!r_u8(car + 1960u)) {
-            old = r_u32(car + 44u); time = (sint32)(ratio + r_u32(0x80093D78u)) / 3;
+            tick = ratio + r_u32(0x80093D78u);
+            old = r_u32(car + 44u); time = (sint32)tick / 3;
             w_u32(car + 44u, (uint32)time); elapsed = (uint32)time - old;
             if (r_u8(0x80093C0Cu)) suspension_lap_report(car, lap, time, elapsed, rank);
             if (r_u8(0x80093C0Bu)) gtmain_race_lap_record(rank, r_s16(car + 56u), (uint32)time, elapsed);
@@ -245,19 +246,26 @@ sint32 gtmain_race_lap_crossing(uint32 car, sint32 previous, sint32 rank)
         index = r_u8(car + 1781u);
         if ((sint32)index < r_s16(0x8009071Eu)) {
             target = (sint32)((uint32)r_s16(0x80090720u + 2u * index) << 16);
-            if (!(r_u8(car + 58u) & 2u) && previous < target && r_s32(car + 1804u) >= target) {
-                ratio = suspension_lap_ratio((uint32)target - (uint32)previous, r_u32(car + 1804u) - (uint32)previous);
-                elapsed = (ratio + r_u32(0x80093D78u)) / 3u - r_u32(car + 44u);
-                gtmain_race_split_record(rank, r_u8(car + 1781u), elapsed);
+            if (!(r_u8(car + 58u) & 2u) && previous < target && (current = r_s32(car + 1804u)) >= target) {
+                ratio = suspension_lap_ratio((uint32)target - (uint32)previous, (uint32)current - (uint32)previous);
+                tick = ratio + r_u32(0x80093D78u);
+                index = r_u8(car + 1781u);
+                old = r_u32(car + 44u);
+                elapsed = tick / 3u - old;
+                gtmain_race_split_record(rank, index, elapsed);
                 w_u8(car + 1781u, (uint8)(r_u8(car + 1781u) + 1u));
             }
         }
     }
-    target = r_s32(r_u32(0x800BC1B0u) + 32u + 4u * r_u8(car + 59u));
-    if (!(r_u8(car + 58u) & 2u) && previous < target && r_s32(car + 1804u) >= target) {
+    index = r_u8(car + 59u);
+    uint32 checkpoints = r_u32(0x800BC1B0u);
+    flags = r_u8(car + 58u);
+    target = r_s32(checkpoints + 32u + 4u * index);
+    if (!(flags & 2u) && previous < target && (current = r_s32(car + 1804u)) >= target) {
         if (!r_u8(car + 1960u)) {
-            ratio = suspension_lap_ratio((uint32)target - (uint32)previous, r_u32(car + 1804u) - (uint32)previous);
-            tick = ratio + r_u32(0x80093D78u); elapsed = tick / 3u - r_u32(car + 44u);
+            ratio = suspension_lap_ratio((uint32)target - (uint32)previous, (uint32)current - (uint32)previous);
+            tick = ratio + r_u32(0x80093D78u);
+            old = r_u32(car + 44u); elapsed = tick / 3u - old;
             if (r_u8(0x80093C0Cu)) suspension_lap_report(car, lap, (sint32)tick / 3, elapsed, rank);
             if (r_u8(0x800CB7F5u) == 4u) suspension_call(0x80056EBCu, elapsed, 0, 0, 0);
         }

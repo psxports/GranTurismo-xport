@@ -2,9 +2,9 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 80027288 */
-void gtmain_race_frame_reset(uint32 font)
+uint32 gtmain_race_frame_reset(uint32 font)
 {
-    gtmain_font_load((sint32)font);
+    return gtmain_font_load((sint32)font);
 }
 
 /* GTMAIN.EXE 8006F0C0 */

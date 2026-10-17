@@ -264,8 +264,8 @@ uint32 gtmain_course_resource_name(uint32 index)
 
 uint32 gtmain_car_archive_load(uint32 buffer, uint32 capacity)
 {
-    /* TODO Archive load retains its named CD filesystem and extent adapter dependencies */
-    uint32 result = gtmain_archive_table_load_guest(r_u32(0x800C00D4u), 0x800C00D8u, buffer, capacity);
+    uint32 path = r_u32(0x800C00D4u);
+    uint32 result = gtmain_archive_table_load_guest(path, 0x800C00D8u, buffer, capacity);
     w_u32(0x800C00D0u, result);
     return result;
 }

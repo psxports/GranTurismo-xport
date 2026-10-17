@@ -1,4 +1,5 @@
 #include "game_first2_registry.h"
+#include "game_draft_registry.h"
 #include <stdio.h>
 
 /* GTMAIN.EXE 80033A1C */
@@ -14,6 +15,12 @@ uint32 gtmain_menu_result_name_request_initialize(void)
     return 0u;
 }
 
+static void end_panel_initialize_missing(uint32 context)
+{
+    /* TODO Bind the unselected one-argument panel initializer */
+    gt_draft_failure("End panel initialization at801F3018", 0x8003D1A8u);
+}
+
 /* GTMAIN.EXE 80038660 */
 uint32 gtmain_menu_end_panel_initialize(void)
 {
@@ -21,8 +28,7 @@ uint32 gtmain_menu_end_panel_initialize(void)
     uint32 title, asset;
     w_u16(0x801F3002u, 0u);
     w_u8(0x801F2FE5u, 0u);
-    /* TODO Translate the unselected panel initializer for801F3018 */
-    gt_draft_failure("End panel initialization at801F3018", 0x8003D1A8u);
+    end_panel_initialize_missing(0x801F3018u);
     mode = r_s8(0x801F2FE0u);
     switch (mode) {
     case 1: title = 0x800BCBE3u; asset = 19u; break;
@@ -31,7 +37,6 @@ uint32 gtmain_menu_end_panel_initialize(void)
     default: title = 0x800BCBFEu; asset = 16u; break;
     }
     w_u32(0x801F2FDCu, title);
-    /* TODO Complete transitive asset activation dependencies */
     gtmain_menu_asset_activate(asset);
     return 0u;
 }
@@ -41,6 +46,7 @@ sint32 gtmain_menu_quick_end_run(uint32 selector, uint8 disabled, uint32 first,
     uint32 second, uint8 style)
 {
     uint8 course = r_u8(0x800B63BDu);
+    sint32 status;
     w_u32(0x801F2FE0u, first);
     w_u32(0x801F2FE4u, second);
     w_u8(0x801F2FDCu, disabled);
@@ -52,17 +58,16 @@ sint32 gtmain_menu_quick_end_run(uint32 selector, uint8 disabled, uint32 first,
     gtmain_menu_panel_special_bind(0x800BDD10u, 0x80092154u);
     gtmain_music_sector_init();
     gtmain_stream_stop_wait(1u);
-    /* TODO Complete menu frame setup and callback dependencies */
     gtmain_menu_frame_run();
     gtmain_stream_stop_wait(1u);
-    printf((const char *)psx_addr(0x8008CC3Cu, 1u), (sint32)r_s8(0x801F2FDDu));
+    status = r_s8(0x801F2FDDu);
+    printf((const char *)psx_addr(0x8008CC3Cu, 1u), status);
     return r_s8(0x801F2FDDu);
 }
 
 /* GTMAIN.EXE 80037E00 */
 sint32 gtmain_menu_quick_end_mode3(uint8 disabled)
 {
-    /* TODO Complete the called quick end menu frame */
     return gtmain_menu_quick_end_run(0x80091B8Cu, disabled, 0x80091B7Cu,
         0x80091B74u, 3u);
 }
@@ -85,6 +90,12 @@ uint32 gtmain_menu_quick_end_initialize(void)
     return 0u;
 }
 
+static void reveal_panel_create(uint32 owner, uint32 index,
+    uint32 descriptor, uint32 count, uint32 flags)
+{
+    gt_draft_8003CC24(owner, index, descriptor, count, flags);
+}
+
 /* GTMAIN.EXE 80034B98 */
 uint32 gtmain_menu_reveal_input_tick(void)
 {
@@ -97,8 +108,7 @@ uint32 gtmain_menu_reveal_input_tick(void)
             if (r_u16(input + 6u) & 0xFF0Fu) {
                 uint32 descriptor = 0x80092170u;
                 if (r_u8(0x801D2FDCu) & 2u) {
-                    /* TODO Native panel creation with owner2FF8, index0, descriptor92170, count17, flags0 */
-                    gt_draft_failure("GTMAIN menu panel creation", 0x8003CC24u);
+                    reveal_panel_create(0x801D2FF8u, 0u, 0x80092170u, 17u, 0u);
                     descriptor = 0x80092248u;
                 }
                 result = 3u;
@@ -115,7 +125,6 @@ uint32 gtmain_menu_reveal_input_tick(void)
 }
 
 /* GTMAIN.EXE 80038304 */
-/* TODO Complete transitive stream pause callback dependencies */
 uint32 gtmain_menu_end_panel_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u), phase;
@@ -192,7 +201,6 @@ uint32 gtmain_menu_end_panel_draw(uint32 ordering, sint32 x, sint32 y,
             uint32 row = (uint32)mode << 6u;
             uint32 first = (((row + 256u) << 6u) | 20u) & 0xFFFFu;
             uint32 second = (((row + 257u) << 6u) | 21u) & 0xFFFFu;
-            /* TODO Complete the selected pose wrapper's model draw dependency */
             gtmain_menu_pose_model_draw(0x801F3018u, ordering,
                 (sint32)((uint32)x + 160u), (sint32)((uint32)y + 105u),
                 0x8000u, 0x8018AFDCu, 8u, first, 8u, second, 740u, 192u, 96u);

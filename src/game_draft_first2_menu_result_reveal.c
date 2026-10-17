@@ -1,5 +1,11 @@
 #include "game_first2_registry.h"
 
+static void plateau_selector_update_missing(uint32 selector)
+{
+    /* TODO Bind unselected one-argument selector update */
+    gt_draft_failure("GTMAIN result plateau selector update", 0x8003B88Cu);
+}
+
 /* GTMAIN.EXE 80032EE4 */
 uint32 gtmain_menu_result_plateau_tick(void)
 {
@@ -15,8 +21,7 @@ uint32 gtmain_menu_result_plateau_tick(void)
         w_u16(0x801D2FDCu, 6u);
         w_u16(0x801D2FE4u, next + 1u);
     } else if (phase == 118) {
-        /* TODO Bind unselected original 8003B88C update for selector 801D3AEC */
-        gt_draft_failure("GTMAIN result plateau selector update", 0x8003B88Cu);
+        plateau_selector_update_missing(0x801D3AECu);
         if (r_u16(input + 6u) & 0xFF0Fu) {
             gtmain_menu_sound(4);
             result = 3u;
@@ -36,7 +41,6 @@ uint32 gtmain_menu_result_plateau_draw(uint32 ordering, sint32 x, sint32 y, sint
     sint32 center = (sint32)((uint32)x + 160u);
     gtmain_text_font(1);
     gtmain_text_flags(0u);
-    /* TODO Complete existing footer, row and indicator drawing dependencies */
     gtmain_menu_footer_draw(ordering, center, (sint32)((uint32)y + 48u), intensity);
     gtmain_text_font(2);
     gtmain_text_color(gtmain_menu_gray((uint8)(intensity >> 1)));
@@ -50,8 +54,12 @@ uint32 gtmain_menu_result_plateau_draw(uint32 ordering, sint32 x, sint32 y, sint
         gtmain_menu_row_draw(ordering, (sint32)((uint32)x + 148u),
             (sint32)((uint32)y + 96u), 0x801D3118u, intensity, row, 0u, -1, 0u);
     }
-    gtmain_menu_indicator_draw(ordering + 8u, center, (sint32)((uint32)y + 136u),
-        r_s16(0x801D2FE8u), 0x276u, r_u8(0x801D2FEDu), 3u, 2u);
+    {
+        sint32 phase = r_s16(0x801D2FE8u);
+        uint32 descriptor = r_u8(0x801D2FEDu);
+        gtmain_menu_indicator_draw(ordering + 8u, center, (sint32)((uint32)y + 136u),
+            phase, 0x276u, descriptor, 3u, 2u);
+    }
     return 0u;
 }
 

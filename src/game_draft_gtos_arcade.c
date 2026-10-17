@@ -1482,8 +1482,8 @@ static void gtos_arcade_car_model(uint32 tag, sint32 x, sint32 y, uint32 player,
     } else if ((sint8)r_u8(0x800762D6u + player) == 8) {
         uint32 model = player == 1u ? 0x80140F7Cu : 0x8013AF7Cu;
         uint32 palette = (((uint32)selected << 8u) + 0x4000u) | (player == 1u ? 32u : 24u);
-        gtos_car_renderer(tag, x, y, rotation, model, player == 1u ? 23u : 21u,
-            palette & 65535u, 29u, 0x7C38u, distance, flags);
+        gtos_car_renderer(tag, x, y, rotation, model, 29u,
+            palette & 65535u, player == 1u ? 23u : 21u, 0x7C38u, distance, flags);
     }
 }
 

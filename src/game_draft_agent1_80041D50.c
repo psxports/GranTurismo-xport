@@ -1,23 +1,31 @@
+#include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_80041D50(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+static uint32 parts_resource(sint32 category)
 {
-    sint32 v0 = 0;
-    sint32 v1 = 0;
-    sint32 v2 = 0;
-    sint16 v3 = 0;
-    sint32 v4 = 0;
-  v1 = (uint8)r_u8(0x800941BDu + 1u * (v0));
-  v2 = r_u16(r_u32(0x800BEA64u) + v1);
-  v3 = 0;
-  if ( r_u16(r_u32(0x800BEA64u) + v1) )
-  {
-    v4 = gt_draft_unresolved_call(0x8001EB94u, 32, 0, 0, 0, 0, 0, 0, 0);
-    v3 = gt_draft_80041980(r_u8(20 * v2 + v4 - 18), r_u8(20 * v2 + v4 - 17), r_u8(r_u32(0x800BEA60u) + 123), r_u8(20 * v2 + v4 - 19), 0, 0, 0, 0)
-       + 1;
-    w_u8(0x800927FCu, r_u8(0x800927FCu) & (0x1Fu));
-  }
-    w_u16(0x800927CAu, v3);
-  return 1;
+    /* TODO Bind unselected parts resource lookup 8001EB94 */
+    return gt_draft_unresolved_call(0x8001EB94u, (uint32)category, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+}
+
+/* GTMAIN.EXE 80041D50 */
+uint32 gt_draft_80041D50(sint32 category)
+{
+    uint32 offset = r_u8(0x800941BDu + (uint32)category);
+    uint32 context = r_u32(0x800BEA64u);
+    uint32 part = r_u16(context + offset), level = 0u;
+    if (part) {
+        uint32 record = parts_resource(32) + 20u * part;
+        uint32 minimum = r_u8(record - 18u);
+        uint32 source = r_u32(0x800BEA60u);
+        uint32 maximum = r_u8(record - 17u);
+        uint32 count = r_u8(record - 19u);
+        uint32 value = r_u8(source + 123u), flags;
+        sint32 index = gtmain_menu_range_index((sint32)minimum, (sint32)maximum,
+            (sint32)value, (sint32)count);
+        flags = r_u8(0x800927FCu);
+        level = (uint32)index + 1u;
+        w_u8(0x800927FCu, flags & 31u);
+    }
+    w_u16(0x800927CAu, level);
+    return 1u;
 }

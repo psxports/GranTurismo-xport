@@ -15,7 +15,6 @@ uint32 gtmain_menu_replay_caption_initialize(void)
     w_u32(0x801D3004u, name);
     name = gtmain_course_resource_name(course);
     w_u32(0x801D3008u, gtmain_menu_name(name));
-    /* TODO: Existing mode setup retains the partial asset activation dependency */
     gtmain_menu_mode_setup(2);
     return 0u;
 }

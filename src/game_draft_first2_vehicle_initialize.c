@@ -85,12 +85,10 @@ uint32 gtmain_race_ai_default(uint32 offset)
     return r_u32(r_u32(0x800BF51Cu) + 24u) ? offset + 3u : 0;
 }
 
-static void basis_initialize(uint32 car)
+static void alternate_basis_prepare(uint32 position, uint32 first_basis, uint32 second_basis)
 {
-    sint32 first = (sint16)r_u16(car + 1786u);
-    sint32 second = (sint16)r_u16(car + 1788u);
-    sint32 third = (sint16)r_u16(car + 1790u);
-    gtmain_race_basis_set(car + 72u, car + 80u, car + 88u, first, second, third);
+    /* TODO Bind the unselected original alternate coordinate basis service */
+    gt_draft_unresolved_call(0x8005F260u, position, first_basis, second_basis, 0, 0, 0, 0, 0);
 }
 
 uint32 gtmain_race_vehicle_grid_initialize(uint32 car, uint32 segment, sint32 x, sint32 z, sint32 sine, sint32 cosine)
@@ -107,20 +105,29 @@ uint32 gtmain_race_vehicle_grid_initialize(uint32 car, uint32 segment, sint32 x,
     xport_store_le32(position, (uint32)x << 4);
     xport_store_le32(position + 4u, (uint32)height << 4);
     xport_store_le32(position + 8u, (uint32)z << 4);
-    w_u32(car + 1804u, (uint32)gtmain_course_progress(r_u32(car + 1892u), position));
-    basis_initialize(car);
+    uint32 progress = (uint32)gtmain_course_progress(r_u32(car + 1892u), position);
+    sint32 first_angle = (sint16)r_u16(car + 1786u);
+    sint32 second_angle = (sint16)r_u16(car + 1788u);
+    w_u32(car + 1804u, progress);
+    sint32 third_angle = (sint16)r_u16(car + 1790u);
+    gtmain_race_basis_set(car + 72u, car + 80u, car + 88u, first_angle, second_angle, third_angle);
     if ((sint8)r_u8(car + 1689u) == 4) {
-        /* TODO Original alternate coordinate basis owner */
-        gt_draft_unresolved_call(0x8005F260u, car + 60u, car + 72u, car + 80u, 0, 0, 0, 0, 0);
+        alternate_basis_prepare(car + 60u, car + 72u, car + 80u);
     }
     gtmain_race_wheel_pose(car);
     uint32 flags = 0;
     uint8 query[24];
     for (uint32 i = 0; i < 4u; ++i) {
         uint32 wheel = car + 132u + i * 68u;
-        xport_store_le32(query + 8u, ((uint32)(sint32)(sint16)r_u16(wheel + 8u) + r_u32(car + 60u)) << 4);
-        xport_store_le32(query + 12u, ((uint32)(sint32)(sint16)r_u16(wheel + 12u) + r_u32(car + 68u)) << 4);
-        xport_store_le32(query + 16u, ((uint32)(sint32)(sint16)r_u16(wheel + 10u) + r_u32(car + 64u)) << 4);
+        sint32 wheel_x = (sint16)r_u16(wheel + 8u);
+        uint32 car_x = r_u32(car + 60u);
+        xport_store_le32(query + 8u, ((uint32)wheel_x + car_x) << 4);
+        sint32 wheel_y = (sint16)r_u16(wheel + 12u);
+        uint32 car_y = r_u32(car + 68u);
+        xport_store_le32(query + 12u, ((uint32)wheel_y + car_y) << 4);
+        sint32 wheel_z = (sint16)r_u16(wheel + 10u);
+        uint32 car_z = r_u32(car + 64u);
+        xport_store_le32(query + 16u, ((uint32)wheel_z + car_z) << 4);
         xport_store_le16(query + 4u, r_u16(car + 1892u));
         gtmain_collision_query(query);
         uint32 ground = xport_load_le32(query + 20u);
@@ -153,7 +160,9 @@ uint32 gtmain_race_vehicle_grid_initialize(uint32 car, uint32 segment, sint32 x,
     gtmain_race_vehicle_pose_update(car);
     uint16 pitch = r_u16(car + 1900u), roll = r_u16(car + 1902u);
     w_u16(car + 1788u, roll); w_u16(car + 1786u, pitch);
-    basis_initialize(car);
+    first_angle = (sint16)r_u16(car + 1786u);
+    third_angle = (sint16)r_u16(car + 1790u);
+    gtmain_race_basis_set(car + 72u, car + 80u, car + 88u, first_angle, (sint16)roll, third_angle);
     gtmain_race_wheel_pose(car);
     return 0;
 }

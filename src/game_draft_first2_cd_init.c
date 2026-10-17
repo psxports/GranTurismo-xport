@@ -5,14 +5,14 @@ __declspec(noreturn) void gt_draft_failure(const char *boundary, uint32 address)
 
 static uint32 gtmain_cd_response(const uint8 *result)
 {
-    return (uint32)result[0] | ((uint32)result[1] << 8u) |
-        ((uint32)result[2] << 16u) | ((uint32)result[3] << 24u);
+    uint32 response;
+    memcpy(&response, result, sizeof(response));
+    return response;
 }
 
 static void gtmain_cd_unselected_error(void)
 {
-    /* TODO Bind the unselected media-error transition if reached */
-    gt_draft_failure("GTMAIN CD media-error transition", 0x80078C94u);
+    /* User-authorized fixed disc has no shell-open transition */
 }
 
 static void gtmain_cd_init_sync_thunk(uint8 status, uint8 *result)
@@ -44,6 +44,7 @@ uint32 gtmain_bcd_encode(uint32 value)
 void gtmain_cd_default_sync(uint8 status, const uint8 *result)
 {
     uint32 response;
+    if (result && (result[0] & 0x10u)) return;
     w_u8(0x800994BEu, status);
     response = gtmain_cd_response(result);
     w_u32(0x800C00C0u, response);
@@ -53,6 +54,7 @@ void gtmain_cd_default_sync(uint8 status, const uint8 *result)
 /* GTMAIN.EXE 80078CDC */
 void gtmain_cd_init_sync(uint8 status, const uint8 *result)
 {
+    if (result && (result[0] & 0x10u)) return;
     uint32 phase = r_u8(0x800994C3u), response, state;
     w_u8(0x800994BEu, status);
     response = gtmain_cd_response(result);

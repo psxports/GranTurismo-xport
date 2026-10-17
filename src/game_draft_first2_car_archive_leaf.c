@@ -57,11 +57,12 @@ sint32 gtmain_car_archive_decoded_size(void)
 }
 
 /* GTMAIN.EXE 80031E04 */
-void gtmain_race_instrument_bank_load(uint32 destination, uint32 buffer, uint32 capacity)
+uint32 gtmain_race_instrument_bank_load(uint32 destination, uint32 buffer, uint32 capacity)
 {
-    gtmain_sound_bank_load_original(destination, 0x2C800u, buffer, capacity, 2);
+    return gtmain_sound_bank_load_original(destination, 0x2C800u, buffer, 2);
 }
 
+/* TODO Resolve independent decoded-size and CD service limitations */
 /* GTMAIN.EXE 8006C144 */
 uint32 gtmain_car_archive_records_load(uint32 destination)
 {

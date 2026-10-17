@@ -7,6 +7,7 @@ static uint32 race_tick_call(uint32 owner, uint32 a0, uint32 a1)
     return gt_draft_unresolved_call(owner, a0, a1, 0, 0, 0, 0, 0, 0);
 }
 
+/* TODO Resolve independent input decode and mapping adapter limitations */
 /* GTMAIN.EXE 800290C8 */
 void gtmain_race_input_poll(void)
 {
@@ -16,6 +17,13 @@ void gtmain_race_input_poll(void)
     gtmain_race_input_update(0x800BC220u, 0x800CB782u);
 }
 
+static void race_demo_command(uint32 owner)
+{
+    /* TODO Bind unselected noarg demo commands 80029B98 and 80029C28 */
+    (void)race_tick_call(owner, 0u, 0u);
+}
+
+/* TODO Resolve independent menu-input dependencies */
 /* GTMAIN.EXE 80029E90 */
 void gtmain_race_demo_input(void)
 {
@@ -27,8 +35,8 @@ void gtmain_race_demo_input(void)
         return;
     }
     action = (uint32)gtmain_race_menu_input();
-    if (action == 1u) race_tick_call(0x80029B98u, 0, 0);
-    else if (action == 2u) race_tick_call(0x80029C28u, 0, 0);
+    if (action == 1u) race_demo_command(0x80029B98u);
+    else if (action == 2u) race_demo_command(0x80029C28u);
 }
 
 /* GTMAIN.EXE 8002CF84 */

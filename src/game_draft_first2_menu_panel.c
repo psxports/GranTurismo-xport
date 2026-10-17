@@ -4,23 +4,13 @@ void gtmain_menu_frame_begin(void) { w_u8(0x80091B39u, 0); }
 static uint32 panel_xy(uint32 x, uint32 y) { return (x & 65535u) | (y << 16); }
 static void panel_rectangle(uint32 ordering, uint32 first, uint32 second, uint32 color)
 {
-    uint32 corners[2] = {first, second}, packet, comparison, previous;
-    sint32 x0 = (sint16)corners[0], y0 = (sint16)(corners[0] >> 16);
-    sint32 x1 = (sint16)corners[1], y1 = (sint16)(corners[1] >> 16);
-    comparison = y1 < y0; y0 += (sint32)comparison; y1 += (sint32)(comparison ^ 1u);
-    packet = r_u32(0x800BFE4Cu); w_u32(packet, 0x05000000u);
-    comparison = x1 < x0; x0 += (sint32)comparison; x1 += (sint32)(comparison ^ 1u);
-    w_u32(packet + 4u, color ^ 0x29000000u);
-    w_u16(packet + 8u, (uint16)x0); w_u16(packet + 10u, (uint16)y0);
-    w_u16(packet + 12u, (uint16)x1); w_u16(packet + 14u, (uint16)y0);
-    w_u16(packet + 16u, (uint16)x0); w_u16(packet + 18u, (uint16)y1);
-    w_u16(packet + 20u, (uint16)x1); w_u16(packet + 22u, (uint16)y1);
-    /* Preserve the existing packet link byte read and write order */
-    previous = r_u8(ordering); previous |= r_u8(ordering + 1u) << 8; previous |= r_u8(ordering + 2u) << 16;
-    w_u8(ordering, packet); w_u8(ordering + 1u, packet >> 8); w_u8(ordering + 2u, packet >> 16);
-    w_u8(packet, previous); w_u8(packet + 1u, previous >> 8); w_u8(packet + 2u, previous >> 16);
-    w_u32(0x800BFE4Cu, packet + 24u);
+    sint16 corners[4] = {(sint16)first, (sint16)(first >> 16),
+        (sint16)second, (sint16)(second >> 16)};
+    (void)gtmain_packet_rectangle_native(ordering, corners, color);
 }
+/* TODO Resolve independent five-argument callback target service */
+/* GTMAIN.EXE 8003AF24 */
+
 uint32 gtmain_menu_panel_draw(uint32 guest_context, sint32 x, sint32 y, uint32 previous)
 {
     uint32 ordering = r_u32(guest_context + 184u) + 4u;

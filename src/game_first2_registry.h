@@ -2,6 +2,7 @@
 #define GT_GAME_FIRST2_REGISTRY_H
 #include "psx.h"
 #include "game_spu_access.h"
+#include "game_native_policy.h"
 __declspec(noreturn) void gt_draft_failure(const char *boundary, uint32 address);
 uint32 gt_draft_unresolved_call(uint32 address, uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7);
 
@@ -12,6 +13,7 @@ void gtmain_sound_voice_tick_if_enabled(void);
 uint32 gtmain_race_results_panel_draw(uint32 ordering, uint32 mode, uint32 show_hints);
 sint32 gtmain_menu_name_keyboard_panel_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity);
 void gtmain_race_time_roster_draw(uint32 ordering, sint32 y, sint32 count);
+uint32 gtmain_race_results_commit(void);
 uint32 gtmain_menu_result_mode0_run(uint8 flags, sint16 index, uint32 first, uint32 second, uint32 metric, sint16 threshold, uint32 extra, uint8 panel);
 void gt_project_disc_toc_bind(void);
 
@@ -39,8 +41,8 @@ void gtmain_sound_engine_channel_priority(uint32 channel, uint8 priority);
 uint32 gtmain_sound_voices_reset(void);
 void gtmain_sound_shutdown(void);
 void gtmain_sound_sequence_voices(void);
-uint32 gtmain_sound_sequence_tick(void);
-void gtmain_sound_sample_upload(uint32 spu_address, uint32 source, uint32 size);
+void gtmain_sound_sequence_tick(void);
+uint32 gtmain_sound_sample_upload(uint32 spu_address, uint32 source, uint32 size, uint32 relocation_result);
 uint32 gtmain_sound_engine_pitch(uint32 channel, uint32 slot, uint32 speed, uint32 smooth);
 uint32 gtmain_sound_engine_volume(uint32 channel, uint32 slot, sint32 speed, uint32 smooth);
 uint32 gtmain_sound_engine_channel_update(uint32 channel);
@@ -164,7 +166,7 @@ uint32 gtmain_model_materials_relocate(uint32 materials);
 
 sint32 gtmain_race_session_enter(void);
 sint32 gtmain_race_session_restore(void);
-void gtmain_race_render_config(uint32 mode);
+uint32 gtmain_race_render_config(uint32 mode);
 sint32 gtmain_race_session_loop(void);
 sint32 gtmain_race_track_load(uint32 track);
 sint32 gtmain_race_cars_load(void);
@@ -231,7 +233,7 @@ uint32 gtmain_packet_buffer_select(uint32 index);
 uint32 gtmain_packet_buffers(uint32 first, uint32 second, uint32 bytes);
 sint32 gtmain_draw_background(uint8 enabled, uint8 red, uint8 green, uint8 blue);
 
-void gtmain_race_frame_reset(uint32 font);
+uint32 gtmain_race_frame_reset(uint32 font);
 void gtmain_frame_enabled(uint32 enabled);
 sint32 gtmain_display_mode_init(uint32 flags);
 void gtmain_display_mask(uint32 enabled);
@@ -241,7 +243,7 @@ typedef struct GTMainArchiveTable {
     uint32 guest_address;
 } GTMainArchiveTable;
 
-void gtmain_sound_bank_load_original(uint32 destination, uint32 spu_base, uint32 buffer, uint32 capacity, uint32 mode);
+uint32 gtmain_sound_bank_load_original(uint32 destination, uint32 spu_base, uint32 buffer, uint32 mode);
 uint32 gtmain_sound_path(void);
 GTMainArchiveTable gtmain_archive_table_load(uint32 path, uint32 *sector, uint8 *buffer, uint32 buffer_guest, uint32 capacity);
 uint32 gtmain_archive_section_load(uint32 path, const uint8 *table, uint32 sector, uint32 index, uint32 destination, uint32 limit);
@@ -280,7 +282,7 @@ sint32 gtmain_audio_output_scale(uint32 shift);
 
 sint32 gtmain_light_pair_transform(const uint8 *coefficients, const uint8 *vector);
 
-void gtmain_font_load(sint32 font);
+uint32 gtmain_font_load(sint32 font);
 sint32 gtmain_text_width(sint32 font, uint32 text);
 uint32 gtmain_frame_ordering(uint32 alternate);
 
@@ -313,7 +315,7 @@ uint8 * gtmain_lz_decode(uint8 *destination, uint32 destination_capacity, const 
 
 uint8 * gtmain_resource_read_retry(uint32 path, uint8 *buffer, uint32 capacity, uint32 decoded_bytes);
 void gtmain_font_texture_upload(uint32 destination, sint32 page, const uint8 *data);
-void gtmain_frame_tables_bind(uint32 *first, uint32 *second, uint32 count);
+uint32 gtmain_frame_tables_bind(uint32 *first, uint32 *second, uint32 count);
 void gtmain_frame_tables_clear(sint32 selection);
 void gtmain_ordering_clear(uint32 index);
 sint32 gtmain_frame_run(uint8 *context);
@@ -513,7 +515,7 @@ uint32 gtmain_car_archive_path(void);
 
 sint32 gtmain_car_archive_decoded_size(void);
 
-void gtmain_race_instrument_bank_load(uint32 guest_dest, uint32 guest_buffer, uint32 capacity);
+uint32 gtmain_race_instrument_bank_load(uint32 guest_dest, uint32 guest_buffer, uint32 capacity);
 
 uint32 gtmain_car_archive_records_load(uint32 guest_destination);
 
@@ -579,7 +581,7 @@ uint32 gtmain_pad_response_pending(uint32 guest_port);
 
 uint32 gtmain_pad_config_command(uint32 guest_port, uint8 enabled);
 
-sint32 gtmain_pad_protocol_step(void);
+sint32 gtmain_pad_protocol_step(uint32 port);
 
 sint32 gtmain_pad_exchange(uint32 guest_port, sint32 outgoing);
 
@@ -652,16 +654,17 @@ void gtmain_race_time_set(uint32 time);
 void gtmain_race_lap_time_store(uint32 time);
 
 uint32 gtmain_time_string(uint32 destination, uint32 milliseconds);
+void gtmain_time_string_native(char *output, uint32 capacity, uint32 milliseconds);
 
-void gtmain_race_sound_callbacks_apply(uint32 first_owner, uint32 second_owner, uint32 third_owner);
+sint32 gtmain_race_sound_callbacks_apply(uint32 first_owner, uint32 second_owner, uint32 third_owner);
 
 uint32 gtmain_race_effect_alloc(void);
 
 void gtmain_race_effect_init(uint32 effect);
 
-void gtmain_race_license_result_tick(void);
+uint32 gtmain_race_license_result_tick(void);
 
-void gtmain_race_assist_tick(void);
+uint32 gtmain_race_assist_tick(void);
 
 void gtmain_race_assist_reset(void);
 
@@ -679,7 +682,7 @@ sint32 gtmain_font_string_draw(uint32 font, uint32 ordering_link, sint32 x, sint
 
 uint32 gtmain_interrupt_start(void);
 
-uint32 gtmain_interrupt_dispatch(void);
+void gtmain_interrupt_dispatch(void);
 
 uint32 gtmain_interrupt_callback(uint32 index, uint32 callback_token);
 
@@ -719,7 +722,7 @@ uint32 gtmain_spu_transfer(uint32 source, uint32 size);
 
 void gtmain_spu_delay(void);
 
-void gtmain_spu_dma_complete(void);
+uint32 gtmain_spu_dma_complete(void);
 
 void gtmain_race_pad_map(uint32 state, uint32 packet, uint32 buttons, uint32 threshold, uint32 first_axis, uint32 second_axis, uint32 analog);
 
@@ -731,17 +734,17 @@ void gtmain_race_lap_time_append(uint32 time);
 
 void gtmain_race_physics_tick(void);
 
-void gtmain_race_camera_tick(uint32 camera);
+uint32 gtmain_race_camera_tick(uint32 camera);
 
 void gtmain_race_split_screen_update(void);
 
 void gtmain_race_effects_draw(void);
 
-void gtmain_race_player_hud_draw(sint32 player, uint32 source);
+uint32 gtmain_race_player_hud_draw(sint32 player, uint32 source);
 
 uint32 gtmain_race_demo_view_draw(uint32 context);
 
-void gtmain_race_stream_start(sint32 entry, sint32 parameter);
+uint32 gtmain_race_stream_start(sint32 entry, sint32 parameter);
 
 uint32 gtmain_model_primitives_draw(uint32 model, uint32 context);
 
@@ -878,7 +881,7 @@ void gtmain_bios_cd_remove(void);
 
 void gtmain_bios_exception_reset(void);
 
-uint32 gtmain_bios_exception_return(void);
+void gtmain_bios_exception_return(void);
 
 uint32 gtmain_menu_phase_tick(void);
 
@@ -1026,7 +1029,7 @@ uint32 gtmain_menu_transition_tick(void);
 
 uint32 gtmain_menu_tick(void);
 
-void gtmain_race_ai_direction(uint32 car, sint32 distance, sint32 *first, sint32 *second);
+sint32 gtmain_race_ai_direction(uint32 car, sint32 distance, sint32 *first, sint32 *second);
 
 void gtmain_race_ai_segment_update(uint32 car);
 
@@ -1063,7 +1066,7 @@ uint32 gtmain_camera_interval_update(uint32 camera);
 
 uint32 gtmain_camera_spline_position(uint32 spline, uint8 *position12);
 
-uint32 gtmain_roster_generate(uint32 guest_list, uint32 count, uint32 mode, uint32 spec);
+void gtmain_roster_generate(uint32 guest_list, uint32 count, uint32 mode, uint32 spec);
 
 uint32 gtmain_car_start_delays(uint32 base_time);
 
@@ -1178,6 +1181,8 @@ sint32 gtmain_race_aero_components(uint32 car, sint32 speed, sint32 *first, sint
 uint32 gtmain_spu_driver_stop(void);
 
 uint32 gtmain_card_init_result(uint32 mode);
+void gtmain_card_native_absent_init(uint32 mode);
+uint32 gtmain_card_native_present(uint32 channel);
 
 uint32 gtmain_card_start_result(void);
 
@@ -1193,7 +1198,7 @@ void gtmain_bios_card_patch(void);
 
 void gtmain_bios_card_patch_second(void);
 
-void gtmain_bios_card_patch_restore(void);
+uint32 gtmain_bios_card_patch_restore(void);
 
 uint32 gtmain_runtime_destructors(void);
 
@@ -1397,9 +1402,9 @@ uint32 gtmain_race_records_import(uint32 source);
 uint32 gtmain_roster_pool_count(uint32 list);
 sint32 gtmain_roster_variant_class(sint32 character);
 void gtmain_roster_select(uint32 *selected, uint32 list, sint32 count, uint32 *seed, uint32 excluded, uint32 pools);
-uint32 gtmain_roster_variants(uint32 *variants, const uint32 *selected, sint32 count, uint32 *seed, uint32 excluded_class);
-uint32 gtmain_roster_commit(const uint32 *selected, const uint32 *variants, sint32 count, uint32 seed);
-uint32 gtmain_race_arcade_roster(void);
+void gtmain_roster_variants(uint32 *variants, const uint32 *selected, sint32 count, uint32 *seed, uint32 excluded_class);
+void gtmain_roster_commit(const uint32 *selected, const uint32 *variants, sint32 count, uint32 seed);
+void gtmain_race_arcade_roster(void);
 
 uint32 gtmain_race_driver_configurations(uint32 archive, uint32 kind, uint32 mode, uint32 section);
 uint32 gtmain_car_palette_tint(uint8 *output, const uint8 *input, uint32 tint, uint32 masks);
@@ -1468,6 +1473,7 @@ uint32 gtmain_race_labels_draw(uint32 ordering, sint32 y, uint32 mode, uint32 se
 void gtmain_race_times_draw(uint32 ordering);
 
 uint32 gtmain_race_record_label_draw(void);
+sint32 gtmain_race_record_text_draw(uint32 indication, uint32 guest_text);
 
 uint32 gtmain_race_driver_hud_draw(uint32 ordering);
 void gtmain_race_status_draw(uint32 ordering, sint32 y, uint32 car);

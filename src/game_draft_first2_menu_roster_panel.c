@@ -74,7 +74,6 @@ uint32 gtmain_menu_roster_panel_draw(uint32 ordering, sint32 x, sint32 y, sint32
     unsigned_count = r_u8(0x801F2FE9u);
     if (count > 0) {
         do {
-            /* TODO Slot table and local string adapters remain partial */
             (void)gtmain_menu_roster_slot_draw(ordering,
                 (sint32)(offset - ((uint32)(sint32)(sint8)unsigned_count * 12u - 168u)),
                 (sint32)((uint32)y + 62u), intensity, row);
@@ -124,7 +123,6 @@ uint32 gtmain_menu_roster_panel_draw(uint32 ordering, sint32 x, sint32 y, sint32
     corners[3] = (sint16)((uint32)y + 152u);
     (void)gtmain_packet_rectangle_native(ordering + 4u, corners, arrow_color);
     (void)gtmain_menu_list_extent(0x8009207Cu);
-    /* TODO Descriptor arrow dependencies remain partial */
     (void)gtmain_menu_descriptor_draw(ordering, 0x8009207Cu, (sint32)label_x,
         (sint32)((uint32)y + 96u), intensity, 0, 0, 0);
     (void)gtmain_menu_backdrop_draw(ordering + 8000u, (uint32)x, (uint32)y,
