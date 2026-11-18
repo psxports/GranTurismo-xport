@@ -1,6 +1,6 @@
 #include "game_first2_registry.h"
 
-uint32 gtmain_packed_bytes_entry(uint32 base, uint32 index)
+/* Original: GTMAIN.EXE:sub_800717F8. */ uint32 gtmain_packed_bytes_entry(uint32 base, uint32 index)
 {
     while (index)
     {
@@ -11,7 +11,7 @@ uint32 gtmain_packed_bytes_entry(uint32 base, uint32 index)
     return base;
 }
 
-uint32 gtmain_packed_pairs_entry(uint32 base, uint32 index)
+/* Original: GTMAIN.EXE:sub_8007181C. */ uint32 gtmain_packed_pairs_entry(uint32 base, uint32 index)
 {
     while (index)
     {
@@ -22,22 +22,22 @@ uint32 gtmain_packed_pairs_entry(uint32 base, uint32 index)
     return base;
 }
 
-uint32 gtmain_resource_name(uint32 index)
+/* Original: GTMAIN.EXE:sub_8006C1CC. */ uint32 gtmain_resource_name(uint32 index)
 {
     return gtmain_packed_bytes_entry(r_u32(0x800C0C1Cu), index) + 1u;
 }
 
-uint32 gtmain_resource_pairs(uint32 index)
+/* Original: GTMAIN.EXE:sub_8006C338. */ uint32 gtmain_resource_pairs(uint32 index)
 {
     return gtmain_packed_pairs_entry(r_u32(0x800C0C18u), index);
 }
 
-uint32 gtmain_resource_pairs_count(uint32 index)
+/* Original: GTMAIN.EXE:sub_8006C2EC. */ uint32 gtmain_resource_pairs_count(uint32 index)
 {
     return r_u8(gtmain_packed_pairs_entry(r_u32(0x800C0C18u), index));
 }
 
-uint32 gtmain_resource_records_end(uint32 base, sint32 count)
+/* Original: GTMAIN.EXE:sub_8006C1F8. */ uint32 gtmain_resource_records_end(uint32 base, sint32 count)
 {
     uint32 index;
     base += 2u;
@@ -47,7 +47,7 @@ uint32 gtmain_resource_records_end(uint32 base, sint32 count)
     return base;
 }
 
-uint32 gtmain_resource_records_relocate(uint32 base)
+/* Original: GTMAIN.EXE:sub_8006C230. */ uint32 gtmain_resource_records_relocate(uint32 base)
 {
     sint32 count = (sint32)r_u32(base);
     uint32 index = 0u, result = (uint32)count * 4u + 4u;
@@ -67,7 +67,7 @@ uint32 gtmain_resource_records_relocate(uint32 base)
     return result;
 }
 
-uint32 gtmain_resource_section_relocate(uint32 section)
+/* Original: GTMAIN.EXE:sub_80072284. */ uint32 gtmain_resource_section_relocate(uint32 section)
 {
     uint32 count = r_u16(section + 14u);
     uint32 stride = r_u32(section + 20u);

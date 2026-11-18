@@ -74,7 +74,7 @@ static void pair_wake(uint32 car, uint32 other, sint32 forward, sint32 lateral, 
 }
 
 /* GTMAIN.EXE 80068150 */
-void gtmain_race_pair_proximity_update(uint32 first_car, uint32 second_car)
+/* Original: GTMAIN.EXE:sub_80068150. */ void gtmain_race_pair_proximity_update(uint32 first_car, uint32 second_car)
 {
     uint32 a = first_car, b = second_car, flags_a, flags_b;
     sint32 ax, az, ay, bx, bz, by, dx, dz, dy, distance, temporary, vertical;

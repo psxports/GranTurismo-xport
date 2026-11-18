@@ -1,12 +1,12 @@
 #include "game_first2_registry.h"
 
-uint32 gtmain_menu_wave_select(uint32 guest_text)
+/* Original: GTMAIN.EXE:sub_8003AB60. */ uint32 gtmain_menu_wave_select(uint32 guest_text)
 {
     uint32 first = r_u8(guest_text);
     sint32 second = (sint8)r_u8(guest_text + 1u);
     return (first - 48u < 10u) & (second == 45);
 }
-uint32 gtmain_font_spaced_draw(uint32 guest_font, uint32 ordering_link, sint32 x, sint32 y, uint32 guest_text, sint32 spacing)
+/* Original: GTMAIN.EXE:sub_8003A768. */ uint32 gtmain_font_spaced_draw(uint32 guest_font, uint32 ordering_link, sint32 x, sint32 y, uint32 guest_text, sint32 spacing)
 {
     uint32 text = guest_text, x_word = (uint32)x, y_word = (uint32)y - 4u;
     uint32 result = gtmain_primitive_texture_page(guest_font, ordering_link);

@@ -1,6 +1,6 @@
 #include "game_first2_registry.h"
 
-uint32 gtmain_menu_saved_entry_commit(uint32 owner, sint32 index)
+/* Original: GTMAIN.EXE:sub_80047054. */ uint32 gtmain_menu_saved_entry_commit(uint32 owner, sint32 index)
 {
     uint32 entry = owner + 512u + 116u * (uint32)index;
     uint32 source = r_u32(0x800BEA64u), destination = entry + 18u;

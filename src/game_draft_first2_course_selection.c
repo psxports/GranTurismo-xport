@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 80022AA4 */
-sint32 gtmain_course_selection_apply(sint32 mode)
+/* Original: GTMAIN.EXE:sub_80022AA4. */ sint32 gtmain_course_selection_apply(sint32 mode)
 {
     uint32 row = 0x8008F500u + 24u * r_u8(0x800CB7F8u);
     uint32 names = r_u32(row);
@@ -46,7 +46,7 @@ static sint32 gtmain_course_dot_delta(const uint8 *position, uint32 segment, uin
     return gtmain_vector_dot_fixed(vector, (const uint8 *)psx_addr(segment + 36u, 6u));
 }
 
-sint32 gtmain_course_segment_find(uint32 index, const uint8 *position)
+/* Original: GTMAIN.EXE:sub_80023DCC. */ sint32 gtmain_course_segment_find(uint32 index, const uint8 *position)
 {
     uint32 segment = r_u32(r_u32(0x800BC1A8u) + index * 4u + 12u);
     for (;;)
@@ -70,7 +70,7 @@ sint32 gtmain_course_segment_find(uint32 index, const uint8 *position)
     }
 }
 
-sint32 gtmain_course_nearest_segment(const uint8 *position)
+/* Original: GTMAIN.EXE:sub_80023CE8. */ sint32 gtmain_course_nearest_segment(const uint8 *position)
 {
     uint32 table = r_u32(0x800BC1A8u);
     uint32 count = r_u16(table + 4u);
@@ -95,27 +95,27 @@ sint32 gtmain_course_nearest_segment(const uint8 *position)
     return selected;
 }
 
-uint32 gtmain_course_start_position(void)
+/* Original: GTMAIN.EXE:sub_80023C8C. */ uint32 gtmain_course_start_position(void)
 {
     return r_u32(0x800BC1B0u) + 64u;
 }
 
-sint32 gtmain_course_start_angle(void)
+/* Original: GTMAIN.EXE:sub_80023C9C. */ sint32 gtmain_course_start_angle(void)
 {
     return (sint16)r_u16(r_u32(0x800BC1B0u) + 76u);
 }
 
-sint32 gtmain_course_start_segment(void)
+/* Original: GTMAIN.EXE:sub_80023C44. */ sint32 gtmain_course_start_segment(void)
 {
     return gtmain_course_nearest_segment((const uint8 *)psx_addr(gtmain_course_start_position(), 12u));
 }
 
-uint32 gtmain_course_grid_position(uint32 index)
+/* Original: GTMAIN.EXE:sub_80023C6C. */ uint32 gtmain_course_grid_position(uint32 index)
 {
     return r_u32(0x800BC1B0u) + index * 12u + 80u;
 }
 
-sint32 gtmain_course_progress(uint32 index, const uint8 *position)
+/* Original: GTMAIN.EXE:sub_80023FA4. */ sint32 gtmain_course_progress(uint32 index, const uint8 *position)
 {
     uint32 owner = (uint32)gtmain_course_segment_find(index, position);
     uint32 segment = r_u32(r_u32(0x800BC1A8u) + owner * 4u + 12u);
@@ -157,7 +157,7 @@ static uint32 selection_stack_name(uint32 offset, uint32 bytes)
         gt_draft_failure("GTMAIN selection name stack overlap", 0x8006B798u);
     return address;
 }
-sint32 gtmain_car_record_find_variant(uint32 name, uint32 archive, uint32 section)
+/* Original: GTMAIN.EXE:sub_8006B798. */ sint32 gtmain_car_record_find_variant(uint32 name, uint32 archive, uint32 section)
 {
     uint32 local_name = selection_stack_name(0x4240u, 8u);
     sint32 result;
@@ -174,7 +174,7 @@ sint32 gtmain_car_record_find_variant(uint32 name, uint32 archive, uint32 sectio
     return result;
 }
 
-uint32 gtmain_car_selected_record(uint32 index, uint32 archive, uint32 section)
+/* Original: GTMAIN.EXE:sub_8001E580. */ uint32 gtmain_car_selected_record(uint32 index, uint32 archive, uint32 section)
 {
     uint32 name = gtmain_car_name(index);
     sint32 record = gtmain_car_record_find_variant(name, archive, section);
@@ -186,7 +186,7 @@ uint32 gtmain_car_selected_record(uint32 index, uint32 archive, uint32 section)
 
 /* TODO Resolve name extent in the independent selected-record lookup */
 /* GTMAIN.EXE 8001E8DC */
-sint32 gtmain_opponent_configurations(uint32 archive, uint32 section)
+/* Original: GTMAIN.EXE:sub_8001E8DC. */ sint32 gtmain_opponent_configurations(uint32 archive, uint32 section)
 {
     uint32 index;
     for (index = 1; index < 6u; ++index)
@@ -197,7 +197,7 @@ sint32 gtmain_opponent_configurations(uint32 archive, uint32 section)
     return 0;
 }
 
-uint32 gtmain_car_selection_bind(uint32 index, uint32 archive)
+/* Original: GTMAIN.EXE:sub_8001E6D4. */ uint32 gtmain_car_selection_bind(uint32 index, uint32 archive)
 {
     uint32 name = selection_stack_name(0x4260u, 32u);
     uint32 offset = index * 96u;
@@ -217,7 +217,7 @@ uint32 gtmain_car_selection_bind(uint32 index, uint32 archive)
 
 /* TODO Resolve the independent selection bind name buffer contract */
 /* GTMAIN.EXE 8001E7A0 */
-uint32 gtmain_car_saved_selection_load(uint32 index, uint32 saved_index, uint32 archive)
+/* Original: GTMAIN.EXE:sub_8001E7A0. */ uint32 gtmain_car_saved_selection_load(uint32 index, uint32 saved_index, uint32 archive)
 {
     gtmain_memory_copy(0x800BB790u + index * 96u, 0x800C4DECu + saved_index * 96u, 96u);
     return gtmain_car_selection_bind(index, archive);
@@ -225,6 +225,10 @@ uint32 gtmain_car_saved_selection_load(uint32 index, uint32 saved_index, uint32 
 
 uint32 gtmain_player_configuration_build(void)
 {
+    /* Original occurrences
+     * GTMAIN.EXE:0x8001EB08
+     * GTMAIN.EXE:0x8001ECA8
+     */
     return gtmain_car_config_build(0x800BB850u, 0x800BB790u, 0x800D6FDCu);
 }
 

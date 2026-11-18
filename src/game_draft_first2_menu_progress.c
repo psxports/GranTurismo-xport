@@ -23,7 +23,7 @@ static sint32 progress_span(uint32 value, uint32 total)
 }
 
 /* GTMAIN.EXE:80048660 */
-uint32 gtmain_menu_progress_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 selection, uint32 show_pending)
+/* Original: GTMAIN.EXE:sub_80048660. */ uint32 gtmain_menu_progress_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 selection, uint32 show_pending)
 {
     uint32 state = r_u32(0x800BEA34u);
     uint32 current = r_u16(state + 2u), total = r_u16(state + 4u);

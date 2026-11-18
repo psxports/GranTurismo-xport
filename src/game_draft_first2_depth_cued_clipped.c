@@ -360,7 +360,7 @@ static void dcclip_fixed_uv(uint32 context, uint32 uv0, uint32 uv1, uint32 uv2, 
     if (quad) w_u16(context + 434u, ((uv2 >> 17) & 0x7F80u) | 64u);
 }
 
-uint32 gtmain_model_depth_cued_clipped_draw(uint32 context, uint32 model_header)
+/* Original: GTMAIN.EXE:sub_80016BCC. */ uint32 gtmain_model_depth_cued_clipped_draw(uint32 context, uint32 model_header)
 {
     static const uint32 stride[8] = {12u, 12u, 20u, 24u, 24u, 24u, 32u, 36u};
     static const uint32 size[8] = {20u, 24u, 28u, 36u, 32u, 40u, 40u, 52u};

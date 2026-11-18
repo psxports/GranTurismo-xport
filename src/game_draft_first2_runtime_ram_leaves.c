@@ -2,7 +2,7 @@
 
 uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size);
 
-uint32 gtmain_race_effect_state_clear(void)
+/* Original: GTMAIN.EXE:sub_8002E494. */ uint32 gtmain_race_effect_state_clear(void)
 {
     return sub_8007BD58(0x800B39C4u, 0u, 16u);
 }

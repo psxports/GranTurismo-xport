@@ -20,7 +20,7 @@ static sint32 divide_guarded(sint32 numerator, sint32 denominator, uint32 owner)
     return numerator / denominator;
 }
 
-uint32 gtmain_race_engine_tuning_initialize(void)
+/* Original: GTMAIN.EXE:sub_80058F98. */ uint32 gtmain_race_engine_tuning_initialize(void)
 {
     uint32 source = r_u8(0x80093DE4u);
     uint32 denominator = r_u8(0x80093DE4u);
@@ -57,7 +57,7 @@ uint32 gtmain_race_engine_tuning_initialize(void)
     return result;
 }
 
-uint32 gtmain_race_tuning_initialize(void)
+/* Original: GTMAIN.EXE:sub_800592D8. */ uint32 gtmain_race_tuning_initialize(void)
 {
     gtmain_race_engine_tuning_initialize();
     for (uint32 i = 0; i < 4u; ++i) {
@@ -122,7 +122,7 @@ uint32 gtmain_race_tuning_initialize(void)
     return 0;
 }
 
-uint32 gtmain_race_assist_preset(uint32 preset)
+/* Original: GTMAIN.EXE:sub_80051E3C. */ uint32 gtmain_race_assist_preset(uint32 preset)
 {
     if (preset == 1) {
         w_u8(0x80093C6Cu, 5); w_u8(0x80093C6Eu, 30); w_u8(0x80093C69u, 35);
@@ -139,7 +139,7 @@ uint32 gtmain_race_assist_preset(uint32 preset)
     return 0x80093C6Cu;
 }
 
-uint32 gtmain_race_vehicle_bounds_update(uint32 car)
+/* Original: GTMAIN.EXE:sub_80061428. */ uint32 gtmain_race_vehicle_bounds_update(uint32 car)
 {
     uint32 angle = (r_u16(car + 1790u) & 4095u) * 2u;
     uint32 length = r_u32(car + 404u);
@@ -168,7 +168,7 @@ uint32 gtmain_race_vehicle_bounds_update(uint32 car)
     return result;
 }
 
-uint32 gtmain_race_vehicle_bounds_copy(uint32 car)
+/* Original: GTMAIN.EXE:sub_800615C4. */ uint32 gtmain_race_vehicle_bounds_copy(uint32 car)
 {
     uint32 selector = r_u8(car + 1961u);
     uint32 target = (1u - selector) << 5, source = selector << 5;
@@ -180,7 +180,7 @@ uint32 gtmain_race_vehicle_bounds_copy(uint32 car)
     return 0;
 }
 
-void gtmain_race_vehicle_pose_update(uint32 car)
+/* Original: GTMAIN.EXE:sub_80052760. */ sint32 gtmain_race_vehicle_pose_update(uint32 car)
 {
     uint32 rear = r_u32(car + 284u), front = r_u32(car + 148u);
     uint32 interpolation = (uint32)(sint32)(sint16)r_u16(car + 424u);
@@ -202,11 +202,11 @@ void gtmain_race_vehicle_pose_update(uint32 car)
     sint32 width = (sint16)r_u16(car + 422u);
     sint32 roll = gtmain_angle_atan_wide((sint32)(first_height - second_height), width);
     w_u16(car + 1902u, (uint16)roll);
-    gtmain_race_basis_set(car + 108u, car + 116u, car + 124u,
+    return gtmain_race_basis_set(car + 108u, car + 116u, car + 124u,
         (sint16)r_u16(car + 1900u), (sint16)(uint16)roll, (sint16)r_u16(car + 1790u));
 }
 
-sint32 gtmain_race_vehicle_initialization_finish(void)
+/* Original: GTMAIN.EXE:sub_80051D30. */ sint32 gtmain_race_vehicle_initialization_finish(void)
 {
     gtmain_race_event_tables_reset();
     gtmain_race_speed_tables_reset();

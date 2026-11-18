@@ -1,20 +1,14 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-static uint32 parts_resource(sint32 category)
-{
-    /* TODO Bind unselected parts resource lookup 8001EB94 */
-    return gt_draft_unresolved_call(0x8001EB94u, (uint32)category, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-}
-
 /* GTMAIN.EXE 80041D50 */
-uint32 gt_draft_80041D50(sint32 category)
+/* Original: GTMAIN.EXE:sub_80041D50. */ uint32 gt_draft_80041D50(sint32 category)
 {
     uint32 offset = r_u8(0x800941BDu + (uint32)category);
     uint32 context = r_u32(0x800BEA64u);
     uint32 part = r_u16(context + offset), level = 0u;
     if (part) {
-        uint32 record = parts_resource(32) + 20u * part;
+        uint32 record = gtmain_parts_table(32) + 20u * part;
         uint32 minimum = r_u8(record - 18u);
         uint32 source = r_u32(0x800BEA60u);
         uint32 maximum = r_u8(record - 17u);

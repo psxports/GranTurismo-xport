@@ -1,19 +1,19 @@
 #include "game_first2_registry.h"
 
-sint32 gtmain_camera_resource_reset(void)
+/* Original: GTMAIN.EXE:sub_8001C678. */ sint32 gtmain_camera_resource_reset(void)
 {
     w_u32(0x8008F224u, 0xFFFFFFFFu);
     return -1;
 }
 
-sint32 gtmain_menu_effect_tick(void)
+/* Original: GTMAIN.EXE:sub_8003A3F0. */ sint32 gtmain_menu_effect_tick(void)
 {
     uint32 next = r_u8(0x800B52F8u) - 1u;
     w_u8(0x800B52F8u, next);
     return (sint32)(next << 24) < 1 ? 7 : 0;
 }
 
-uint32 gtmain_menu_panel_special_bind(uint32 context, uint32 descriptor)
+/* Original: GTMAIN.EXE:sub_8003A63C. */ uint32 gtmain_menu_panel_special_bind(uint32 context, uint32 descriptor)
 {
     (void)gtmain_menu_callback(r_u32(descriptor + 16u));
     w_u8(context + 274u, 1u);
@@ -26,7 +26,7 @@ uint32 gtmain_menu_panel_special_bind(uint32 context, uint32 descriptor)
     return 12u;
 }
 
-uint32 gtmain_menu_effect_begin(void)
+/* Original: GTMAIN.EXE:sub_8003A344. */ uint32 gtmain_menu_effect_begin(void)
 {
     uint32 next;
     if (!(sint8)r_u8(0x800B52F9u)) {

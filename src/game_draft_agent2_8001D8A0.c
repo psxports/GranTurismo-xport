@@ -1,7 +1,7 @@
 #include "game_draft_registry.h"
 #include "game_first2_registry.h"
 
-uint32 gtmain_camera_follow_update(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001D8A0. */ uint32 gtmain_camera_follow_update(uint32 camera)
 {
     uint32 car = r_u32(camera + 180u), yaw, result;
     sint32 mode, next;

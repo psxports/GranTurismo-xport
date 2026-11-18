@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* Unverified translation from complete pseudocode and original MIPS */
-uint32 gtmain_vector_path_dispatch(uint32 output, uint32 path)
+/* Original: GTMAIN.EXE:sub_8001D308. */ uint32 gtmain_vector_path_dispatch(uint32 output, uint32 path)
 {
     uint32 kind = r_u16(path);
     if (!kind)

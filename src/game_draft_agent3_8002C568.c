@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8002C568 */
-sint32 gtmain_race_meters_prepare(uint32 meters)
+/* Original: GTMAIN.EXE:sub_8002C568. */ sint32 gtmain_race_meters_prepare(uint32 meters)
 {
     sint32 ceiling = (sint16)r_u16(meters + 2u) + 999;
     sint32 lower = (sint16)r_u16(meters);

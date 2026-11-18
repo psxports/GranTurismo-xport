@@ -1,7 +1,7 @@
 #include "game_draft_registry.h"
 /* Unverified draft translations with MIPS recovered stack arguments */
 
-uint32 gt_draft_800407A8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7, uint32 a8, uint32 a9)
+/* Original: GTMAIN.EXE:sub_800407A8. */ uint32 gt_draft_800407A8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7, uint32 a8, uint32 a9)
 {
     w_u32(0x801F1FDCu, 0x801D2FDCu);
     w_u8(0x801F1FE4u, 1); w_u8(0x801F1FE5u, 0);

@@ -1,8 +1,10 @@
 #include "game_draft_registry.h"
 
-/* Unverified full pseudocode draft; TODO Resolve omitted carriers and adapter ABI */
-uint32 gt_draft_8002A3AC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_8002A3AC(void)
 {
-
-  return (uint8)r_u8(0x8008FB34u + 1u * (r_u32(0x800CB7F8u))) - 2146666604;
+    uint32 index, offset;
+    FUNCTION_MARKER(0x8002A3AC, "GTMAIN.EXE");
+    index = r_u8(0x800CB7F8);
+    offset = r_u8(0x8008FB34 + index);
+    return 0x800C7794 + offset;
 }

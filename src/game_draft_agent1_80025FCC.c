@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-uint32 gtmain_race_standard_hud_draw(void)
+/* Original: GTMAIN.EXE:sub_80025FCC. */ uint32 gtmain_race_standard_hud_draw(void)
 {
     sint32 mode = (sint16)r_u16(0x800B63D6u);
     uint32 ordering = r_u32(0x800B6368u);

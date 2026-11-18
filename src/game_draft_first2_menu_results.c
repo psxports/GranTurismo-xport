@@ -31,14 +31,14 @@ static void result_label(uint32 ordering, sint32 x, sint32 y, uint32 label, sint
     (void)gtmain_menu_row_transition(ordering, centered, y, label, intensity, phase, palette);
 }
 /* GTMAIN.EXE 800335EC */
-uint32 gtmain_menu_result_prepare(void)
+/* Original: GTMAIN.EXE:sub_800335EC. */ uint32 gtmain_menu_result_prepare(void)
 {
     return gtmain_menu_result_tail_prepare((sint16)r_u16(0x801D2FEEu));
 }
 
 /* TODO Resolve independent general formatter and mode setup dependencies */
 /* GTMAIN.EXE 800335F4 receives the competitor predicate in v0 */
-uint32 gtmain_menu_result_tail_prepare(sint32 competitor)
+/* Original: GTMAIN.EXE:sub_800335F4. */ uint32 gtmain_menu_result_tail_prepare(sint32 competitor)
 {
     sint32 mode;
     uint32 name;
@@ -57,14 +57,14 @@ uint32 gtmain_menu_result_tail_prepare(sint32 competitor)
     return 0;
 }
 /* GTMAIN.EXE 80032D1C */
-uint32 gtmain_menu_lap_results_prepare(void)
+/* Original: GTMAIN.EXE:sub_80032D1C. */ uint32 gtmain_menu_lap_results_prepare(void)
 {
     return gtmain_menu_lap_results_tail_prepare(r_u8(0x801D2FEDu));
 }
 
 /* TODO Resolve independent mode setup dependencies */
 /* GTMAIN.EXE 80032D24 receives record flags in v0 */
-uint32 gtmain_menu_lap_results_tail_prepare(uint32 record_flags)
+/* Original: GTMAIN.EXE:sub_80032D24. */ uint32 gtmain_menu_lap_results_tail_prepare(uint32 record_flags)
 {
     uint32 active = record_flags & 1u, record = 0, flag, name, course, i = 0, offset = 332;
     sint32 laps, mode;
@@ -97,7 +97,7 @@ uint32 gtmain_menu_lap_results_tail_prepare(uint32 record_flags)
 }
 /* TODO Resolve independent draw continuation adapters */
 /* GTMAIN.EXE 80033330 */
-uint32 gtmain_menu_result_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_80033330. */ uint32 gtmain_menu_result_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
     sint32 competitor = (sint16)r_u16(0x801D2FEEu);
     sint32 mode = (sint8)r_u8(0x801D2FECu);
@@ -105,7 +105,7 @@ uint32 gtmain_menu_result_draw(uint32 ordering, sint32 x, sint32 y, sint32 inten
 }
 
 /* GTMAIN.EXE 80033340 receives mode and competitor in v0 and v1 */
-uint32 gtmain_menu_result_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 mode, sint32 competitor)
+/* Original: GTMAIN.EXE:sub_80033340. */ uint32 gtmain_menu_result_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 mode, sint32 competitor)
 {
     uint32 alternate = mode == 3, present = competitor >= 0, label;
     sint32 row_x, palette;
@@ -134,7 +134,7 @@ uint32 gtmain_menu_result_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 
 }
 /* TODO Resolve independent draw continuation adapters */
 /* GTMAIN.EXE 800328AC */
-uint32 gtmain_menu_lap_results_draw(uint32 ordering, sint32 x, sint32 y, uint32 descriptor_mode, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_800328AC. */ uint32 gtmain_menu_lap_results_draw(uint32 ordering, sint32 x, sint32 y, uint32 descriptor_mode, sint32 intensity)
 {
     sint32 initial_mode = r_s8(0x801D2FECu);
     /* The descriptor owner does not read this original argument */
@@ -142,7 +142,7 @@ uint32 gtmain_menu_lap_results_draw(uint32 ordering, sint32 x, sint32 y, uint32 
 }
 
 /* GTMAIN.EXE 800328B4 receives its initial mode in v1 */
-uint32 gtmain_menu_lap_results_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 initial_mode)
+/* Original: GTMAIN.EXE:sub_800328B4. */ uint32 gtmain_menu_lap_results_tail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, sint32 initial_mode)
 {
     sint32 mode = initial_mode, vertical_a = 0, vertical_b = 0, competitor, palette, list_x, scroll_x;
     uint32 label, flag, animated, i = 0, offset = 332;

@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8007BDFC */
-uint32 gtmain_memory_copy(uint32 destination, uint32 source, uint32 size)
+/* Original: GTMAIN.EXE:sub_8007BDFC. */ uint32 gtmain_memory_copy(uint32 destination, uint32 source, uint32 size)
 {
     uint32 output = destination;
     if (source != destination) while (size--) w_u8(output++, r_u8(source++));
@@ -10,7 +10,7 @@ uint32 gtmain_memory_copy(uint32 destination, uint32 source, uint32 size)
 }
 
 /* GTMAIN.EXE 8007BE38 */
-uint32 gtmain_string_copy(uint32 destination, uint32 source)
+/* Original: GTMAIN.EXE:sub_8007BE38. */ uint32 gtmain_string_copy(uint32 destination, uint32 source)
 {
     uint32 output = destination, offset = source & 3u;
     uint32 cursor = source - offset, word = r_u32(cursor);
@@ -25,7 +25,7 @@ uint32 gtmain_string_copy(uint32 destination, uint32 source)
 }
 
 /* GTMAIN.EXE 8007C2B0 */
-uint32 gtmain_string_length(uint32 source)
+/* Original: GTMAIN.EXE:sub_8007C2B0. */ uint32 gtmain_string_length(uint32 source)
 {
     uint32 cursor = source & ~3u, count = cursor - source;
     uint32 mask = ~(0xFFFFFFFFu << (8u * (source & 3u)));
@@ -38,7 +38,7 @@ uint32 gtmain_string_length(uint32 source)
 }
 
 /* GTMAIN.EXE 8007BEC4 */
-uint32 gtmain_string_append(uint32 destination, uint32 source)
+/* Original: GTMAIN.EXE:sub_8007BEC4. */ uint32 gtmain_string_append(uint32 destination, uint32 source)
 {
     gtmain_string_copy(destination + gtmain_string_length(destination), source);
     return destination;
@@ -54,7 +54,7 @@ static uint32 gtmain_memory_read_word_unaligned(uint32 address)
 }
 
 /* GTMAIN.EXE 8007BF04 */
-sint32 gtmain_string_compare(uint32 left, uint32 right)
+/* Original: GTMAIN.EXE:sub_8007BF04. */ sint32 gtmain_string_compare(uint32 left, uint32 right)
 {
     uint32 offset = left & 3u, a = left - offset, b = right - offset;
     uint32 mask = ~(0xFFFFFFFFu << (8u * offset));
@@ -75,7 +75,7 @@ sint32 gtmain_string_compare(uint32 left, uint32 right)
 }
 
 /* GTMAIN.EXE 8007C044 */
-uint32 gtmain_memory_move(uint32 destination, uint32 source, uint32 size)
+/* Original: GTMAIN.EXE:sub_8007C044. */ uint32 gtmain_memory_move(uint32 destination, uint32 source, uint32 size)
 {
     uint32 output = destination, step = 1u;
     if (source == destination) return destination;
@@ -90,7 +90,7 @@ uint32 gtmain_memory_move(uint32 destination, uint32 source, uint32 size)
 }
 
 /* GTMAIN.EXE 8007C09C */
-sint32 gtmain_string_decimal(uint32 source)
+/* Original: GTMAIN.EXE:sub_8007C09C. */ sint32 gtmain_string_decimal(uint32 source)
 {
     sint32 value = (sint8)r_u8(source), sign;
     uint32 result = 0;
@@ -106,7 +106,7 @@ sint32 gtmain_string_decimal(uint32 source)
 }
 
 /* GTMAIN.EXE 8007D61C */
-sint32 gtmain_memory_compare(uint32 left, uint32 right, uint32 size)
+/* Original: GTMAIN.EXE:sub_8007D61C. */ sint32 gtmain_memory_compare(uint32 left, uint32 right, uint32 size)
 {
     while (size--) {
         uint8 a = r_u8(left++), b = r_u8(right++);
@@ -117,7 +117,7 @@ sint32 gtmain_memory_compare(uint32 left, uint32 right, uint32 size)
 }
 
 /* GTMAIN.EXE 8007D344 */
-uint32 gtmain_environment_find(uint32 name, uint32 length)
+/* Original: GTMAIN.EXE:sub_8007D344. */ uint32 gtmain_environment_find(uint32 name, uint32 length)
 {
     uint32 entry = r_u32(0x800C0C34u);
     while (r_u8(entry)) {
@@ -128,7 +128,7 @@ uint32 gtmain_environment_find(uint32 name, uint32 length)
 }
 
 /* GTMAIN.EXE 8007D44C */
-uint32 gtmain_string_skip_field(uint32 source, sint8 delimiter)
+/* Original: GTMAIN.EXE:sub_8007D44C. */ uint32 gtmain_string_skip_field(uint32 source, sint8 delimiter)
 {
     uint8 value;
     while ((value = r_u8(source)) != 0) {
@@ -140,7 +140,7 @@ uint32 gtmain_string_skip_field(uint32 source, sint8 delimiter)
 }
 
 /* GTMAIN.EXE 8007D4BC */
-uint32 gtmain_string_copy_field(uint32 source, uint32 destination, sint8 delimiter)
+/* Original: GTMAIN.EXE:sub_8007D4BC. */ uint32 gtmain_string_copy_field(uint32 source, uint32 destination, sint8 delimiter)
 {
     uint8 value = r_u8(source);
     while (value) {
@@ -156,7 +156,7 @@ uint32 gtmain_string_copy_field(uint32 source, uint32 destination, sint8 delimit
 }
 
 /* GTMAIN.EXE 8007D66C */
-uint32 gtmain_work_string_copy(uint32 destination, sint32 capacity)
+/* Original: GTMAIN.EXE:sub_8007D66C. */ uint32 gtmain_work_string_copy(uint32 destination, sint32 capacity)
 {
     if (!capacity) { w_u32(0x800B1AB0u, 22u); return 0; }
     if ((sint32)gtmain_string_length(0x800B1B54u) >= capacity) {
@@ -171,13 +171,13 @@ uint32 gtmain_work_string_copy(uint32 destination, sint32 capacity)
 }
 
 /* GTMAIN.EXE 8007D5FC */
-uint32 gtmain_work_string_copy_default(uint32 destination)
+/* Original: GTMAIN.EXE:sub_8007D5FC. */ uint32 gtmain_work_string_copy_default(uint32 destination)
 {
     return gtmain_work_string_copy(destination, 124);
 }
 
 /* GTMAIN.EXE 8007BCB4 */
-uint32 gtmain_environment_value(uint32 name)
+/* Original: GTMAIN.EXE:sub_8007BCB4. */ uint32 gtmain_environment_value(uint32 name)
 {
     uint32 length = gtmain_string_length(name);
     uint32 entry = gtmain_environment_find(name, length);
@@ -185,7 +185,7 @@ uint32 gtmain_environment_value(uint32 name)
 }
 
 /* GTMAIN.EXE 8007C13C */
-uint32 gtmain_environment_field(uint32 name, sint32 index, uint32 destination)
+/* Original: GTMAIN.EXE:sub_8007C13C. */ uint32 gtmain_environment_field(uint32 name, sint32 index, uint32 destination)
 {
     uint32 source = gtmain_environment_value(name);
     sint32 field = 0;
@@ -200,13 +200,13 @@ uint32 gtmain_environment_field(uint32 name, sint32 index, uint32 destination)
 }
 
 /* GTMAIN.EXE 8007D06C */
-sint32 gtmain_path_separator(sint8 character)
+/* Original: GTMAIN.EXE:sub_8007D06C. */ sint32 gtmain_path_separator(sint8 character)
 {
     return character == 47 || character == 92;
 }
 
 /* GTMAIN.EXE 8007D094 */
-uint32 gtmain_path_resolve(uint32 destination, uint32 source)
+/* Original: GTMAIN.EXE:sub_8007D094. */ uint32 gtmain_path_resolve(uint32 destination, uint32 source)
 {
     uint32 length, seen = 0;
     sint32 character;
@@ -253,7 +253,7 @@ CopyComponent:
 }
 
 /* GTMAIN.EXE 8007D264 */
-uint32 gtmain_string_last_character(uint32 source, uint8 character)
+/* Original: GTMAIN.EXE:sub_8007D264. */ uint32 gtmain_string_last_character(uint32 source, uint8 character)
 {
     uint32 result = 0, offset = source & 3u;
     uint32 cursor = source - offset, word = r_u32(cursor);
@@ -267,7 +267,7 @@ uint32 gtmain_string_last_character(uint32 source, uint8 character)
 }
 
 /* GTMAIN.EXE 8007D320 */
-uint32 gtmain_environment_reset(void)
+/* Original: GTMAIN.EXE:sub_8007D320. */ uint32 gtmain_environment_reset(void)
 {
     w_u8(0x800C0BF0u, 0);
     w_u32(0x800B1B50u, 1u);
@@ -275,12 +275,12 @@ uint32 gtmain_environment_reset(void)
 }
 
 /* GTMAIN.EXE 8007D33C */
-void gtmain_runtime_empty(void)
+/* Original: GTMAIN.EXE:sub_8007D33C. */ void gtmain_runtime_empty(void)
 {
 }
 
 /* GTMAIN.EXE 8007CA94 */
-sint32 gtmain_format_decimal_cursor(uint32 cursor_address)
+/* Original: GTMAIN.EXE:sub_8007CA94. */ sint32 gtmain_format_decimal_cursor(uint32 cursor_address)
 {
     uint32 cursor = r_u32(cursor_address), value = r_u8(cursor), result = 0;
     while (value - 48u < 10u) {
@@ -294,7 +294,7 @@ sint32 gtmain_format_decimal_cursor(uint32 cursor_address)
 }
 
 /* GTMAIN.EXE 8007D3E4 */
-sint32 gtmain_format_emit(sint8 character)
+/* Original: GTMAIN.EXE:sub_8007D3E4. */ sint32 gtmain_format_emit(sint8 character)
 {
     uint32 destination = r_u32(0x800B55C8u);
     w_u32(0x800B55C8u, destination + 1u);

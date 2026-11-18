@@ -11,7 +11,7 @@ static sint32 dt_div(sint32 a, sint32 b, uint32 owner)
 static uint32 dt_mul(sint32 a, sint32 b) { return (uint32)((sint64)a * b / 4096); }
 static uint32 dt_low(sint32 a, sint32 b) { return (uint32)((sint32)((uint32)a * (uint32)b) / 4096); }
 
-sint32 gtmain_race_engine_torque(uint32 c)
+/* Original: GTMAIN.EXE:sub_800675A8. */ sint32 gtmain_race_engine_torque(uint32 c)
 {
     uint32 s = c + 404u, a;
     if (!r_s16(c + 692u)) a = (uint32)r_s16(c + 18u);
@@ -43,7 +43,7 @@ sint32 gtmain_race_engine_torque(uint32 c)
     return (sint32)(dt_mul((sint32)a, (sint32)(r_u32(c + 1680u) + r_u32(c + 1684u))) - r_u32(c + 1684u));
 }
 
-sint32 gtmain_race_gear_select(uint32 c, const uint8 *controls)
+/* Original: GTMAIN.EXE:sub_800678DC. */ sint32 gtmain_race_gear_select(uint32 c, const uint8 *controls)
 {
     uint32 s = c + 404u, gear = r_u8(c + 32u), mode;
     if (r_u16(c + 12u)) return gear == 1u ? -1 : 1;
@@ -94,13 +94,13 @@ sint32 gtmain_race_gear_select(uint32 c, const uint8 *controls)
     return -1;
 }
 
-void gtmain_race_controls_reset(uint32 c)
+/* Original: GTMAIN.EXE:sub_80068124. */ void gtmain_race_controls_reset(uint32 c)
 {
     uint32 i;
     w_u16(c + 1820u, 0); w_u32(c + 1808u, 0);
     for (i = 0; i < 8u; ++i) w_u8(c + 1812u + i, 0);
 }
-uint32 gtmain_race_controls_apply_basic(uint32 c, uint8 *controls)
+/* Original: GTMAIN.EXE:sub_800672FC. */ uint32 gtmain_race_controls_apply_basic(uint32 c, uint8 *controls)
 {
     uint32 output, result = gtmain_race_controls_query(c, controls, &output, 0);
     w_u8(c + 33u, (uint8)result);
@@ -121,7 +121,7 @@ static void dt_split(uint32 c, uint32 scratch, uint32 force, uint32 differential
         w_u32(scratch + 36u, force - r_u32(scratch + 8u)); break;
     }
 }
-uint32 gtmain_race_drive_forces_update(uint32 c, uint32 index)
+/* Original: GTMAIN.EXE:sub_80059D30. */ uint32 gtmain_race_drive_forces_update(uint32 c, uint32 index)
 {
     uint32 offset = index * 84u, scratch = 0x1F800000u + offset, s = c + 404u;
     uint32 mode, kind, differential = 0, force;
@@ -201,7 +201,7 @@ flags:
     return offset;
 }
 
-uint32 gtmain_race_traction_apply(uint32 c, uint32 index)
+/* Original: GTMAIN.EXE:sub_8005B794. */ uint32 gtmain_race_traction_apply(uint32 c, uint32 index)
 {
     uint32 result = r_u8(c + 1698u) & 1u;
     if (!result) return result;

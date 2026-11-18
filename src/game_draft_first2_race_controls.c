@@ -1,10 +1,9 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-/* TODO Implement unrecorded GTMAIN.EXE 8005F2D0 only for an observed native blocker */
 static uint32 controls_special_course_progress(uint32 position)
 {
-    return gt_draft_unresolved_call(0x8005F2D0u, position, 0, 0, 0, 0, 0, 0, 0);
+    return (uint32)gtmain_race_course_progress(position);
 }
 
 static uint32 controls_div(uint32 value, uint32 shift)
@@ -23,7 +22,7 @@ static uint16 controls_half(const uint8 *controls, uint32 offset)
 }
 
 /* GTMAIN.EXE 80020BDC */
-void gtmain_race_controls_decode(uint8 *controls, uint32 state, sint32 player, uint32 object)
+/* Original: GTMAIN.EXE:sub_80020BDC. */ sint32 gtmain_race_controls_decode(uint8 *controls, uint32 state, sint32 player, uint32 object)
 {
     uint32 buttons, flags, result;
     if (r_s8(0x800B63C2u)) {
@@ -46,10 +45,11 @@ void gtmain_race_controls_decode(uint8 *controls, uint32 state, sint32 player, u
     if (flags & 4u) result = (uint32)r_s16(0x8008F3B0u + 2u * (r_u8(state + 85u) & 15u));
     else result = (buttons >> 3) & 1u;
     xport_store_le16(controls + 4u, (uint16)result);
+    return (sint32)result;
 }
 
 /* GTMAIN.EXE 800654C0 */
-void gtmain_race_controls_apply(uint32 car, const uint8 *controls, uint32 guest_output, sint32 index)
+/* Original: GTMAIN.EXE:sub_800654C0. */ uint32 gtmain_race_controls_apply(uint32 car, const uint8 *controls, uint32 guest_output, sint32 index)
 {
     uint32 speed = r_u32(car + 1724u), rotation = r_u16(car + 1740u), curve, limit, first, result, target, damping;
     uint32 table_index = 2u * (uint32)index;
@@ -157,23 +157,29 @@ throttle_done:
         w_u16(car + 1692u, (uint16)result);
         if ((sint16)result < 0) w_u16(car + 1692u, 0);
     }
-    if (r_u8(car + 1688u) || r_u16(car + 12u) || r_u8(car + 1696u) == 7u ||
-        (r_u8(car + 1463u) == 1u && r_s16(car + 1692u) == 4096)) w_u8(guest_output + 1u, 0);
-    else if (r_u8(car + 1691u)) {
+    result = r_u8(car + 1688u);
+    if (result) { w_u8(guest_output + 1u, 0); return result; }
+    if (r_u16(car + 12u)) { w_u8(guest_output + 1u, 0); return 7u; }
+    if (r_u8(car + 1696u) == 7u) { w_u8(guest_output + 1u, 0); return 1u; }
+    if (r_u8(car + 1463u) == 1u && r_s16(car + 1692u) == 4096) {
+        w_u8(guest_output + 1u, 0); return 4096u;
+    }
+    if (r_u8(car + 1691u)) {
         w_u8(guest_output + 1u, 1);
         current = r_s16(car + 38u); result = r_u16(car + 662u);
-        if (current < (sint32)result) w_u8(guest_output + 1u, 0);
-    } else {
-        w_u8(guest_output + 1u, 0);
-        if (r_s16(car + 20u) != 4096) {
-            current = r_s16(car + 38u); result = r_u16(car + 1468u);
-            if ((sint32)result < current || r_u32(car + 1724u) + 11380u >= 0x58E9u) w_u8(guest_output + 1u, 1);
-        }
+        result = current < (sint32)result;
+        if (result) w_u8(guest_output + 1u, 0);
+        return result;
     }
+    w_u8(guest_output + 1u, 0);
+    if (r_s16(car + 20u) == 4096) return 4096u;
+    current = r_s16(car + 38u); result = r_u16(car + 1468u);
+    if ((sint32)result < current || r_u32(car + 1724u) + 11380u >= 0x58E9u) w_u8(guest_output + 1u, 1);
+    return 1u;
 }
 
 /* GTMAIN.EXE 80065C6C */
-void gtmain_race_controls_drive(uint32 car, const uint8 *controls, sint32 index)
+/* Original: GTMAIN.EXE:sub_80065C6C. */ void gtmain_race_controls_drive(uint32 car, const uint8 *controls, sint32 index)
 {
     uint32 throttle, brake, second_brake, table_index = 11u * (uint32)index;
     gtmain_race_controls_apply(car, controls, 0x1F8001FCu + 4u * (uint32)index, index);
@@ -184,7 +190,7 @@ void gtmain_race_controls_drive(uint32 car, const uint8 *controls, sint32 index)
 }
 
 /* GTMAIN.EXE 80056D04 */
-void gtmain_race_controls_ai(uint32 car, const uint8 *unused_controls, sint32 index)
+/* Original: GTMAIN.EXE:sub_80056D04. */ void gtmain_race_controls_ai(uint32 car, const uint8 *unused_controls, sint32 index)
 {
     uint32 output = 0x1F8001FCu + 4u * (uint32)index;
     uint32 timer;
@@ -217,7 +223,7 @@ void gtmain_race_controls_ai(uint32 car, const uint8 *unused_controls, sint32 in
 }
 
 /* GTMAIN.EXE 80052094 */
-void gtmain_race_controls_hud(uint32 car, const uint8 *controls)
+/* Original: GTMAIN.EXE:sub_80052094. */ uint32 gtmain_race_controls_hud(uint32 car, const uint8 *controls)
 {
     sint32 level;
     uint32 value;
@@ -228,19 +234,33 @@ void gtmain_race_controls_hud(uint32 car, const uint8 *controls)
         if (value) { if (level >= 16) level = 15; w_u8(car + 1966u, (uint8)(r_u8(car + 1966u) | (uint32)level)); }
     } else if ((sint16)controls_half(controls, 6u)) w_u8(car + 1966u, 15);
     if (controls_half(controls, 0) & 4u) {
-        value = (uint32)controls_half(controls, 4u) << 16;
+        value = (uint32)controls_half(controls, 4u) << 16u;
+        if (!value) return 0u;
         level = (sint32)value >> 24;
-        if (value) { if (level >= 16) level = 15; w_u8(car + 1966u, (uint8)(r_u8(car + 1966u) | ((uint32)level << 4))); }
-    } else if ((sint16)controls_half(controls, 4u)) w_u8(car + 1966u, (uint8)(r_u8(car + 1966u) | 0xF0u));
+        if (level >= 16) level = 15;
+        value = r_u8(car + 1966u) | ((uint32)level << 4u);
+    } else {
+        value = (uint32)(sint32)(sint16)controls_half(controls, 4u);
+        if (!value) return 0u;
+        value = r_u8(car + 1966u) | 0xF0u;
+    }
+    w_u8(car + 1966u, value);
+    return value;
 }
 
 /* GTMAIN.EXE 80052164 */
-void gtmain_race_controls_hud_ai(uint32 car)
+/* Original: GTMAIN.EXE:sub_80052164. */ uint32 gtmain_race_controls_hud_ai(uint32 car)
 {
     sint32 throttle = r_s16(car + 16u);
+    uint32 result;
     w_u8(car + 1966u, 0);
     if (throttle) w_u8(car + 1966u, 15);
-    if (r_s16(car + 20u)) w_u8(car + 1966u, (uint8)(r_u8(car + 1966u) | 0xF0u));
+    result = (uint32)r_s16(car + 20u);
+    if (result) {
+        result = r_u8(car + 1966u) | 0xF0u;
+        w_u8(car + 1966u, result);
+    }
+    return result;
 }
 
 static sint32 controls_curve_divide(uint32 scaled, uint32 divisor, uint32 link)
@@ -250,7 +270,7 @@ static sint32 controls_curve_divide(uint32 scaled, uint32 divisor, uint32 link)
 }
 
 /* GTMAIN.EXE 80058C34 */
-sint32 gtmain_race_curve32(uint32 curve, sint32 value)
+/* Original: GTMAIN.EXE:sub_80058C34. */ sint32 gtmain_race_curve32(uint32 curve, sint32 value)
 {
     uint32 last = (r_u16(curve) - 1u) & 0xFFFFu, xs = r_u32(curve + 4u);
     uint32 first_x = r_u32(xs), last_x = r_u32(xs + 4u * last), lower = 0, upper = last;
@@ -300,7 +320,7 @@ sint32 gtmain_race_curve32(uint32 curve, sint32 value)
 }
 
 /* GTMAIN.EXE 8005F000 */
-void gtmain_race_basis_set(uint32 first, uint32 second, uint32 third, sint32 first_angle, sint32 second_angle, sint32 third_angle)
+/* Original: GTMAIN.EXE:sub_8005F000. */ sint32 gtmain_race_basis_set(uint32 first, uint32 second, uint32 third, sint32 first_angle, sint32 second_angle, sint32 third_angle)
 {
     uint32 b = ((uint32)second_angle & 4095u) * 2u, c = ((uint32)third_angle & 4095u) * 2u, a = ((uint32)first_angle & 4095u) * 2u;
     uint32 sb = (uint32)r_s16(0x8009423Cu + b), cc = (uint32)r_s16(0x80094A3Cu + c);
@@ -313,11 +333,13 @@ void gtmain_race_basis_set(uint32 first, uint32 second, uint32 third, sint32 fir
     w_u16(first + 4u, (uint16)controls_fp(cb, sa));
     result = controls_fp(mixed_c, ca) + controls_fp(sc, sa); w_u16(third, (uint16)result);
     result = controls_fp(mixed_s, ca) - controls_fp(cc, sa); w_u16(third + 2u, (uint16)result);
-    w_u16(third + 4u, (uint16)controls_fp(cb, ca));
+    result = controls_fp(cb, ca);
+    w_u16(third + 4u, (uint16)result);
+    return (sint32)result;
 }
 
 /* GTMAIN.EXE 8005F1CC */
-sint32 gtmain_race_angle_wrap(sint32 angle)
+/* Original: GTMAIN.EXE:sub_8005F1CC. */ sint32 gtmain_race_angle_wrap(sint32 angle)
 {
     while (angle < -2048) angle = (sint32)((uint32)angle + 4096u);
     while (angle >= 2048) angle = (sint32)((uint32)angle - 4096u);
@@ -325,7 +347,7 @@ sint32 gtmain_race_angle_wrap(sint32 angle)
 }
 
 /* GTMAIN.EXE 8005F208 */
-sint32 gtmain_race_angle_delta(sint32 first, sint32 second)
+/* Original: GTMAIN.EXE:sub_8005F208. */ sint32 gtmain_race_angle_delta(sint32 first, sint32 second)
 {
     uint32 a = (uint32)gtmain_race_angle_wrap(first), b = (uint32)gtmain_race_angle_wrap(second);
     sint32 difference = (sint32)(a - b);
@@ -335,7 +357,7 @@ sint32 gtmain_race_angle_delta(sint32 first, sint32 second)
 }
 
 /* GTMAIN.EXE 8005F53C */
-void gtmain_race_wheel_pose(uint32 car)
+/* Original: GTMAIN.EXE:sub_8005F53C. */ uint32 gtmain_race_wheel_pose(uint32 car)
 {
     uint32 a = controls_fp((uint32)r_s16(car + 76u), (uint32)r_s16(car + 416u));
     uint32 b = controls_fp((uint32)r_s16(car + 76u), (uint32)r_s16(car + 418u));
@@ -356,24 +378,25 @@ void gtmain_race_wheel_pose(uint32 car)
     w_u16(car + 208u, (uint16)(i + e)); w_u16(car + 210u, (uint16)(j + f));
     w_u16(car + 276u, (uint16)(0u - k - g)); w_u16(car + 278u, (uint16)(0u - l - h));
     w_u16(car + 344u, (uint16)(k - g)); w_u16(car + 346u, (uint16)(l - h));
+    return k - g;
 }
 
 /* GTMAIN.EXE 8005C3A4 */
-void gtmain_race_suspension_prepare(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_8005C3A4. */ void gtmain_race_suspension_prepare(uint32 cars, sint32 count)
 {
     sint32 index;
     for (index = 0; index < count; ++index) gtmain_race_suspension_car_prepare(cars + 3380u * (uint32)index + 40u);
 }
 
 /* GTMAIN.EXE 8005C5E8 */
-void gtmain_race_suspension_update(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_8005C5E8. */ void gtmain_race_suspension_update(uint32 cars, sint32 count)
 {
     sint32 index;
     for (index = 0; index < count; ++index) gtmain_race_suspension_car_update(cars + 3380u * (uint32)index + 40u);
 }
 
 /* GTMAIN.EXE 80065D34 */
-void gtmain_race_velocity_publish(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80065D34. */ void gtmain_race_velocity_publish(uint32 cars, sint32 count)
 {
     sint32 index;
     for (index = 0; index < count; ++index) {
@@ -387,7 +410,7 @@ void gtmain_race_velocity_publish(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 80057BF8 */
-uint32 gtmain_race_lap_car_tick(uint32 car, sint32 rank)
+/* Original: GTMAIN.EXE:sub_80057BF8. */ uint32 gtmain_race_lap_car_tick(uint32 car, sint32 rank)
 {
     uint32 mode = r_u8(0x800CB7F5u), previous = r_u32(car + 1804u), current, hit, sum;
     uint32 storage[3];
@@ -421,11 +444,11 @@ uint32 gtmain_race_lap_car_tick(uint32 car, sint32 rank)
 }
 
 /* GTMAIN.EXE 8002E0B8 */
-void gtmain_race_lap_difference_show(sint32 car_index, sint32 difference)
+/* Original: GTMAIN.EXE:sub_8002E0B8. */ uint32 gtmain_race_lap_difference_show(sint32 car_index, sint32 difference)
 {
     sint32 type = r_s16(0x800B686Au + 3380u * (uint32)car_index);
     uint32 prefix = 43, value = (uint32)difference, first = 1, tick;
-    if (type >= 4 || type <= 0) return;
+    if (type >= 4 || type <= 0) return type < 4;
     if (!value) prefix = 32;
     else if ((sint32)value < 0) { prefix = 45; value = 0u - value; }
     if (car_index && prefix == 43u) prefix = 45;
@@ -439,5 +462,6 @@ void gtmain_race_lap_difference_show(sint32 car_index, sint32 difference)
     tick = r_u32(0x800BF518u);
     w_u8(0x800B39B4u, (uint8)prefix);
     w_u16(0x8009071Cu, (uint16)(3u * tick));
+    return 3u * tick;
 }
 

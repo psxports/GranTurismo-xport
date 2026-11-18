@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 800300A0 */
-sint32 gtmain_race_label_font2_draw(uint32 ordering, sint32 y, uint32 color, uint32 label)
+/* Original: GTMAIN.EXE:sub_800300A0. */ sint32 gtmain_race_label_font2_draw(uint32 ordering, sint32 y, uint32 color, uint32 label)
 {
     sint32 x;
     uint32 text;
@@ -14,7 +14,7 @@ sint32 gtmain_race_label_font2_draw(uint32 ordering, sint32 y, uint32 color, uin
 }
 
 /* GTMAIN.EXE 8003011C */
-sint32 gtmain_race_label_font3_draw(uint32 ordering, sint32 y, uint32 color, uint32 label)
+/* Original: GTMAIN.EXE:sub_8003011C. */ sint32 gtmain_race_label_font3_draw(uint32 ordering, sint32 y, uint32 color, uint32 label)
 {
     sint32 x;
     uint32 text;
@@ -27,7 +27,7 @@ sint32 gtmain_race_label_font3_draw(uint32 ordering, sint32 y, uint32 color, uin
 }
 
 /* GTMAIN.EXE 800308D0 */
-uint32 gtmain_race_label_panel_draw(uint32 ordering, uint32 label, uint32 color)
+/* Original: GTMAIN.EXE:sub_800308D0. */ uint32 gtmain_race_label_panel_draw(uint32 ordering, uint32 label, uint32 color)
 {
     gtmain_race_label_font3_draw(ordering, 12, 0x00808080u, label);
     gtmain_packet_rectangle(ordering, 0x800912D0u, color);
@@ -35,7 +35,7 @@ uint32 gtmain_race_label_panel_draw(uint32 ordering, uint32 label, uint32 color)
 }
 
 /* GTMAIN.EXE 8002A500 */
-uint32 gtmain_course_route_caption_update(void)
+/* Original: GTMAIN.EXE:sub_8002A500. */ uint32 gtmain_course_route_caption_update(void)
 {
     uint32 number = r_u8(0x800CB7F9u) + 1u;
     uint32 route = r_u8(0x800CB7F8u);

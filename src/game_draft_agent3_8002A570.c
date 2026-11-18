@@ -2,7 +2,7 @@
 
 /* TODO Complete the independent driver configuration callee 8001E988 */
 /* GTMAIN.EXE 8002A570 */
-uint32 gtmain_race_record_selection_prepare(void)
+/* Original: GTMAIN.EXE:sub_8002A570. */ uint32 gtmain_race_record_selection_prepare(void)
 {
     uint32 record = gtmain_race_mode_record();
     uint32 course_name = r_u32(record + 12u);

@@ -10,7 +10,7 @@ static sint32 rank_bar_ratio(sint32 numerator, sint32 denominator)
 }
 
 /* GTMAIN.EXE 800409A4 */
-uint32 gtmain_menu_rank_bar_draw(uint32 ordering, sint32 value, sint32 maximum,
+/* Original: GTMAIN.EXE:sub_800409A4. */ uint32 gtmain_menu_rank_bar_draw(uint32 ordering, sint32 value, sint32 maximum,
     sint32 x, sint32 y, sint32 intensity, uint32 full_height)
 {
     uint32 selected = (uint32)value, offset = 0, color, ratio;

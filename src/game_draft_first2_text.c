@@ -13,7 +13,7 @@ static void gtmain_text_link_write(uint32 address, uint32 value)
     w_u8(address + 2u, (uint8)(value >> 16));
 }
 
-uint32 gtmain_primitive_texture_page(uint32 context, uint32 ordering_link)
+/* Original: GTMAIN.EXE:sub_80071210. */ uint32 gtmain_primitive_texture_page(uint32 context, uint32 ordering_link)
 {
     uint32 command, packet, previous;
     GpuRasterState raster;
@@ -30,7 +30,7 @@ uint32 gtmain_primitive_texture_page(uint32 context, uint32 ordering_link)
     return packet;
 }
 
-sint32 gtmain_text_glyph(uint8 glyph)
+/* Original: GTMAIN.EXE:sub_8006C57C. */ sint32 gtmain_text_glyph(uint8 glyph)
 {
     uint32 glyph_address = r_u32(0x800C0070u) + (uint32)glyph * 8u;
     uint32 position = r_u32(0x800C0080u);
@@ -58,39 +58,40 @@ sint32 gtmain_text_glyph(uint8 glyph)
     return 0;
 }
 
-void gtmain_text_position(sint16 x, sint16 y)
+/* Original: GTMAIN.EXE:sub_8006C664. */ void gtmain_text_position(sint16 x, sint16 y)
 {
     w_u16(0x800C0080u, (uint16)x); w_u16(0x800C0082u, (uint16)y);
     w_u16(0x800C008Cu, 0u);
 }
 
-void gtmain_text_advance(sint16 advance)
+/* Original: GTMAIN.EXE:sub_8006C684. */ void gtmain_text_advance(sint16 advance)
 {
     w_u16(0x800C008Eu, (uint16)advance);
 }
 
-uint32 gtmain_text_bind(uint32 ordering_link)
+/* Original: GTMAIN.EXE:sub_8006C694. */ uint32 gtmain_text_bind(uint32 ordering_link)
 {
     uint32 packet = gtmain_primitive_texture_page(0x800C0070u, ordering_link);
     w_u32(0x800C0084u, packet);
     return packet;
 }
 
-void gtmain_text_draw(uint32 ordering_link, sint16 x, sint16 y, uint32 guest_string)
+/* Original: GTMAIN.EXE:sub_8006C720. */ uint32 gtmain_text_draw(uint32 ordering_link, sint16 x, sint16 y, uint32 guest_string)
 {
     sint32 glyph;
-    gtmain_text_bind(ordering_link);
+    uint32 result = gtmain_text_bind(ordering_link);
     gtmain_text_position(x, y);
     glyph = (sint8)r_u8(guest_string);
     while (glyph)
     {
         ++guest_string;
-        gtmain_text_glyph((uint8)glyph);
+        result = gtmain_text_glyph((uint8)glyph);
         glyph = (sint8)r_u8(guest_string);
     }
+    return result;
 }
 
-sint32 gtmain_text_font(sint32 index)
+/* Original: GTMAIN.EXE:sub_8006C790. */ sint32 gtmain_text_font(sint32 index)
 {
     uint32 clut = r_u16(0x800C0078u), table, texture, result;
     if (index == 1)

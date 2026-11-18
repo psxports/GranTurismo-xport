@@ -1,131 +1,125 @@
 #include "game_first2_registry.h"
+#include "game_draft_registry.h"
+#include "game_local_stack.h"
+#include "xport_trace.h"
 
-static uint32 roster_panel_table(void)
-{
-    /* TODO Unselected table provider remains typed fail-fast */
-    gt_draft_failure("GTMAIN roster panel table", 0x8002A4DCu);
-}
-
-static sint32 roster_panel_header_width(uint32 text)
-{
-    /* TODO Unselected header width remains typed fail-fast */
-    gt_draft_failure("GTMAIN roster panel header width", 0x80035F7Cu);
-}
-
-static uint32 roster_panel_header_draw(uint32 ordering, sint32 x, sint32 y, uint32 text)
-{
-    /* TODO Unselected conditional header draw remains typed fail-fast */
-    gt_draft_failure("GTMAIN roster panel header draw", 0x80035E40u);
-}
-
-static uint32 roster_panel_left_arrow(uint32 ordering, sint32 x, sint32 y, uint32 color)
-{
-    /* TODO Unselected left arrow remains typed fail-fast */
-    gt_draft_failure("GTMAIN roster panel left arrow", 0x8003B690u);
-}
-
-static uint32 roster_panel_right_arrow(uint32 ordering, sint32 x, sint32 y, uint32 color)
-{
-    /* TODO Unselected right arrow remains typed fail-fast */
-    gt_draft_failure("GTMAIN roster panel right arrow", 0x8003B648u);
-}
-
-static sint32 roster_panel_format(char output[256], uint32 format, sint32 number)
-{
-    /* TODO Bind native formatted destination using the original format */
-    gt_draft_failure("Native roster panel formatter", 0x8007C014u);
-}
-
-static uint32 roster_panel_native_text(uint32 ordering, sint32 x, sint32 y, const char *text, sint32 spacing)
-{
-    /* TODO Bind native string storage to the original spaced text service */
-    gt_draft_failure("Native roster panel spaced text", 0x8003A8ACu);
-}
-
-/* GTMAIN.EXE:80039030 */
 uint32 gtmain_menu_roster_panel_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
-    char formatted[256];
-    sint16 corners[4];
-    uint32 table = roster_panel_table(), arrow_color, entry, shade, row = 0, offset = 0;
-    uint32 unsigned_count, selected, highlight, width, active;
-    sint32 count, selection, header_width, half = intensity >> 1;
-    uint32 label_x = (uint32)x + 72u, label_y = (uint32)y + 132u;
+    uint32 table, arrow_color, entry, formatted, staged, corners, first, second, shade;
+    uint32 arguments[1], selected, row = 0, unsigned_count, width, highlight, active;
+    uint32 label_x, label_y;
+    sint32 count, selection, header_width, half = intensity >> 1, offset = 0, pulse;
+    GT_LOCAL_STACK_FRAME frame;
+    FUNCTION_MARKER(0x80039030, "GTMAIN.EXE");
+    frame = gt_local_stack_push(0x1A8, 0x80039030);
+    formatted = frame.address + 0x20;
+    staged = frame.address + 0x128;
+    corners = frame.address + 0x120;
+    table = gt_draft_8002A4DC();
+    w_u32(frame.address + 0x138, table);
     arrow_color = gtmain_menu_palette_color(0, intensity);
-    (void)gtmain_menu_machine_caption_draw(ordering, x, y, intensity);
-    (void)gtmain_text_font(2);
-    gtmain_text_flags(0);
-    (void)gtmain_text_color(gtmain_menu_palette_color(6, half));
-    selected = r_u8(0x800CB7F9u);
-    (void)roster_panel_format(formatted, 0x800BCCA2u, (sint32)selected + 1);
-    entry = table + selected * 4u;
-    header_width = roster_panel_header_width(r_u32(entry));
-    (void)roster_panel_header_draw(ordering,
-        (sint32)((uint32)x - ((uint32)(header_width >> 1) - 160u)),
-        (sint32)((uint32)y + 40u), r_u32(entry));
-    corners[0] = (sint16)x;
-    corners[1] = (sint16)((uint32)y + 42u);
-    corners[2] = (sint16)((uint32)x + 319u);
-    corners[3] = (sint16)((uint32)y + 57u);
-    shade = (uint8)(intensity >> 3);
-    (void)gtmain_packet_rectangle_native(ordering, corners,
-        shade | (shade << 8) | ((uint32)(uint8)(intensity >> 2) << 16));
-    count = r_s8(0x801F2FE9u);
-    unsigned_count = r_u8(0x801F2FE9u);
+    w_u32(frame.address + 0x148, arrow_color);
+    gtmain_menu_machine_caption_draw(ordering, x, y, intensity);
+    gtmain_text_flags(2);
+    gtmain_text_font(0);
+    gtmain_text_color(gtmain_menu_palette_color(6, half));
+    selected = r_u8(0x800CB7F9);
+    arguments[0] = selected + 1;
+    gtmain_string_format(formatted, 0x800BCCA2, arguments, 1);
+    table = r_u32(frame.address + 0x138);
+    entry = table + selected * 4;
+    header_width = gtmain_menu_caption_width(r_u32(entry));
+    gtmain_menu_caption_plain_draw(ordering, (uint32)x - ((uint32)(header_width >> 1) - 160),
+        (uint32)y + 40, r_u32(entry));
+    w_u16(staged, x);
+    w_u16(staged + 2, (uint32)y + 42);
+    w_u16(staged + 4, (uint32)x + 319);
+    w_u16(staged + 6, (uint32)y + 57);
+    first = r_u32(staged);
+    second = r_u32(staged + 4);
+    w_u32(corners, first);
+    w_u32(corners + 4, second);
+    shade = (intensity >> 3) & 255;
+    gtmain_packet_rectangle(ordering, corners, shade | (shade << 8) | (((intensity >> 2) & 255) << 16));
+    count = r_s8(0x801F2FE9);
+    unsigned_count = r_u8(0x801F2FE9);
     if (count > 0) {
         do {
-            (void)gtmain_menu_roster_slot_draw(ordering,
-                (sint32)(offset - ((uint32)(sint32)(sint8)unsigned_count * 12u - 168u)),
-                (sint32)((uint32)y + 62u), intensity, row);
+            gtmain_menu_roster_slot_draw(ordering,
+                (uint32)offset - ((uint32)(sint32)(sint8)unsigned_count * 12 - 168),
+                (uint32)y + 62, intensity, row);
             ++row;
-            count = r_s8(0x801F2FE9u);
-            unsigned_count = r_u8(0x801F2FE9u);
-            offset += 24u;
+            count = r_s8(0x801F2FE9);
+            unsigned_count = r_u8(0x801F2FE9);
+            offset += 24;
         } while ((sint32)row < count);
     }
-    (void)gtmain_text_font(2);
-    highlight = r_s8(0x8009207Du) == 2;
-    selection = r_s8(0x801F2FE7u);
-    (void)gtmain_text_color(gtmain_menu_gray((uint8)half));
-    width = gtmain_menu_text_width(2, 0x800BCC8Bu, 0);
-    (void)gtmain_menu_text_draw(ordering, (sint32)label_x, (sint32)label_y, 0x800BCC8Bu, 0);
-    active = r_s8(0x80091B41u) != 0;
+    gtmain_text_flags(2);
+    w_u32(frame.address + 0x158, half);
+    highlight = r_s8(0x8009207D) == 2;
+    selection = r_s8(0x801F2FE7);
+    gtmain_text_color(gtmain_menu_gray(half));
+    width = gtmain_menu_text_width(2, 0x800BCC8B, 0);
+    label_x = (uint32)x + 72;
+    label_y = (uint32)y + 132;
+    w_u32(frame.address + 0x160, label_x);
+    w_u32(frame.address + 0x168, label_y);
+    gtmain_menu_text_draw(ordering, label_x, label_y, 0x800BCC8B, 0);
+    active = r_s8(0x80091B41) != 0;
+    w_u32(frame.address + 0x140, highlight);
     if (active && highlight) {
-        uint32 arrow_x = (uint32)x + width + 72u;
-        (void)roster_panel_left_arrow(ordering, (sint32)(arrow_x - 9u),
-            (sint32)((uint32)y + 140u), arrow_color);
-        (void)roster_panel_right_arrow(ordering, (sint32)(arrow_x + 19u),
-            (sint32)((uint32)y + 140u), arrow_color);
+        arrow_color = r_u32(frame.address + 0x148);
+        gtmain_packet_triangle_left(ordering, (uint32)x + width + 72 - 9, (uint32)y + 140, arrow_color);
+        arrow_color = r_u32(frame.address + 0x148);
+        gtmain_packet_triangle_right(ordering, (uint32)x + width + 72 + 19, (uint32)y + 140, arrow_color);
     }
-    (void)roster_panel_format(formatted, 0x800BCC9Fu, selection + 1);
-    (void)gtmain_text_color(gtmain_menu_gray((uint8)half));
+    arguments[0] = (uint32)selection + 1;
+    gtmain_string_format(formatted, 0x800BCC9F, arguments, 1);
+    half = r_s32(frame.address + 0x158);
+    gtmain_text_color(gtmain_menu_gray(half));
+    highlight = r_u32(frame.address + 0x140);
     if (highlight) {
-        sint32 pulse = gtmain_menu_pulse_component(0, half);
-        (void)gtmain_text_color(gtmain_menu_gray((uint8)pulse));
+        half = r_s32(frame.address + 0x158);
+        pulse = gtmain_menu_pulse_component(0, half);
+        gtmain_text_color(gtmain_menu_gray(pulse));
     }
-    (void)roster_panel_native_text(ordering, (sint32)((uint32)x + width + 72u),
-        (sint32)label_y, formatted, 0);
-    (void)gtmain_text_font(1);
-    (void)gtmain_text_color(gtmain_menu_palette_color(6, half));
-    entry = table + (uint32)selection * 4u;
-    (void)roster_panel_header_width(r_u32(entry));
-    (void)roster_panel_header_draw(ordering, (sint32)((uint32)x + 80u),
-        (sint32)((uint32)y + 149u), r_u32(entry));
+    label_y = r_u32(frame.address + 0x168);
+    gtmain_menu_text_draw(ordering, (uint32)x + width + 72, label_y, formatted, 0);
+    gtmain_text_flags(1);
+    half = r_s32(frame.address + 0x158);
+    gtmain_text_color(gtmain_menu_palette_color(6, half));
+    table = r_u32(frame.address + 0x138);
+    entry = table + (uint32)selection * 4;
+    gtmain_menu_caption_width(r_u32(entry));
+    gtmain_menu_caption_plain_draw(ordering, (uint32)x + 80, (uint32)y + 149, r_u32(entry));
     arrow_color = gtmain_menu_palette_color(4, intensity);
-    corners[0] = (sint16)label_x;
-    corners[1] = (sint16)((uint32)y + 162u);
-    corners[2] = (sint16)((uint32)x + 391u);
-    corners[3] = corners[1];
-    (void)gtmain_packet_rectangle_native(ordering + 4u, corners, arrow_color);
-    corners[0] = (sint16)((uint32)x + 52u);
-    corners[1] = (sint16)((uint32)y + 142u);
-    corners[2] = (sint16)((uint32)x + 62u);
-    corners[3] = (sint16)((uint32)y + 152u);
-    (void)gtmain_packet_rectangle_native(ordering + 4u, corners, arrow_color);
-    (void)gtmain_menu_list_extent(0x8009207Cu);
-    (void)gtmain_menu_descriptor_draw(ordering, 0x8009207Cu, (sint32)label_x,
-        (sint32)((uint32)y + 96u), intensity, 0, 0, 0);
-    (void)gtmain_menu_backdrop_draw(ordering + 8000u, (uint32)x, (uint32)y,
-        (uint32)half, (uint32)half, (uint32)half);
+    w_u32(frame.address + 0x148, arrow_color);
+    label_x = r_u16(frame.address + 0x160);
+    w_u16(staged + 2, (uint32)y + 162);
+    w_u16(staged + 4, (uint32)x + 391);
+    w_u16(staged + 6, (uint32)y + 162);
+    w_u16(staged, label_x);
+    first = r_u32(staged);
+    second = r_u32(staged + 4);
+    w_u32(corners, first);
+    w_u32(corners + 4, second);
+    arrow_color = r_u32(frame.address + 0x148);
+    gtmain_packet_rectangle(ordering + 4, corners, arrow_color);
+    w_u16(staged, (uint32)x + 52);
+    w_u16(staged + 2, (uint32)y + 142);
+    w_u16(staged + 4, (uint32)x + 62);
+    w_u16(staged + 6, (uint32)y + 152);
+    first = r_u32(staged);
+    second = r_u32(staged + 4);
+    w_u32(corners, first);
+    w_u32(corners + 4, second);
+    arrow_color = r_u32(frame.address + 0x148);
+    gtmain_packet_rectangle(ordering + 4, corners, arrow_color);
+    gtmain_menu_list_extent(0x8009207C);
+    label_x = r_u32(frame.address + 0x160);
+    gtmain_menu_descriptor_draw(ordering, 0x8009207C, label_x, (uint32)y + 96, intensity, 0, 0, 0);
+    half = r_s32(frame.address + 0x158);
+    gtmain_menu_backdrop_draw(ordering + 8000, x, y, half, half, half);
+    gt_local_stack_pop(frame);
     return 0;
 }

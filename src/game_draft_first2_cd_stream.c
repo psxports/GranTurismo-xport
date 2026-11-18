@@ -170,14 +170,14 @@ static void gtmain_cd_stream_ready_thunk(uint8 status, uint8 *result)
 }
 
 /* GTMAIN.EXE 80079A70 */
-sint32 gtmain_cd_stream_idle(void)
+/* Original: GTMAIN.EXE:sub_80079A70. */ sint32 gtmain_cd_stream_idle(void)
 {
     gtmain_cd_native_poll();
     return r_u8(0x800994C2u) == 0u;
 }
 
 /* GTMAIN.EXE 80079A80 */
-uint32 gtmain_cd_stream_callback(uint32 token)
+/* Original: GTMAIN.EXE:sub_80079A80. */ uint32 gtmain_cd_stream_callback(uint32 token)
 {
     uint32 previous = r_u32(0x800AD9A4u);
     w_u32(0x800AD9A4u, token ? token : 0x80079E94u);
@@ -185,7 +185,7 @@ uint32 gtmain_cd_stream_callback(uint32 token)
 }
 
 /* GTMAIN.EXE 8007A340 */
-uint32 gtmain_cd_stream_destination(uint32 destination, uint32 size)
+/* Original: GTMAIN.EXE:sub_8007A340. */ uint32 gtmain_cd_stream_destination(uint32 destination, uint32 size)
 {
     uint32 aligned = (size + 3u) & ~3u;
     w_u32(0x800C0A4Cu, aligned);
@@ -194,7 +194,7 @@ uint32 gtmain_cd_stream_destination(uint32 destination, uint32 size)
 }
 
 /* GTMAIN.EXE 8007A2E4 */
-sint32 gtmain_cd_command(uint8 command, uint32 parameter)
+/* Original: GTMAIN.EXE:sub_8007A2E4. */ sint32 gtmain_cd_command(uint8 command, uint32 parameter)
 {
     w_u8(0x800C00BCu, command);
     w_u32(0x800C00B8u, parameter);
@@ -202,7 +202,7 @@ sint32 gtmain_cd_command(uint8 command, uint32 parameter)
 }
 
 /* GTMAIN.EXE 80079B08 */
-sint32 gtmain_cd_stream_reset(void)
+/* Original: GTMAIN.EXE:sub_80079B08. */ sint32 gtmain_cd_stream_reset(void)
 {
     CdSyncCallback(gtmain_cd_stream_default_sync);
     CdReadyCallback(0);
@@ -211,7 +211,7 @@ sint32 gtmain_cd_stream_reset(void)
 }
 
 /* GTMAIN.EXE 80079B40 */
-sint32 gtmain_cd_stream_pause(void)
+/* Original: GTMAIN.EXE:sub_80079B40. */ sint32 gtmain_cd_stream_pause(void)
 {
     CdReadyCallback(0);
     native_streaming = 0u;
@@ -220,17 +220,18 @@ sint32 gtmain_cd_stream_pause(void)
 }
 
 /* GTMAIN.EXE 80079BCC */
-sint32 gtmain_cd_stream_seek(void)
+/* Original: GTMAIN.EXE:sub_80079BCC. */ sint32 gtmain_cd_stream_seek(void)
 {
     CdlLOC location;
+    uint32 sector = r_u32(0x800C0A50u);
     w_u8(0x800994C1u, 0u);
-    gtmain_cd_control_native(2u, (uint8 *)CdIntToPos((sint32)r_u32(0x800C0A50u), &location));
+    gtmain_cd_control_native(2u, (uint8 *)CdIntToPos((sint32)sector, &location));
     w_u8(0x800994C2u, 3u);
     return 3;
 }
 
 /* GTMAIN.EXE 80079C14 */
-sint32 gtmain_cd_stream_finish(void)
+/* Original: GTMAIN.EXE:sub_80079C14. */ sint32 gtmain_cd_stream_finish(void)
 {
     gtmain_cd_stream_pause();
     w_u8(0x800994C2u, 1u);
@@ -238,7 +239,7 @@ sint32 gtmain_cd_stream_finish(void)
 }
 
 /* GTMAIN.EXE 80079C40 */
-sint32 gtmain_cd_stream_restart(void)
+/* Original: GTMAIN.EXE:sub_80079C40. */ sint32 gtmain_cd_stream_restart(void)
 {
     gtmain_cd_stream_pause();
     w_u8(0x800994C2u, 2u);
@@ -246,7 +247,7 @@ sint32 gtmain_cd_stream_restart(void)
 }
 
 /* GTMAIN.EXE 80079C6C */
-void gtmain_cd_stream_sync(uint8 status, const uint8 *result)
+/* Original: GTMAIN.EXE:sub_80079C6C. */ void gtmain_cd_stream_sync(uint8 status, const uint8 *result)
 {
     uint32 state, request, response;
     w_u8(0x800994BEu, status);
@@ -281,7 +282,7 @@ void gtmain_cd_stream_sync(uint8 status, const uint8 *result)
 }
 
 /* GTMAIN.EXE 80079E94 */
-sint32 gtmain_cd_stream_copy_sector(void)
+/* Original: GTMAIN.EXE:sub_80079E94. */ sint32 gtmain_cd_stream_copy_sector(void)
 {
     uint32 remaining = r_u32(0x800C0A4Cu);
     if (native_destination) {
@@ -306,7 +307,7 @@ sint32 gtmain_cd_stream_copy_sector(void)
 }
 
 /* GTMAIN.EXE 80079DC8 */
-void gtmain_cd_stream_ready(uint8 status, const uint8 *result)
+/* Original: GTMAIN.EXE:sub_80079DC8. */ void gtmain_cd_stream_ready(uint8 status, const uint8 *result)
 {
     uint8 header[128];
     uint32 sector, token, request, response;
@@ -334,21 +335,22 @@ void gtmain_cd_stream_ready(uint8 status, const uint8 *result)
 }
 
 /* GTMAIN.EXE 80079F10 */
-sint32 gtmain_cd_stream_can_read(uint32 state)
+/* Original: GTMAIN.EXE:sub_80079F10. */ sint32 gtmain_cd_stream_can_read(uint32 state)
 {
     return state == 0u || state - 1u < 8u;
 }
 
 /* GTMAIN.EXE 80079F30 */
-void gtmain_cd_stream_start(uint32 sector)
+/* Original: GTMAIN.EXE:sub_80079F30. */ sint32 gtmain_cd_stream_start(uint32 sector)
 {
     sint32 pending = gtmain_cd_pending_command();
-    if (pending) { w_u8(0x800994C1u, 4u); return; }
+    if (pending) { w_u8(0x800994C1u, 4u); return 4; }
     EnterCriticalSectionPSX();
     if (gtmain_cd_stream_can_read(r_u8(0x800994C2u))) {
         uint32 request = 1u;
+        uint32 state = r_u8(0x800994C2u);
         w_u32(0x800C0A50u, sector);
-        if (!r_u8(0x800994C2u)) {
+        if (!state) {
             CdSyncCallback(gtmain_cd_stream_sync_thunk);
             CdReadyCallback(0);
             gtmain_cd_stream_seek();
@@ -357,17 +359,18 @@ void gtmain_cd_stream_start(uint32 sector)
         w_u8(0x800994BFu, (uint8)request);
     } else w_u8(0x800994C1u, 1u);
     ExitCriticalSection();
+    return 0;
 }
 
 /* GTMAIN.EXE 80079AA8 */
-void gtmain_cd_stream_read(uint32 destination, uint32 sector, uint32 size)
+/* Original: GTMAIN.EXE:sub_80079AA8. */ sint32 gtmain_cd_stream_read(uint32 destination, uint32 sector, uint32 size)
 {
     gtmain_cd_stream_destination(destination, size);
-    gtmain_cd_stream_start(sector);
+    return gtmain_cd_stream_start(sector);
 }
 
 /* GTMAIN.EXE 80079AD8 */
-sint32 gtmain_cd_stream_wait(void)
+/* Original: GTMAIN.EXE:sub_80079AD8. */ sint32 gtmain_cd_stream_wait(void)
 {
     while (!gtmain_cd_stream_idle()) { }
     return r_u8(0x800994C1u);

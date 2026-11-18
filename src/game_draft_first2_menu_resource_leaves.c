@@ -1,6 +1,6 @@
 #include "game_first2_registry.h"
 
-uint32 gtmain_menu_phase_tick(void)
+/* Original: GTMAIN.EXE:sub_80032164. */ uint32 gtmain_menu_phase_tick(void)
 {
     uint32 previous = r_u16(0x801D2FE8u);
     uint32 next = previous + 10u, result = previous - 4086u;
@@ -8,7 +8,7 @@ uint32 gtmain_menu_phase_tick(void)
     if ((sint16)(uint16)next >= 4096) w_u16(0x801D2FE8u, result);
     return result;
 }
-uint32 gtmain_menu_counters_tick(void)
+/* Original: GTMAIN.EXE:sub_80032460. */ uint32 gtmain_menu_counters_tick(void)
 {
     sint32 value = (sint16)r_u16(0x801D2FDEu);
     uint32 phase;
@@ -19,7 +19,7 @@ uint32 gtmain_menu_counters_tick(void)
     w_u8(0x801D2FEAu, phase);
     return phase;
 }
-sint32 gtmain_menu_descriptor_lookup(uint32 guest_descriptor, sint32 selector, uint32 guest_value_out)
+/* Original: GTMAIN.EXE:sub_800324C4. */ sint32 gtmain_menu_descriptor_lookup(uint32 guest_descriptor, sint32 selector, uint32 guest_value_out)
 {
     uint32 value_cursor = guest_descriptor, result_cursor = guest_descriptor;
     sint32 key = (sint8)r_u8(value_cursor + 2u);

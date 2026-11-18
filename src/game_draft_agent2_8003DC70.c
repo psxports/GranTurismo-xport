@@ -19,7 +19,7 @@ static uint32 menu_detail_request(uint32 owner, uint32 index, uint32 first, uint
 }
 
 /* GTMAIN.EXE 8003DC70 */
-uint32 gtmain_menu_mode_dispatch(sint32 mode)
+/* Original: GTMAIN.EXE:sub_8003DC70. */ uint32 gtmain_menu_mode_dispatch(sint32 mode)
 {
     uint32 result, owner, first, second, third, fourth, fifth;
     sint32 index;

@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /* GTMAIN.EXE 80048568 */
-sint32 gtmain_replay_payload_import(sint32 index, uint32 ghost)
+/* Original: GTMAIN.EXE:sub_80048568. */ sint32 gtmain_replay_payload_import(sint32 index, uint32 ghost)
 {
     uint32 entry = r_u32(0x800BEA34u) + 52u * (uint32)index;
     uint32 payload = r_u32(0x800BEA30u) + 6016u;
@@ -24,7 +24,7 @@ sint32 gtmain_replay_payload_import(sint32 index, uint32 ghost)
 }
 
 /* GTMAIN.EXE 8004A8E8 */
-sint32 gtmain_replay_header_check(uint32 data)
+/* Original: GTMAIN.EXE:sub_8004A8E8. */ sint32 gtmain_replay_header_check(uint32 data)
 {
     uint32 checksum;
     printf((const char *)psx_addr(0x8008DD10u, 1u));

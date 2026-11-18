@@ -1,5 +1,11 @@
 #include "game_first2_registry.h"
-#include <stdlib.h>
+#ifdef _MSC_VER
+#include <malloc.h>
+#define ROSTER_STACK_ALLOC _alloca
+#else
+#include <alloca.h>
+#define ROSTER_STACK_ALLOC alloca
+#endif
 
 static uint32 roster_random(uint32 *seed)
 {
@@ -8,7 +14,7 @@ static uint32 roster_random(uint32 *seed)
 }
 
 /* GTMAIN.EXE 8001F080 */
-uint32 gtmain_roster_pool_count(uint32 list)
+/* Original: GTMAIN.EXE:sub_8001F080. */ uint32 gtmain_roster_pool_count(uint32 list)
 {
     uint32 count = 0u;
     if (r_u32(list)) {
@@ -18,7 +24,7 @@ uint32 gtmain_roster_pool_count(uint32 list)
 }
 
 /* GTMAIN.EXE 8001F0B8 */
-sint32 gtmain_roster_variant_class(sint32 character)
+/* Original: GTMAIN.EXE:sub_8001F0B8. */ sint32 gtmain_roster_variant_class(sint32 character)
 {
     uint32 code = (uint32)character;
     if (character >= 97) code -= 32u;
@@ -26,7 +32,7 @@ sint32 gtmain_roster_variant_class(sint32 character)
 }
 
 /* GTMAIN.EXE 8001F0DC */
-void gtmain_roster_select(uint32 *selected, uint32 list, sint32 count,
+/* Original: GTMAIN.EXE:sub_8001F0DC. */ void gtmain_roster_select(uint32 *selected, uint32 list, sint32 count,
     uint32 *seed, uint32 excluded, uint32 pools)
 {
     sint8 kinds[5];
@@ -91,14 +97,13 @@ void gtmain_roster_select(uint32 *selected, uint32 list, sint32 count,
 }
 
 /* GTMAIN.EXE 8001F3D0 */
-void gtmain_roster_variants(uint32 *variants, const uint32 *selected,
+/* Original: GTMAIN.EXE:sub_8001F3D0. */ void gtmain_roster_variants(uint32 *variants, const uint32 *selected,
     sint32 count, uint32 *seed, uint32 excluded_class)
 {
     sint8 *classes;
     sint32 i;
     if (count <= 0) return;
-    classes = (sint8 *)malloc((size_t)count);
-    if (!classes) gt_draft_failure("Native roster variant scratch allocation", 0x8001F3D0u);
+    classes = (sint8 *)ROSTER_STACK_ALLOC((size_t)count);
     for (i = 0; i < count; ++i) {
         uint32 car = selected[i], chosen;
         uint32 choices = gtmain_resource_pairs_count(car);
@@ -122,11 +127,10 @@ void gtmain_roster_variants(uint32 *variants, const uint32 *selected,
         classes[i] = (sint8)kind;
         variants[i] = chosen;
     }
-    free(classes);
 }
 
 /* GTMAIN.EXE 8001F564 */
-void gtmain_roster_commit(const uint32 *selected, const uint32 *variants,
+/* Original: GTMAIN.EXE:sub_8001F564. */ void gtmain_roster_commit(const uint32 *selected, const uint32 *variants,
     sint32 count, uint32 seed)
 {
     sint32 i;
@@ -142,7 +146,7 @@ void gtmain_roster_commit(const uint32 *selected, const uint32 *variants,
 /* GTMAIN.EXE 80025B68 */
 /* TODO Resolve independent generator extent and variant owner limitations */
 /* GTMAIN.EXE 80025B68 */
-void gtmain_race_arcade_roster(void)
+/* Original: GTMAIN.EXE:sub_80025B68. */ void gtmain_race_arcade_roster(void)
 {
     uint32 player, count, table, group, mode, spec;
     sint32 index;

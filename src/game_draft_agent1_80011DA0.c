@@ -63,7 +63,7 @@ static void course_polygon_link(uint32 ordering, uint32 first_packet, uint32 las
 /* Unverified pseudocode draft with the reviewed three-argument ABI */
 /* GTE operations use live shared services in original order */
 /* Saved full draft with cumulative original-image review */
-uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2)
+/* Original: GTMAIN.EXE:sub_80011DA0. */ uint32 gt_draft_80011DA0(uint32 a0, uint32 a1, uint32 a2)
 {
     sint32 v4 = 0;
     uint32 v5 = 0;

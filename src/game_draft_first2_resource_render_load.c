@@ -1,7 +1,13 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 #include "psx_gte.h"
-#include <stdlib.h>
+#ifdef _MSC_VER
+#include <malloc.h>
+#define RESOURCE_STACK_ALLOC _alloca
+#else
+#include <alloca.h>
+#define RESOURCE_STACK_ALLOC alloca
+#endif
 
 static sint32 resource_render_divide(uint32 numerator, sint32 denominator)
 {
@@ -12,7 +18,7 @@ static sint32 resource_render_divide(uint32 numerator, sint32 denominator)
     return value / denominator;
 }
 
-uint32 gtmain_car_wheels_draw(uint32 context, uint32 car, sint32 roll, sint16 steering, sint16 pitch)
+/* Original: GTMAIN.EXE:sub_8007146C. */ uint32 gtmain_car_wheels_draw(uint32 context, uint32 car, sint32 roll, sint16 steering, sint16 pitch)
 {
     uint32 index, position = car + 16u;
     for (index = 0; index != 4u; ++index)
@@ -37,7 +43,7 @@ uint32 gtmain_car_wheels_draw(uint32 context, uint32 car, sint32 roll, sint16 st
     return 0;
 }
 
-sint32 gtmain_car_record_index(uint32 records, sint32 count, uint32 *ids, uint32 *keys,
+/* Original: GTMAIN.EXE:sub_800787BC. */ sint32 gtmain_car_record_index(uint32 records, sint32 count, uint32 *ids, uint32 *keys,
                                uint32 *id_count, uint32 *key_count)
 {
     uint32 unique = 0, item = 0, key = 0;
@@ -60,7 +66,7 @@ sint32 gtmain_car_record_index(uint32 records, sint32 count, uint32 *ids, uint32
     return 2 * ((sint16)r_u16(0x800C00CAu) < (sint32)key);
 }
 
-uint32 gtmain_car_section_load(uint32 section, uint32 destination, uint32 limit)
+/* Original: GTMAIN.EXE:sub_800788C0. */ uint32 gtmain_car_section_load(uint32 section, uint32 destination, uint32 limit)
 {
     uint32 path = r_u32(0x800C00D4u), table = r_u32(0x800C00D0u);
     uint32 sector = r_u32(0x800C00D8u);
@@ -95,32 +101,25 @@ static void resource_render_copy_block(uint32 destination, uint32 source)
     resource_render_write32(destination + 8u, c); resource_render_write32(destination + 12u, d);
 }
 
-static uint32 *resource_render_words(uint32 count)
-{
-    uint32 *words;
-    size_t actual = count ? (size_t)count : 1u;
-    if (actual > (size_t)-1 / sizeof(uint32))
-        gt_draft_failure("Native car resource workspace extent", 0x8006E420u);
-    words = (uint32 *)malloc(actual * sizeof(uint32));
-    if (!words) gt_draft_failure("Native car resource workspace allocation", 0x8006E420u);
-    return words;
-}
-
 static void resource_render_image_free(uint32 image)
 {
-    /* TODO Bind the unselected one-argument guest heap free */
-    gt_draft_failure("Unrecorded GTMAIN car image heap free", 0x8007CFE0u);
+    gtmain_heap_free(image);
 }
 
-sint32 gtmain_car_records_decode(uint32 records, sint32 count, const uint32 *destinations,
+/* Original: GTMAIN.EXE:sub_8006E420. */ sint32 gtmain_car_records_decode(uint32 records, sint32 count, const uint32 *destinations,
     uint32 destinations_count, uint32 texture_destination)
 {
     uint32 palette_indices = r_u32(0x800C00DCu), page_indices = r_u32(0x800C00CCu);
     uint32 capacity = count > 0 ? (uint32)count : 0u, unique, keys_count, group;
-    uint32 *ids = resource_render_words(capacity), *keys = resource_render_words(capacity), *sorted;
+    size_t workspace_bytes = (size_t)(capacity ? capacity : 1u) * sizeof(uint32);
+    uint32 *ids, *keys, *sorted;
+    if (workspace_bytes / sizeof(uint32) != (capacity ? capacity : 1u))
+        gt_draft_failure("Native car resource workspace extent", 0x8006E420u);
+    ids = (uint32 *)RESOURCE_STACK_ALLOC(workspace_bytes);
+    keys = (uint32 *)RESOURCE_STACK_ALLOC(workspace_bytes);
     sint32 result = gtmain_car_record_index(records, count, ids, keys, &unique, &keys_count);
-    if (result) { free(keys); free(ids); return result; }
-    sorted = resource_render_words(unique);
+    if (result) return result;
+    sorted = (uint32 *)RESOURCE_STACK_ALLOC((size_t)(unique ? unique : 1u) * sizeof(uint32));
     for (group = 0; group < unique; ++group)
     {
         uint32 value = ids[group], index;
@@ -181,54 +180,20 @@ sint32 gtmain_car_records_decode(uint32 records, sint32 count, const uint32 *des
             gtmain_model_bundle_relocate(bundle, (uint32)page);
         }
     }
-    free(sorted); free(keys); free(ids);
     return result;
 }
 
-static void resource_render_blend_stage(uint32 accumulate)
-{
-    /* Both original blend operations use sf zero and lm zero */
-    sint32 factor = (sint16)xport_gte_read_data(8u);
-    uint32 component, flags = 0u;
-    uint32 rgb = xport_gte_read_data(6u) & 0xFF000000u;
-    for (component = 0u; component < 3u; ++component)
-    {
-        sint32 input = (sint16)xport_gte_read_data(9u + component);
-        sint64 sum = (sint64)factor * input;
-        sint32 mac, ir, channel;
-        if (accumulate)
-            sum += (sint32)xport_gte_read_data(25u + component);
-        /* Signed16 products plus signed32 MAC cannot overflow signed44 */
-        mac = (sint32)(uint32)sum;
-        ir = mac;
-        if (ir < -32768) { ir = -32768; flags |= 1u << (24u - component); }
-        else if (ir > 32767) { ir = 32767; flags |= 1u << (24u - component); }
-        xport_gte_write_data(25u + component, (uint32)mac);
-        xport_gte_write_data(9u + component, (uint32)ir);
-        channel = mac >> 4;
-        if (channel < 0) { channel = 0; flags |= 1u << (21u - component); }
-        else if (channel > 255) { channel = 255; flags |= 1u << (21u - component); }
-        rgb |= (uint32)channel << (8u * component);
-    }
-    {
-        uint32 previous1 = xport_gte_read_data(21u);
-        uint32 previous2 = xport_gte_read_data(22u);
-        xport_gte_write_data(20u, previous1);
-        xport_gte_write_data(21u, previous2);
-        xport_gte_write_data(22u, rgb);
-    }
-    xport_gte_write_control(31u, flags);
-}
 
-uint16 gtmain_color555_blend(uint16 first, uint16 second, sint16 weight)
+
+/* Original: GTMAIN.EXE:sub_8006E890. */ uint16 gtmain_color555_blend(uint16 first, uint16 second, sint16 weight)
 {
     uint32 a, b, c, transparency = first >> 15;
     xport_gte_write_data(8u, 4096u - (uint32)(sint32)weight);
     xport_gte_write_data(9u, first & 31u); xport_gte_write_data(10u, (first >> 5) & 31u);
-    xport_gte_write_data(11u, (first >> 10) & 31u); resource_render_blend_stage(0u);
+    xport_gte_write_data(11u, (first >> 10) & 31u); xport_gte_execute(0x190003Du);
     xport_gte_write_data(8u, (uint32)(sint32)weight);
     xport_gte_write_data(9u, second & 31u); xport_gte_write_data(10u, (second >> 5) & 31u);
-    xport_gte_write_data(11u, (second >> 10) & 31u); resource_render_blend_stage(1u);
+    xport_gte_write_data(11u, (second >> 10) & 31u); xport_gte_execute(0x1A0003Eu);
     if (weight >= 2048) transparency = second >> 15;
     a = xport_gte_read_data(25u); b = xport_gte_read_data(26u); c = xport_gte_read_data(27u);
     return (uint16)((a >> 12) | ((b >> 12) << 5) | ((c >> 12) << 10) | (transparency << 15));
@@ -239,7 +204,7 @@ static uint32 resource_render_timer_read(void)
     return (uint32)GetRCnt(1u) & 65535u;
 }
 
-uint32 gtmain_timer_random(void)
+/* Original: GTMAIN.EXE:sub_8006C2B4. */ uint32 gtmain_timer_random(void)
 {
     uint32 a = resource_render_timer_read(), b = resource_render_timer_read(), c = resource_render_timer_read();
     uint32 result = (a & 65535u) ^ (b << 6), d = resource_render_timer_read();
@@ -251,13 +216,13 @@ static sint32 resource_render_text_emit(sint8 character)
     return gtmain_text_glyph((uint8)character);
 }
 
-sint32 gtmain_text_format(uint32 ordering, sint16 x, sint16 y, uint32 format, GTMainFormatArguments *arguments)
+/* Original: GTMAIN.EXE:sub_8006C6C8. */ sint32 gtmain_text_format(uint32 ordering, sint16 x, sint16 y, uint32 format, GTMainFormatArguments *arguments)
 {
     gtmain_text_bind(ordering); gtmain_text_position(x, y);
     return gtmain_format_engine(resource_render_text_emit, format, arguments);
 }
 
-uint32 gtmain_car_file_environment(void)
+/* Original: GTMAIN.EXE:sub_8006C3B8. */ uint32 gtmain_car_file_environment(void)
 {
     return gtmain_environment_value(0x8008E120u);
 }

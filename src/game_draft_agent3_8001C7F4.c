@@ -1,7 +1,7 @@
 #include "game_draft_registry.h"
 #include "game_first2_registry.h"
 
-uint32 gtmain_camera_car_select(uint32 camera, uint32 buttons)
+/* Original: GTMAIN.EXE:sub_8001C7F4. */ uint32 gtmain_camera_car_select(uint32 camera, uint32 buttons)
 {
     sint32 step = 0;
     uint32 result = 2u;

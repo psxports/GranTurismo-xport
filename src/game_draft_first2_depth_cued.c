@@ -418,7 +418,7 @@ static void depth_quad_six(uint32 context, uint32 packet, uint32 ordering)
     primitive_link24(ordering, packet); primitive_link24(packet + 200u, previous);
 }
 
-uint32 gtmain_model_depth_cued_draw(uint32 context, uint32 model_header)
+/* Original: GTMAIN.EXE:sub_800150A4. */ uint32 gtmain_model_depth_cued_draw(uint32 context, uint32 model_header)
 {
     static const uint8 input_bytes[8] = {12, 12, 20, 24, 24, 24, 32, 36};
     static const uint8 output_bytes[8] = {20, 24, 28, 36, 32, 40, 40, 52};

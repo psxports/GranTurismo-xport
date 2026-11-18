@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE:80033CEC */
-uint32 gtmain_menu_result_mode0_run(uint8 flags, sint16 index, uint32 first, uint32 second,
+/* Original: GTMAIN.EXE:sub_80033CEC. */ uint32 gtmain_menu_result_mode0_run(uint8 flags, sint16 index, uint32 first, uint32 second,
     uint32 metric, sint16 threshold, uint32 extra, uint8 panel)
 {
     gtmain_menu_draw_callback_set(0x8009197Cu);

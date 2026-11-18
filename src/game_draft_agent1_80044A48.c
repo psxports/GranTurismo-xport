@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-uint32 gtmain_menu_settings_rows_draw(uint32 ordering, sint32 x, sint32 y, sint32 unused, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_80044A48. */ uint32 gtmain_menu_settings_rows_draw(uint32 ordering, sint32 x, sint32 y, sint32 unused, sint32 intensity)
 {
     sint32 row, offset = 48;
     for (row = 0; row < 6; ++row)

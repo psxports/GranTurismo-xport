@@ -3,14 +3,14 @@
 #include <string.h>
 
 /* GTMAIN.EXE 80030DE4 */
-uint32 gtmain_texture_workspace_size(uint32 image)
+/* Original: GTMAIN.EXE:sub_80030DE4. */ uint32 gtmain_texture_workspace_size(uint32 image)
 {
     uint32 count = r_u32(image);
     return ((count << 1u) + count) << 3u;
 }
 
 /* GTMAIN.EXE 8002ADDC */
-uint32 gtmain_race_resources_load(void)
+/* Original: GTMAIN.EXE:sub_8002ADDC. */ uint32 gtmain_race_resources_load(void)
 {
     uint32 course = r_u8(0x800B63BCu);
     uint32 camera = r_u8(gtmain_course_entry(course)) & 127u;
@@ -22,7 +22,7 @@ uint32 gtmain_race_resources_load(void)
 }
 
 /* GTMAIN.EXE 80029B7C */
-void gtmain_race_message_flags_reset(void)
+/* Original: GTMAIN.EXE:sub_80029B7C. */ void gtmain_race_message_flags_reset(void)
 {
     w_u8(0x8008F88Fu, 0u);
     w_u8(0x8008F891u, 0u);
@@ -30,7 +30,7 @@ void gtmain_race_message_flags_reset(void)
 }
 
 /* GTMAIN.EXE 80029CA4 */
-uint32 gtmain_race_message_tables_prepare(void)
+/* Original: GTMAIN.EXE:sub_80029CA4. */ uint32 gtmain_race_message_tables_prepare(void)
 {
     uint32 group, index, output = 0u, value;
     gtmain_race_message_flags_reset();
@@ -47,7 +47,7 @@ uint32 gtmain_race_message_tables_prepare(void)
 }
 
 /* GTMAIN.EXE 8002AE40 */
-uint32 gtmain_race_configuration_snapshot(void)
+/* Original: GTMAIN.EXE:sub_8002AE40. */ uint32 gtmain_race_configuration_snapshot(void)
 {
     uint32 result = r_u32(0x800B630Cu), first, second, third, fourth;
     uint32 source, destination, index;
@@ -83,7 +83,7 @@ uint32 gtmain_race_configuration_snapshot(void)
 }
 
 /* GTMAIN.EXE 80029E3C */
-uint32 gtmain_race_driver_mode_finalize(void)
+/* Original: GTMAIN.EXE:sub_80029E3C. */ uint32 gtmain_race_driver_mode_finalize(void)
 {
     if (r_u8(0x800CB7F5u) != 4u) return 4u;
     if (r_u32(0x800B630Cu) == 1u) return 1u;
@@ -91,7 +91,7 @@ uint32 gtmain_race_driver_mode_finalize(void)
 }
 
 /* GTMAIN.EXE 8001DF84 */
-uint32 gtmain_race_view_initialize(uint32 view, uint32 car, uint32 pad)
+/* Original: GTMAIN.EXE:sub_8001DF84. */ uint32 gtmain_race_view_initialize(uint32 view, uint32 car, uint32 pad)
 {
     uint32 value;
     sub_8007BD58(view, 0u, 276u);
@@ -114,7 +114,7 @@ uint32 gtmain_race_view_initialize(uint32 view, uint32 car, uint32 pad)
 }
 
 /* GTMAIN.EXE 8002C74C */
-uint8 *gtmain_race_hud_tim_block(uint8 *image, uint32 capacity, sint32 xy)
+/* Original: GTMAIN.EXE:sub_8002C74C. */ uint8 *gtmain_race_hud_tim_block(uint8 *image, uint32 capacity, sint32 xy)
 {
     uint32 offset = 8u, next;
     if (!image || capacity < 12u)
@@ -131,7 +131,7 @@ uint8 *gtmain_race_hud_tim_block(uint8 *image, uint32 capacity, sint32 xy)
 }
 
 /* GTMAIN.EXE 8002C894 */
-uint32 gtmain_race_icons_load(void)
+/* Original: GTMAIN.EXE:sub_8002C894. */ uint32 gtmain_race_icons_load(void)
 {
     uint32 workspace[2048];
     gtmain_texture_decode_native((uint8 *)workspace, sizeof(workspace), 0x8008FB5Cu);
@@ -140,7 +140,7 @@ uint32 gtmain_race_icons_load(void)
 }
 
 /* GTMAIN.EXE 8002C7A4 */
-uint32 gtmain_race_hud_textures_load(void)
+/* Original: GTMAIN.EXE:sub_8002C7A4. */ uint32 gtmain_race_hud_textures_load(void)
 {
     uint32 workspace[2048];
     uint8 *image = (uint8 *)workspace;
@@ -151,7 +151,7 @@ uint32 gtmain_race_hud_textures_load(void)
 }
 
 /* GTMAIN.EXE 8002E41C */
-uint32 gtmain_race_overlay_textures_load(void)
+/* Original: GTMAIN.EXE:sub_8002E41C. */ uint32 gtmain_race_overlay_textures_load(void)
 {
     uint32 workspace[2048];
     uint8 *image = (uint8 *)workspace, *next;
@@ -169,7 +169,7 @@ uint32 gtmain_race_overlay_textures_load(void)
 }
 
 /* GTMAIN.EXE 80038248 */
-uint32 gtmain_menu_backdrop_draw(uint32 ordering_link, uint32 x, uint32 y,
+/* Original: GTMAIN.EXE:sub_80038248. */ uint32 gtmain_menu_backdrop_draw(uint32 ordering_link, uint32 x, uint32 y,
     uint32 red, uint32 green, uint32 blue)
 {
     uint32 vertical = y << 16;
@@ -184,7 +184,7 @@ uint32 gtmain_menu_backdrop_draw(uint32 ordering_link, uint32 x, uint32 y,
 }
 
 /* GTMAIN.EXE 8002A8B4 */
-uint32 gtmain_race_scene_nodes_bind(void)
+/* Original: GTMAIN.EXE:sub_8002A8B4. */ uint32 gtmain_race_scene_nodes_bind(void)
 {
     uint32 restarted, mode, driver_mode = 2u;
     w_u32(0x800B62F8u, 1u); w_u32(0x800B62FCu, 1u);
@@ -242,7 +242,7 @@ Flags:
 }
 
 /* GTMAIN.EXE 80024BDC */
-uint32 gtmain_course_depth_table(uint32 course)
+/* Original: GTMAIN.EXE:sub_80024BDC. */ uint32 gtmain_course_depth_table(uint32 course)
 {
     uint32 metadata = gtmain_course_entry(course), index = 0u, value = 0u;
     uint32 start = r_u8(metadata + 1u), end = r_u8(metadata + 2u);
@@ -271,7 +271,7 @@ uint32 gtmain_course_depth_table(uint32 course)
 }
 
 /* GTMAIN.EXE 8002A85C */
-uint32 gtmain_race_buffers_bind(void)
+/* Original: GTMAIN.EXE:sub_8002A85C. */ uint32 gtmain_race_buffers_bind(void)
 {
     gtmain_frame_tables_bind((uint32 *)psx_addr(0x801AB0CCu, 33568u),
         (uint32 *)psx_addr(0x801B33ECu, 33568u), 8392u);
@@ -280,7 +280,7 @@ uint32 gtmain_race_buffers_bind(void)
 }
 
 /* GTMAIN.EXE 80028AB4 */
-sint32 gtmain_race_pad_contexts_reset(void)
+/* Original: GTMAIN.EXE:sub_80028AB4. */ sint32 gtmain_race_pad_contexts_reset(void)
 {
     uint32 mode = r_u8(0x800CB7F5u), first, second;
     w_u8(0x800B63C9u, 255u);
@@ -303,7 +303,7 @@ sint32 gtmain_race_pad_contexts_reset(void)
 
 /* TODO Complete the independent general formatter 8007C014 */
 /* GTMAIN.EXE 8002F998 */
-uint32 gtmain_race_header_update(uint32 session)
+/* Original: GTMAIN.EXE:sub_8002F998. */ uint32 gtmain_race_header_update(uint32 session)
 {
     uint32 course = gtmain_course_resource_name(r_u8(0x800B63BCu));
     uint32 arguments[2], name, destination;
@@ -321,7 +321,7 @@ uint32 gtmain_race_header_update(uint32 session)
 }
 
 /* GTMAIN.EXE 8003619C */
-sint32 gtmain_menu_angle_tick(void)
+/* Original: GTMAIN.EXE:sub_8003619C. */ sint32 gtmain_menu_angle_tick(void)
 {
     uint32 previous = r_u16(0x801F2FDEu);
     uint16 next = (uint16)(previous + 10u);
@@ -332,7 +332,7 @@ sint32 gtmain_menu_angle_tick(void)
 }
 
 /* GTMAIN.EXE 8002CB3C */
-uint32 gtmain_race_records_size(void)
+/* Original: GTMAIN.EXE:sub_8002CB3C. */ uint32 gtmain_race_records_size(void)
 {
     uint32 first = gtmain_race_record_size(0x800CB8E0u), second = 0u;
     if (r_u8(0x800CBC11u) == 2u) second = gtmain_race_record_size(0x800CDC34u);
@@ -340,13 +340,13 @@ uint32 gtmain_race_records_size(void)
 }
 
 /* GTMAIN.EXE 8003D334 */
-uint32 gtmain_menu_model_bundle_relocate(uint32 bundle, uint32 page)
+/* Original: GTMAIN.EXE:sub_8003D334. */ uint32 gtmain_menu_model_bundle_relocate(uint32 bundle, uint32 page)
 {
     return gtmain_model_bundle_relocate(bundle, page);
 }
 
 /* GTMAIN.EXE 8002E3C4 */
-uint32 gtmain_race_tim_block_upload(uint32 image, sint32 xy)
+/* Original: GTMAIN.EXE:sub_8002E3C4. */ uint32 gtmain_race_tim_block_upload(uint32 image, sint32 xy)
 {
     uint32 block = image + 8u;
     if (r_u32(image + 4u) & 8u) block = image + r_u32(image + 8u) + 8u;
@@ -355,7 +355,7 @@ uint32 gtmain_race_tim_block_upload(uint32 image, sint32 xy)
 }
 
 /* GTMAIN.EXE 8003D1E0 */
-sint32 gtmain_menu_model_pose_tick(uint32 pose, uint32 rotate)
+/* Original: GTMAIN.EXE:sub_8003D1E0. */ sint32 gtmain_menu_model_pose_tick(uint32 pose, uint32 rotate)
 {
     sint32 result = (sint16)r_u16(pose + 20u);
     if (result > 0) {
@@ -386,7 +386,7 @@ sint32 gtmain_menu_model_pose_tick(uint32 pose, uint32 rotate)
 }
 
 /* GTMAIN.EXE 8002CC2C */
-uint32 gtmain_race_records_import(uint32 source)
+/* Original: GTMAIN.EXE:sub_8002CC2C. */ uint32 gtmain_race_records_import(uint32 source)
 {
     uint32 size = gtmain_race_record_size(source), second;
     gtmain_race_record_copy(0x800CB8E0u, source, size);

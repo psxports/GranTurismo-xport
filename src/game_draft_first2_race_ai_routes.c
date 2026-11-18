@@ -22,7 +22,7 @@ static sint32 route_position(sint32 segment, uint32 x, uint32 z)
     return gtmain_course_segment_find((uint32)segment, position);
 }
 
-sint32 gtmain_race_ai_route_segment(uint32 records, uint32 index, sint32 segment)
+/* Original: GTMAIN.EXE:sub_80053148. */ sint32 gtmain_race_ai_route_segment(uint32 records, uint32 index, sint32 segment)
 {
     uint32 previous = records + (index - 1u) * 40u, current = records + index * 40u;
     if (!r_u32(previous)) {
@@ -89,7 +89,7 @@ sint32 gtmain_race_ai_route_segment(uint32 records, uint32 index, sint32 segment
     return segment;
 }
 
-uint32 gtmain_race_ai_route_ground(sint32 *height, sint32 *pitch, sint32 *roll, uint32 *flags,
+/* Original: GTMAIN.EXE:sub_80053620. */ uint32 gtmain_race_ai_route_ground(sint32 *height, sint32 *pitch, sint32 *roll, uint32 *flags,
     sint32 x, sint32 z, sint32 angle, uint32 segment)
 {
     uint32 table = ((uint32)angle & 4095u) * 2u;
@@ -123,7 +123,7 @@ uint32 gtmain_race_ai_route_ground(sint32 *height, sint32 *pitch, sint32 *roll, 
     return 0;
 }
 
-sint32 gtmain_race_ai_routes_relocate(uint32 routes)
+/* Original: GTMAIN.EXE:sub_80053898. */ sint32 gtmain_race_ai_routes_relocate(uint32 routes)
 {
     sint32 course_length = (sint32)r_u32(r_u32(0x800BC1A8u));
     w_u32(0x800BF51Cu, routes);
@@ -169,7 +169,7 @@ sint32 gtmain_race_ai_routes_relocate(uint32 routes)
     return (sint32)result;
 }
 
-uint32 gtmain_race_event_tables_reset(void)
+/* Original: GTMAIN.EXE:sub_80057460. */ uint32 gtmain_race_event_tables_reset(void)
 {
     w_u32(0x80093D78u, 0);
     for (uint32 i = 0; i < 8u; ++i) {
@@ -180,7 +180,7 @@ uint32 gtmain_race_event_tables_reset(void)
     return 0;
 }
 
-uint32 gtmain_race_speed_tables_reset(void)
+/* Original: GTMAIN.EXE:sub_8006200C. */ uint32 gtmain_race_speed_tables_reset(void)
 {
     for (uint32 bank = 0; bank < 2u; ++bank)
         for (uint32 car = 0; car < 6u; ++car)

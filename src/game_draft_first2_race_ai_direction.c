@@ -7,18 +7,18 @@ static uint32 direction_call(uint32 owner, uint32 a, uint32 b, uint32 c)
     return gt_draft_unresolved_call(owner, a, b, c, 0, 0, 0, 0, 0);
 }
 
-/* TODO Bind unrecorded behavior mode and pair cache dependencies */
 static sint32 direction_behavior_mode3(uint32 mode)
 {
-    gt_draft_failure("GTMAIN behavior mode3 selector", 0x80053C68u);
+    return gtmain_race_ai_mode3(mode);
 }
 static sint32 direction_behavior_mode4(uint32 mode)
 {
-    gt_draft_failure("GTMAIN behavior mode4 selector", 0x80053CA0u);
+    return gtmain_race_ai_mode4(mode);
 }
+
 static uint32 direction_pair_cache_clear(sint32 car_index, sint32 count)
 {
-    gt_draft_failure("GTMAIN behavior pair cache clear", 0x80062138u);
+    return gtmain_race_pair_cache_clear(car_index, count);
 }
 
 static uint32 direction_fp(uint32 a, uint32 b)
@@ -36,12 +36,12 @@ static sint32 direction_div(uint32 numerator, sint32 denominator)
 static void direction_spline(uint32 owner, uint32 mode, uint32 segment, uint32 progress, sint32 *x, sint32 *z)
 {
     if (owner == 0x80054164u) { gtmain_race_ai_spline_position((sint32)mode, (sint32)segment, (sint32)progress, x, z); return; }
-    /* TODO Bind the unselected alternate spline native outputs */
+    if (owner == 0x800546BCu) { gtmain_race_ai_alternate_position((sint32)mode, (sint32)segment, (sint32)progress, x, z); return; }
     gt_draft_failure("GTMAIN native AI spline outputs", owner);
 }
 
 /* GTMAIN.EXE 80055C0C */
-sint32 gtmain_race_ai_direction(uint32 car, sint32 distance, sint32 *first, sint32 *second)
+/* Original: GTMAIN.EXE:sub_80055C0C. */ sint32 gtmain_race_ai_direction(uint32 car, sint32 distance, sint32 *first, sint32 *second)
 {
     uint32 mode = r_u8(car + 1912u), segment = r_u8(car + 1913u), attempt = 0;
     sint32 x, z, dx, dz, absolute_x, absolute_z, minimum;
@@ -61,7 +61,7 @@ sint32 gtmain_race_ai_direction(uint32 car, sint32 distance, sint32 *first, sint
 }
 
 /* GTMAIN.EXE 80053050 */
-sint32 gtmain_race_ai_distance(uint32 parameters, sint32 speed)
+/* Original: GTMAIN.EXE:sub_80053050. */ sint32 gtmain_race_ai_distance(uint32 parameters, sint32 speed)
 {
     sint64 product;
     sint32 weight, difference;
@@ -75,7 +75,7 @@ sint32 gtmain_race_ai_distance(uint32 parameters, sint32 speed)
 }
 
 /* GTMAIN.EXE 80055BA4 */
-sint32 gtmain_race_speed_control(sint32 speed, sint32 target, sint32 base, sint32 slope)
+/* Original: GTMAIN.EXE:sub_80055BA4. */ sint32 gtmain_race_speed_control(sint32 speed, sint32 target, sint32 base, sint32 slope)
 {
     sint32 difference = (sint32)((uint32)speed - (uint32)target), value;
     if (difference < -11380) difference = -11380;
@@ -86,7 +86,7 @@ sint32 gtmain_race_speed_control(sint32 speed, sint32 target, sint32 base, sint3
 }
 
 /* GTMAIN.EXE 80053BCC */
-sint32 gtmain_race_ai_mode_right(sint32 mode)
+/* Original: GTMAIN.EXE:sub_80053BCC. */ sint32 gtmain_race_ai_mode_right(sint32 mode)
 {
     if (mode == 1) { if (r_u32(r_u32(0x800BF51Cu) + 8u)) return 0; }
     else if (mode != 0 && mode != 6) return -1;
@@ -94,7 +94,7 @@ sint32 gtmain_race_ai_mode_right(sint32 mode)
 }
 
 /* GTMAIN.EXE 80053B64 */
-sint32 gtmain_race_ai_mode_left(sint32 mode)
+/* Original: GTMAIN.EXE:sub_80053B64. */ sint32 gtmain_race_ai_mode_left(sint32 mode)
 {
     if (mode == 2) { if (r_u32(r_u32(0x800BF51Cu) + 8u)) return 0; }
     else if (mode != 0 && mode != 6) return -1;
@@ -102,19 +102,19 @@ sint32 gtmain_race_ai_mode_left(sint32 mode)
 }
 
 /* GTMAIN.EXE 80053C34 */
-sint32 gtmain_race_ai_mode_neutral(sint32 mode)
+/* Original: GTMAIN.EXE:sub_80053C34. */ sint32 gtmain_race_ai_mode_neutral(sint32 mode)
 {
     return mode == 6 ? -1 : gtmain_race_ai_mode_select(6);
 }
 
 /* GTMAIN.EXE 80054E00 */
-void gtmain_race_ai_mode_set(uint32 car, uint8 mode)
+/* Original: GTMAIN.EXE:sub_80054E00. */ void gtmain_race_ai_mode_set(uint32 car, uint8 mode)
 {
     w_u8(car + 1912u, mode); gtmain_race_ai_segment_bind(car);
 }
 
 /* GTMAIN.EXE 80054E20 */
-sint32 gtmain_race_behavior_set(uint32 car, sint32 behavior)
+/* Original: GTMAIN.EXE:sub_80054E20. */ sint32 gtmain_race_behavior_set(uint32 car, sint32 behavior)
 {
     sint32 mode, car_index, count;
     switch (behavior) {
@@ -150,7 +150,7 @@ publish:
 }
 
 /* GTMAIN.EXE 80054FE4 */
-uint32 gtmain_race_finish_mark(uint32 car)
+/* Original: GTMAIN.EXE:sub_80054FE4. */ uint32 gtmain_race_finish_mark(uint32 car)
 {
     if (!r_u8(car + 1960u)) {
         uint32 behavior = r_u8(car + 1696u);
@@ -166,12 +166,12 @@ uint32 gtmain_race_finish_mark(uint32 car)
 }
 
 /* GTMAIN.EXE 80054A98 */
-void gtmain_race_ai_segment_update(uint32 car)
+/* Original: GTMAIN.EXE:sub_80054A98. */ uint32 gtmain_race_ai_segment_update(uint32 car)
 {
     uint32 mode = r_u8(car + 1912u), table, rows, count, segment, wheel, sum, denominator, factor;
     sint32 course_length, speed, target, measure, divisor, bound, result, parameter;
     sint64 product;
-    if (mode == 4u) return;
+    if (mode == 4u) return 4u * mode;
     table = r_u32(r_u32(0x800BF51Cu) + 8u + 4u * mode); rows = table + 4u;
     count = r_u32(table); course_length = r_s32(r_u32(0x800BC1A8u)); segment = r_u8(car + 1913u);
     if (segment == count) {
@@ -184,8 +184,9 @@ void gtmain_race_ai_segment_update(uint32 car)
         w_u8(car + 1913u, (uint8)(r_u8(car + 1913u) + 1u)); gtmain_race_ai_segment_speed(car);
     }
 braking:
-    if (r_u8(car + 1914u) - 3u < 2u || !r_u8(car + 1915u)) return;
-    speed = r_s32(car + 1724u); target = r_s32(car + 1920u); if (target >= speed) return;
+    if (r_u8(car + 1914u) - 3u < 2u) return 1u;
+    if (!r_u8(car + 1915u)) return 0u;
+    speed = r_s32(car + 1724u); target = r_s32(car + 1920u); if (target >= speed) return (uint32)speed + (uint32)target;
     product = (sint64)(sint32)((uint32)speed + (uint32)target) * (sint32)((uint32)speed - (uint32)target);
     measure = (sint32)(uint32)(product / 4096);
     if (r_u32(0x80093E30u) && !(r_u8(car + 58u) & 16u)) {
@@ -201,11 +202,14 @@ braking:
     factor = direction_fp(r_u16(car + 1898u), (uint32)parameter); w_u16(car + 1898u, (uint16)factor);
     if (r_u16(car + 1898u) >= 4097u) w_u16(car + 1898u, 4096);
     measure = (sint32)(r_u32(rows + 40u * r_u8(car + 1913u) + 20u) - r_u32(car + 1804u));
-    if (result >= (measure >> 4)) w_u8(car + 1914u, r_u8(car + 1914u) ? 4 : 3);
+    if (result < (measure >> 4)) return 1u;
+    factor = r_u8(car + 1914u) ? 4u : 3u;
+    w_u8(car + 1914u, (uint8)factor);
+    return factor;
 }
 
 /* GTMAIN.EXE 80051398 */
-uint32 gtmain_race_wheel_surface_reset(uint32 car)
+/* Original: GTMAIN.EXE:sub_80051398. */ uint32 gtmain_race_wheel_surface_reset(uint32 car)
 {
     uint32 wheel, base, enabled, surface;
     for (wheel = 0; wheel < 4u; ++wheel) {
@@ -221,7 +225,7 @@ uint32 gtmain_race_wheel_surface_reset(uint32 car)
 }
 
 /* GTMAIN.EXE 80051800 */
-void gtmain_race_vehicle_reset(uint32 car)
+/* Original: GTMAIN.EXE:sub_80051800. */ uint32 gtmain_race_vehicle_reset(uint32 car)
 {
     uint32 initial = r_u16(0x80093EA8u), mode, i;
     sint32 divisor, parameter;
@@ -252,10 +256,11 @@ void gtmain_race_vehicle_reset(uint32 car)
     for (i = 0; i < 2u; ++i) w_u16(car + 1972u + 2u * i, 0);
     w_u8(car + 1706u, 0); w_u8(car + 1u, 0);
     for (i = 0; i < 2u; ++i) w_u32(car + 1976u + 4u * i, 0);
+    return 8u;
 }
 
 /* GTMAIN.EXE 8002DD9C */
-void gtmain_race_split_record(sint32 rank, sint32 checkpoint, uint32 elapsed)
+/* Original: GTMAIN.EXE:sub_8002DD9C. */ void gtmain_race_split_record(sint32 rank, sint32 checkpoint, uint32 elapsed)
 {
     uint32 finish = 0, show = 0, variant, timer;
     if (rank) return;
@@ -274,7 +279,7 @@ void gtmain_race_split_record(sint32 rank, sint32 checkpoint, uint32 elapsed)
 }
 
 /* GTMAIN.EXE 8002DEB8 */
-void gtmain_race_lap_record(sint32 rank, sint32 lap, uint32 time, uint32 elapsed)
+/* Original: GTMAIN.EXE:sub_8002DEB8. */ void gtmain_race_lap_record(sint32 rank, sint32 lap, uint32 time, uint32 elapsed)
 {
     uint32 car = 0x800B6850u + 3380u * (uint32)rank, kind, timer;
     sint32 limit = r_s16(0x800B634Cu);

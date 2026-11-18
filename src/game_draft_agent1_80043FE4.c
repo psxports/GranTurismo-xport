@@ -1,13 +1,15 @@
 #include "game_first2_registry.h"
+#include "xport_trace.h"
 
 /* GTMAIN.EXE 80043FE4 */
-uint32 gtmain_menu_vehicle_course_labels_draw(uint32 ordering, sint32 x,
+/* Original: GTMAIN.EXE:sub_80043FE4. */ uint32 gtmain_menu_vehicle_course_labels_draw(uint32 ordering, sint32 x,
     sint32 y, sint32 intensity)
 {
     uint32 text, width, course_name;
     sint32 center;
-    gtmain_text_font(1);
-    gtmain_text_flags(0);
+    FUNCTION_MARKER(0x80043FE4, "GTMAIN.EXE");
+    gtmain_text_flags(1);
+    gtmain_text_font(0);
     gtmain_text_color(gtmain_menu_palette_color(7, intensity >> 1));
     text = gtmain_resource_name((uint32)r_s16(0x800B63C4u));
     width = gtmain_menu_text_width(1, text, 0);

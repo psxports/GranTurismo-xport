@@ -26,35 +26,29 @@ static void parts_list_copy_summary(uint32 source)
 
 static void parts_list_value_draw(uint32 ordering, sint32 x, sint32 y, uint32 value)
 {
-    /* TODO Bind unselected four-argument value renderer 80045BF4 */
-    (void)gt_draft_unresolved_call(0x80045BF4u, ordering, (uint32)x,
-        (uint32)y, value, 0u, 0u, 0u, 0u);
+    gtmain_parts_availability_draw(ordering, x, y, value);
 }
 
 static void parts_list_detail_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity,
     uint32 summary, sint32 text_intensity, sint32 first_x, sint32 first_y,
     sint32 second_x, sint32 second_y, uint32 first_flags, uint32 second_flags)
 {
-    /* TODO Bind unselected twelve-argument detail renderer 8004D020 */
-    gt_draft_failure("Parts list twelve-argument detail draw", 0x8004D020u);
+    gtmain_parts_detail_draw(ordering, x, y, intensity, summary, text_intensity,
+        first_x, first_y, second_x, second_y, first_flags, second_flags);
 }
 
 static void parts_list_sprite(uint32 ordering, uint32 xy, uint32 texture, uint32 size, uint32 color)
 {
-    /* TODO Bind unselected five-argument sprite renderer 800706BC */
-    (void)gt_draft_unresolved_call(0x800706BCu, ordering, xy, texture,
-        size, color, 0u, 0u, 0u);
+    gtmain_packet_sprite(ordering, xy, texture, size, color);
 }
 
 static void parts_list_caption(uint32 ordering, uint32 text, sint32 x, sint32 y, sint32 intensity)
 {
-    /* TODO Bind unselected five-argument centered caption 80043F34 */
-    (void)gt_draft_unresolved_call(0x80043F34u, ordering, text,
-        (uint32)x, (uint32)y, (uint32)intensity, 0u, 0u, 0u);
+    gtmain_parts_caption_draw(ordering, text, x, y, intensity);
 }
 
 /* GTMAIN.EXE 80045CF0 */
-uint32 gt_draft_80045CF0(uint32 ordering, sint32 x, sint32 y,
+/* Original: GTMAIN.EXE:sub_80045CF0. */ uint32 gt_draft_80045CF0(uint32 ordering, sint32 x, sint32 y,
     uint32 carried_argument, sint32 intensity)
 {
     uint8 output[152];

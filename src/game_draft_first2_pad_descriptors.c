@@ -119,7 +119,7 @@ uint32 gtmain_pad_port_failure(uint32 port)
 }
 
 /* GTMAIN.EXE 80080914 */
-sint32 gtmain_pad_port_begin(uint32 port)
+/* Original: GTMAIN.EXE:sub_80080914. */ sint32 gtmain_pad_port_begin(uint32 port)
 {
     uint32 control = r_u32(0x800B1F20u), count_address, index;
     sint32 count;

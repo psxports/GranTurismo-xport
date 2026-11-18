@@ -2,14 +2,14 @@
 
 uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size);
 
-sint32 gtmain_render_context_init(uint32 context)
+/* Original: GTMAIN.EXE:sub_80071268. */ sint32 gtmain_render_context_init(uint32 context)
 {
     sub_8007BD58(context, 0u, 40u);
     w_u16(context + 20u, 4096u); w_u16(context + 28u, 4096u); w_u16(context + 36u, 4096u);
     return 4096;
 }
 
-uint32 gtmain_model_sections_relocate(uint32 model)
+/* Original: GTMAIN.EXE:sub_800712A4. */ uint32 gtmain_model_sections_relocate(uint32 model)
 {
     uint32 cursor = model + 80u;
     uint32 count0 = r_u16(model + 40u), count1 = r_u16(model + 42u), index;
@@ -28,7 +28,7 @@ uint32 gtmain_model_sections_relocate(uint32 model)
     return cursor;
 }
 
-sint32 gtmain_model_texture_bits(uint32 model, uint32 page)
+/* Original: GTMAIN.EXE:sub_8007131C. */ sint32 gtmain_model_texture_bits(uint32 model, uint32 page)
 {
     uint32 index, bits = (page & 31u) << 16;
     for (index = 0u; index < 8u; ++index)
@@ -46,8 +46,12 @@ sint32 gtmain_model_texture_bits(uint32 model, uint32 page)
     return 0;
 }
 
-sint32 gtmain_model_distances_square(uint32 entries)
+void gtmain_model_distances_square(uint32 entries)
 {
+    /* Original occurrences
+     * GTMAIN.EXE:0x8006EA44
+     * GTMENU.EXE:0x8003ED40
+     */
     uint32 count = r_u16(entries), index;
     for (index = 0u; index < count; ++index)
     {
@@ -55,11 +59,14 @@ sint32 gtmain_model_distances_square(uint32 entries)
         sint32 value = (sint32)r_u32(address) >> 14;
         w_u32(address, (uint32)value * (uint32)value);
     }
-    return 0;
 }
 
 uint32 gtmain_model_materials_relocate(uint32 materials)
 {
+    /* Original occurrences
+     * GTMAIN.EXE:0x8007966C
+     * GTMENU.EXE:0x8003ED8C
+     */
     uint32 count = r_u16(materials), cursor = materials + 32u;
     w_u32(materials + 24u, cursor);
     cursor += count * 24u;
@@ -68,7 +75,7 @@ uint32 gtmain_model_materials_relocate(uint32 materials)
     return cursor + count * 32u;
 }
 
-uint32 gtmain_model_bundle_relocate(uint32 bundle, uint32 page)
+/* Original: GTMAIN.EXE:sub_800713A8. */ uint32 gtmain_model_bundle_relocate(uint32 bundle, uint32 page)
 {
     uint32 count = r_u16(bundle + 60u), index, cursor = bundle + count * 8u + 64u;
     uint32 result;
@@ -88,7 +95,7 @@ uint32 gtmain_model_bundle_relocate(uint32 bundle, uint32 page)
     return result;
 }
 
-uint32 gtmain_matrix_negate_axes(uint8 *out, const uint8 *matrix)
+/* Original: GTMAIN.EXE:sub_800715F0. */ uint32 gtmain_matrix_negate_axes(uint8 *out, const uint8 *matrix)
 {
     uint32 word0, word3, word4, word2, word1, negated, result;
     if (matrix != out)

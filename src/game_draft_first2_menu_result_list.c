@@ -1,18 +1,15 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
-
-static uint32 result_list_clamp(uint32 list)
-{
-    /* TODO Unselected list clamp remains a typed fail-fast dependency */
-    gt_draft_failure("GTMAIN result list clamp", 0x8003B88Cu);
-}
+#include "xport_trace.h"
 
 /* GTMAIN.EXE:800325C4 */
-sint32 gtmain_menu_result_list_tick(void)
+/* Original: GTMAIN.EXE:sub_800325C4. */ sint32 gtmain_menu_result_list_tick(void)
 {
-    uint32 input = r_u32(0x800BDD08u);
+    uint32 input;
     sint32 result = 0;
     uint32 phase;
+    FUNCTION_MARKER(0x800325C4, "GTMAIN.EXE");
+    input = r_u32(0x800BDD08u);
     (void)gtmain_menu_phase_tick();
     gtmain_menu_stream_check();
     phase = r_u16(0x801D2FE4u);
@@ -83,7 +80,7 @@ sint32 gtmain_menu_result_list_tick(void)
                 (void)gtmain_menu_list_select(0x801D3AECu, row + 10);
             } else (void)gtmain_menu_selector_input(0x801D3AECu, input + 2u);
         }
-        (void)result_list_clamp(0x801D3AECu);
+        (void)gtmain_menu_selector_layout(0x801D3AECu);
         if (r_u16(input + 6u) & 0xFF0Fu) {
             sint32 mode;
             uint32 descriptor = 0x80092170u;

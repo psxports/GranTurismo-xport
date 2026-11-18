@@ -3,7 +3,7 @@
 /* Unverified draft translations */
 /* TODO Resolve unused call argument carriers during integration */
 
-uint32 gtmain_camera_config_pose_prepare(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001D4AC. */ uint32 gtmain_camera_config_pose_prepare(uint32 camera)
 {
     uint32 config = r_u32(0x800B6400u);
     uint32 mode = r_u16(config + 16u);
@@ -17,14 +17,14 @@ void gt_draft_80019EE8(void)
     gtmain_sound_sequence_tick();
 }
 
-uint32 gt_draft_8001A098(void)
+/* Original: GTMAIN.EXE:sub_8001A098. */ uint32 gt_draft_8001A098(void)
 {
     gtmain_file_load(r_u32(0x800B6390u), 0x800D6FDCu, 0u, 0u);
     gtmain_shutdown();
     return gtos_native_transition(0x800D6FDCu);
 }
 
-uint32 gt_draft_8001A008(void)
+/* Original: GTMAIN.EXE:sub_8001A008. */ uint32 gt_draft_8001A008(void)
 {
     gtmain_race_sound_callbacks_stopped();
     (void)gtmain_audio_snapshot_upload(0x800C4C00u);
@@ -36,7 +36,7 @@ uint32 gt_draft_8001A008(void)
     return (uint32)StopCallback();
 }
 
-uint32 gt_draft_8004A260(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_8004A260. */ uint32 gt_draft_8004A260(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
     sint32 index = (sint32)a1;
     uint32 item = a0 + 512u + a1 * 2u;
@@ -48,12 +48,7 @@ uint32 gt_draft_8004A260(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return 0xFFFFFFFFu;
 }
 
-uint32 gt_draft_8004A990(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
-{
-    return 0;
-}
-
-uint32 gt_draft_8004A998(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_8004A998. */ uint32 gt_draft_8004A998(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
     w_u8(0x800BEA70u, 1);
     w_u16(0x800B53BCu, 24);
@@ -61,7 +56,7 @@ uint32 gt_draft_8004A998(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 }
 
 /* GTMAIN.EXE:8004635C */
-uint32 gtmain_menu_table_sprite_draw(uint32 ordering, uint32 x, uint32 y,
+/* Original: GTMAIN.EXE:sub_8004635C. */ uint32 gtmain_menu_table_sprite_draw(uint32 ordering, uint32 x, uint32 y,
     uint32 index, uint32 color)
 {
     uint32 table = 0x80092594u + (index << 4u);
@@ -70,7 +65,7 @@ uint32 gtmain_menu_table_sprite_draw(uint32 ordering, uint32 x, uint32 y,
     return gtmain_packet_sprite(ordering, (x & 0xFFFFu) | (y << 16u), uv_clut, wh, color);
 }
 
-uint32 gt_draft_80029DE4(void)
+/* Original: GTMAIN.EXE:sub_80029DE4. */ uint32 gt_draft_80029DE4(void)
 {
     if (r_u8(0x800CB7F5u) == 4 && r_u32(0x800B630Cu) != 1) {
         w_u16(0x800B63D6u, 1);
@@ -104,41 +99,49 @@ uint32 gt_draft_8002FC74(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gt_draft_unresolved_call(0x8002FBA8u, a0, 64, 16, 0x800912ACu, a1, 0, 0, 0);
 }
 
-uint32 gt_draft_8002AC58(void)
+/* Original: GTMAIN.EXE:sub_8002AC58. */ uint32 gt_draft_8002AC58(void)
 {
     return gtmain_race_stream_start(r_u16(0x800B6874u) ? 13 : 12, 0);
 }
 
-uint32 gt_draft_800433B0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_800433B0. */ uint32 gt_draft_800433B0(void)
 {
-    uint32 result;
-    w_u8(r_u32(0x800BEA64u) + 69, r_u16(0x8009296Cu));
-    result = r_u16(0x8009297Cu);
-    w_u8(r_u32(0x800BEA64u) + 82, result);
-    return result;
+    uint32 object = r_u32(0x800BEA64u);
+    uint32 value = r_u16(0x8009296Cu);
+    w_u8(object + 69u, value);
+    object = r_u32(0x800BEA64u);
+    value = r_u16(0x8009297Cu);
+    w_u8(object + 82u, value);
+    return value;
 }
 
-uint32 gt_draft_80029C28(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_80029C28(void)
 {
-    sint32 mode = (sint16)r_u16(0x800B63D6u);
-    if (mode == 1) { w_u8(0x800B63C0u, 6); return 6; }
-    if (mode == 2) w_u16(0x800B63D6u, 1);
+    sint32 mode;
+    FUNCTION_MARKER(0x80029C28, "GTMAIN.EXE");
+    mode = r_s16(0x800B63D6);
+    if (mode == 1) {
+        w_u8(0x800B63C0, 6);
+        return 6;
+    }
+    if (mode == 2)
+        w_u16(0x800B63D6, 1);
     return 1;
 }
 
-uint32 gtmain_menu_transition_enter(uint32 a0)
+/* Original: GTMAIN.EXE:sub_80046AC4. */ uint32 gtmain_menu_transition_enter(uint32 a0)
 {
     w_u8(a0 + 12, 0);
     w_u8(a0 + 13, 12);
     return 12;
 }
 
-uint32 gt_draft_8002A390(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_8002A390. */ uint32 gt_draft_8002A390(void)
 {
     return r_u8(0x8008FB38u + r_u8(0x800CB7F8u));
 }
 
-uint32 gt_draft_8002A3CC(void)
+/* Original: GTMAIN.EXE:sub_8002A3CC. */ uint32 gt_draft_8002A3CC(void)
 {
     return 0x800C77ACu + 1792u * r_u8(0x800CB7F8u) + 224u * r_u8(0x800CB7F9u);
 }
@@ -148,7 +151,7 @@ uint32 gt_draft_8002A500(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_course_route_caption_update();
 }
 
-uint32 gt_draft_80047160(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_80047160. */ uint32 gt_draft_80047160(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
     return (sint32)a0 < 120;
 }
@@ -163,7 +166,7 @@ uint32 gt_draft_80030938(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_race_choice_highlight(a0);
 }
 
-uint32 gt_draft_8002F8B4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_8002F8B4. */ uint32 gt_draft_8002F8B4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
     return a0 + r_u32(a0) * 16u + 4u;
 }
@@ -173,7 +176,7 @@ uint32 gt_draft_8001ECA8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_player_configuration_build();
 }
 
-uint32 gt_draft_8003DBF4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_8003DBF4. */ uint32 gt_draft_8003DBF4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
     w_u8(0x801F2041u, 1);
     return 1;
@@ -192,7 +195,7 @@ static uint32 assist_activation_missing(uint32 enabled)
 }
 
 /* GTMAIN.EXE:8001EE00 */
-uint32 gt_draft_8001EE00(uint32 enabled)
+/* Original: GTMAIN.EXE:sub_8001EE00. */ uint32 gt_draft_8001EE00(uint32 enabled)
 {
     return assist_activation_missing(enabled != 0u);
 }
@@ -204,7 +207,7 @@ static uint32 result_record_missing(void)
 }
 
 /* GTMAIN.EXE:80022BFC */
-uint32 gt_draft_80022BFC(uint32 alternate)
+/* Original: GTMAIN.EXE:sub_80022BFC. */ uint32 gt_draft_80022BFC(uint32 alternate)
 {
     uint32 object = result_record_missing();
     uint32 result = r_u32(object + (alternate ? 56u : 28u) + 12u);

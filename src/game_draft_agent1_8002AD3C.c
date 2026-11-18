@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8002AD3C */
-void gt_draft_8002AD3C(void)
+/* Original: GTMAIN.EXE:sub_8002AD3C. */ void gt_draft_8002AD3C(void)
 {
     sint32 entry, parameter;
     gtmain_stream_mode_set(0);

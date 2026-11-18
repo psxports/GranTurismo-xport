@@ -31,7 +31,7 @@ static uint32 lz_source_word(const uint8 *source, uint32 capacity, uintptr_t add
 }
 
 /* GTMAIN.EXE 80071698 */
-uint8 *gtmain_lz_decode(uint8 *destination, uint32 destination_capacity,
+/* Original: GTMAIN.EXE:sub_80071698. */ uint8 *gtmain_lz_decode(uint8 *destination, uint32 destination_capacity,
     const uint8 *source, uint32 source_capacity, sint32 output_bytes)
 {
     uint32 produced = 0, cursor = 0, flags = 0, bit = 0;
@@ -111,15 +111,14 @@ static uint8 *cd_file_load_native(uint32 guest_path, uint8 *destination, uint32 
         sector << 11, requested_bytes, decoded_bytes);
     else status = gtmain_cd_file_read(destination, capacity, sector, requested_bytes);
     if (status == -1 && allocated) {
-        /* TODO Bind the unrecorded original heap free dependency */
-        gt_draft_failure("Unrecorded GTMAIN heap free", 0x8007CFE0u);
+        gtmain_heap_free(*guest_address);
         destination = NULL; *guest_address = 0;
     }
     return r_u32(0x800B1AB0u) ? NULL : destination;
 }
 
 /* GTMAIN.EXE 80071844 */
-uint32 gtmain_cd_file_load(uint32 guest_path, uint32 guest_destination,
+/* Original: GTMAIN.EXE:sub_80071844. */ uint32 gtmain_cd_file_load(uint32 guest_path, uint32 guest_destination,
     uint32 requested_bytes, uint32 decoded_bytes)
 {
     uint32 capacity = (requested_bytes + 15u) & ~15u;

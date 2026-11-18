@@ -1,7 +1,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE:8003CC24 */
-uint32 gt_draft_8003CC24(uint32 request, uint32 selection, uint32 target, uint32 style, uint32 flags)
+/* Original: GTMAIN.EXE:sub_8003CC24. */ uint32 gt_draft_8003CC24(uint32 request, uint32 selection, uint32 target, uint32 style, uint32 flags)
 {
     uint32 result;
     w_u32(0x800B52FCu, request);

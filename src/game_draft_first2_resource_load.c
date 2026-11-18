@@ -1,74 +1,113 @@
 #include "game_first2_registry.h"
 #include "game_sound_stack.h"
+#include <string.h>
 
-static uint8 *texture_workspace;
-static uint32 texture_workspace_capacity;
-static uint32 texture_workspace_active;
+static uint32 native_local_stack_top;
 
-static uint8 *texture_record_native(uint32 id)
+uint32 gt_local_stack_top(void)
 {
-    if (!texture_workspace_active || !texture_workspace || texture_workspace_capacity < 24u ||
-        id > (texture_workspace_capacity - 24u) / 24u)
-        gt_draft_failure("Native texture field record extent", 0x80030DFCu);
-    return texture_workspace + id * 24u;
+    uint32 alternate = r_u32(0x800B1AA4u);
+    return native_local_stack_top ? native_local_stack_top :
+        alternate ? alternate : r_u32(0x8008F1D8u);
+}
+
+GT_LOCAL_STACK_FRAME gt_local_stack_push(uint32 bytes, uint32 owner)
+{
+    GT_LOCAL_STACK_FRAME frame;
+    uint32 alternate = r_u32(0x800B1AA4u);
+    uint32 baseline = alternate ? alternate : r_u32(0x8008F1D8u);
+    if (bytes > 0x200000u - 7u)
+        gt_draft_failure("GTMAIN local stack allocation extent", owner);
+    bytes = (bytes + 7u) & ~7u;
+    frame.previous = native_local_stack_top;
+    frame.address = gt_local_stack_workspace(bytes, bytes, owner);
+    if (frame.address < baseline - 0x41D8u)
+        gt_draft_failure("GTMAIN local stack resident context overlap", owner);
+    native_local_stack_top = frame.address;
+    return frame;
+}
+
+GT_LOCAL_STACK_FRAME gtmain_cd_decode_stack_push(void)
+{
+    GT_LOCAL_STACK_FRAME frame;
+    uint32 launch = r_u32(0x8008F1D8u);
+    uint32 reserve = r_u32(0x800B1B4Cu);
+    uint32 top = gt_local_stack_top(), low, address;
+    uint32 heap = r_u32(0x800B1AACu), heap_bytes = r_u32(0x800B1AA8u);
+    uint32 extent = heap_bytes < 16u ? 16u : heap_bytes;
+    uint32 context = r_u32(0x800B3990u);
+    const uint32 bytes = 0x8080u;
+    if (launch < 0x80010000u || launch > 0x80200000u ||
+        reserve > launch - 0x80010000u || top > launch || (top & 7u) ||
+        top < 0x80014500u || heap < 0x80010000u || heap > 0x80200000u ||
+        extent > 0x80200000u - heap ||
+        (context && (context < 0x80010000u || context > 0x801FFFD8u)))
+        gt_draft_failure("GTMAIN CD decode stack bounds", 0x80071CA4u);
+    low = launch - reserve;
+    /* Keep existing caller workspaces through offset 0x4480 above this frame */
+    top -= 0x4500u;
+    for (;;) {
+        if (top < low || bytes > top - low)
+            gt_draft_failure("GTMAIN CD decode stack capacity", 0x80071CA4u);
+        address = top - bytes;
+        if (heap < top && heap + extent > address) {
+            top = heap & ~7u;
+            continue;
+        }
+        if (context && context < top && context + 40u > address) {
+            top = context & ~7u;
+            continue;
+        }
+        break;
+    }
+    /* The original reserved stack aliases BSS during this decoder */
+    frame.previous = native_local_stack_top;
+    frame.address = address;
+    native_local_stack_top = address;
+    return frame;
+}
+
+void gt_local_stack_pop(GT_LOCAL_STACK_FRAME frame)
+{
+    if (native_local_stack_top != frame.address)
+        gt_draft_failure("GTMAIN local stack allocation order", 0x80030DCCu);
+    native_local_stack_top = frame.previous;
 }
 
 /* GTMAIN.EXE 80030DFC */
-uint8 *gtmain_texture_clut_native(uint32 id) { return texture_record_native(id) + 16u; }
+/* Original: GTMAIN.EXE:sub_80030DFC. */ uint32 gtmain_texture_clut_native(uint32 id) { return r_u32(0x800B49D4u) + id * 24u + 16u; }
 
 /* GTMAIN.EXE 80030E1C */
-uint8 *gtmain_texture_page_native(uint32 id) { return texture_record_native(id) + 18u; }
+/* Original: GTMAIN.EXE:sub_80030E1C. */ uint32 gtmain_texture_page_native(uint32 id) { return r_u32(0x800B49D4u) + id * 24u + 18u; }
 
 /* GTMAIN.EXE 80030E3C */
-sint32 gtmain_texture_x_native(uint32 id)
+/* Original: GTMAIN.EXE:sub_80030E3C. */ sint32 gtmain_texture_x_native(uint32 id)
 {
-    return (sint16)xport_load_le16(texture_record_native(id) + 20u);
+    return r_s16(r_u32(0x800B49D4u) + id * 24u + 20u);
 }
 
 /* GTMAIN.EXE 80030E60 */
-sint32 gtmain_texture_y_native(uint32 id)
+/* Original: GTMAIN.EXE:sub_80030E60. */ sint32 gtmain_texture_y_native(uint32 id)
 {
-    return (sint16)xport_load_le16(texture_record_native(id) + 22u);
+    return r_s16(r_u32(0x800B49D4u) + id * 24u + 22u);
 }
 
 /* GTMAIN.EXE 80030DCC */
-void gtmain_texture_workspace_publish(uint8 *workspace, uint32 capacity)
+/* Original: GTMAIN.EXE:sub_80030DCC. */ void gtmain_texture_workspace_publish(uint32 workspace)
 {
-    if (!workspace && capacity)
-        gt_draft_failure("Native texture workspace unavailable", 0x80030DCCu);
-    texture_workspace = workspace;
-    texture_workspace_capacity = capacity;
-    texture_workspace_active = 1u;
+    w_u32(0x800B49D4u, workspace);
     w_u32(0x800B49D8u, 0u);
 }
 
-void gtmain_texture_workspace_release(uint8 *workspace)
-{
-    if (texture_workspace == workspace) {
-        texture_workspace = NULL;
-        texture_workspace_capacity = 0u;
-        texture_workspace_active = 0u;
-    }
-}
-
 /* GTMAIN.EXE 80030E84 */
-sint32 gtmain_texture_name_find_native(const uint8 *name)
+/* Original: GTMAIN.EXE:sub_80030E84. */ sint32 gtmain_texture_name_find_native(const uint8 *name)
 {
-    uint32 index = 0u, offset;
+    uint32 index = 0u;
     if ((sint32)r_u32(0x800B49D8u) <= 0) return -1;
     do {
-        uint8 *record;
-        if (!texture_workspace_active || !name || texture_workspace_capacity < 24u ||
-            index > (texture_workspace_capacity - 24u) / 24u)
-            gt_draft_failure("Native texture name lookup extent", 0x80030E84u);
-        record = texture_workspace + index * 24u;
-        for (offset = 0u; offset < 24u; ++offset) {
-            uint8 first = record[offset], second = name[offset];
-            if (first != second) break;
-            if (!first) return (sint32)index;
-        }
-        if (offset == 24u)
-            gt_draft_failure("Native texture name terminator extent", 0x80030E84u);
+        uint32 record = r_u32(0x800B49D4u) + index * 24u;
+        if (!strcmp((const char *)psx_addr(record, 24u), (const char *)name))
+            return (sint32)index;
         ++index;
     } while ((sint32)index < (sint32)r_u32(0x800B49D8u));
     return -1;
@@ -77,54 +116,19 @@ sint32 gtmain_texture_name_find_native(const uint8 *name)
 static void resource_upload(uint32 block)
 {
     PSX_RECT rectangle;
+    uint32 bytes;
     rectangle.x = (sint16)r_u16(block + 4u);
     rectangle.y = (sint16)r_u16(block + 6u);
     rectangle.w = (sint16)r_u16(block + 8u);
     rectangle.h = (sint16)r_u16(block + 10u);
-    LoadImagePSX(&rectangle, (uint32 *)psx_addr(block + 12u, 1u));
+    bytes = rectangle.w > 0 && rectangle.h > 0
+        ? (uint32)rectangle.w * (uint32)rectangle.h * 2u : 1u;
+    LoadImagePSX(&rectangle, (uint32 *)psx_addr(block + 12u, bytes));
     DrawSync(0);
 }
 
-static uint32 texture_palette_native(uint8 *record, uint32 block, uint32 image)
-{
-    uint32 mode, x, next;
-    uint16 value;
-    if (!(r_u32(image + 4u) & 8u)) {
-        xport_store_le16(record + 16u, 0u);
-        return block;
-    }
-    mode = r_u32(image + 4u) & 7u;
-    if (mode == 0u || mode == 1u) resource_upload(block);
-    x = r_u16(block + 4u);
-    value = xport_load_le16(record + 16u);
-    next = block + r_u32(block);
-    value = (uint16)((value & 0xFFC0u) | ((x >> 4u) & 63u));
-    xport_store_le16(record + 16u, value);
-    value = (uint16)((value & 0x803Fu) | ((r_u16(block + 6u) & 511u) << 6u));
-    xport_store_le16(record + 16u, value);
-    return next;
-}
-
-static uint32 texture_pixels_native(uint8 *record, uint32 block, uint32 image)
-{
-    uint32 mode = r_u32(image + 4u) & 7u;
-    uint32 depth = mode == 1u ? 1u : mode == 2u ? 2u : 0u;
-    uint32 x;
-    uint16 value;
-    resource_upload(block);
-    x = r_u16(block + 4u); value = xport_load_le16(record + 18u);
-    value = (uint16)((value & 0xFFF0u) | ((x >> 6u) & 15u));
-    xport_store_le16(record + 18u, value);
-    value = (uint16)((value & 0xFFEFu) | ((r_u16(block + 6u) >> 4u) & 16u));
-    value = (uint16)((value & 0xFE7Fu) | (depth << 7u));
-    xport_store_le16(record + 18u, value);
-    xport_store_le16(record + 20u, (uint16)((r_u16(block + 4u) & 63u) << (2u - depth)));
-    xport_store_le16(record + 22u, r_u16(block + 6u));
-    return block + r_u32(block);
-}
-
 /* GTMAIN.EXE 80030F00 */
-uint32 gtmain_texture_palette_load(uint32 record, uint32 block, uint32 image)
+/* Original: GTMAIN.EXE:sub_80030F00. */ uint32 gtmain_texture_palette_load(uint32 record, uint32 block, uint32 image)
 {
     uint32 mode, next;
     uint16 value;
@@ -143,7 +147,7 @@ uint32 gtmain_texture_palette_load(uint32 record, uint32 block, uint32 image)
 }
 
 /* GTMAIN.EXE 80030FFC */
-uint32 gtmain_texture_pixels_load(uint32 record, uint32 block, uint32 image)
+/* Original: GTMAIN.EXE:sub_80030FFC. */ uint32 gtmain_texture_pixels_load(uint32 record, uint32 block, uint32 image)
 {
     uint32 mode = r_u32(image + 4u) & 7u;
     uint32 depth = mode == 1u ? 1u : mode == 2u ? 2u : 0u;
@@ -160,29 +164,10 @@ uint32 gtmain_texture_pixels_load(uint32 record, uint32 block, uint32 image)
 }
 
 /* GTMAIN.EXE 80031120 */
-uint32 gtmain_texture_records_load(uint32 image)
+/* Original: GTMAIN.EXE:sub_80031120. */ uint32 gtmain_texture_records_load(uint32 image)
 {
     uint32 index = 0, result = r_u32(image);
     if (result) do {
-        if (texture_workspace_active) {
-            uint8 *native_record;
-            uint32 name = image + 20u * index + 4u, length = 0u, section, pixels;
-            uint8 byte;
-            if (texture_workspace_capacity < 24u || index > (texture_workspace_capacity - 24u) / 24u)
-                gt_draft_failure("Native texture record extent", 0x80031120u);
-            native_record = texture_workspace + 24u * index;
-            do {
-                if (length == 24u)
-                    gt_draft_failure("Native texture record name extent", 0x80031120u);
-                byte = r_u8(name + length);
-                native_record[length++] = byte;
-            } while (byte);
-            section = image + r_u32(image + 20u * index + 20u);
-            pixels = texture_palette_native(native_record, section + 8u, section);
-            texture_pixels_native(native_record, pixels, section);
-            ++index; result = index < r_u32(image);
-            continue;
-        }
         uint32 record = r_u32(0x800B49D4u) + 24u * index;
         uint32 section, pixels;
         gtmain_string_copy(record, image + 20u * index + 4u);
@@ -197,7 +182,7 @@ uint32 gtmain_texture_records_load(uint32 image)
 }
 
 /* GTMAIN.EXE 80031E5C */
-uint32 gtmain_race_sound_bank_load(uint32 destination, uint32 spu_base,
+/* Original: GTMAIN.EXE:sub_80031E5C. */ uint32 gtmain_race_sound_bank_load(uint32 destination, uint32 spu_base,
     const uint8 *table, uint32 sector, uint32 section_index)
 {
     uint32 path = gtmain_sound_path();
@@ -215,7 +200,7 @@ uint32 gtmain_race_sound_bank_load(uint32 destination, uint32 spu_base,
 }
 
 /* GTMAIN.EXE 80031F18 */
-void gtmain_race_sound_banks_update(void)
+/* Original: GTMAIN.EXE:sub_80031F18. */ void gtmain_race_sound_banks_update(void)
 {
     uint32 selectors = gt_sound_stack_workspace(0x4160u, 4128u, 0x80031F18u);
     uint32 count = 3, changed = 0, index;

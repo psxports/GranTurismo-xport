@@ -1,7 +1,6 @@
 #include "game_draft_registry.h"
 #include "psx_gte.h"
 
-/* GTOS.EXE 800390B4 */
 static void texture_clip_load(uint32 point)
 {
     gte_lwc2(0u, r_u32(point));
@@ -102,7 +101,7 @@ static void texture_clip_packet_vertex(uint32 packet, uint32 xy_offset, uint32 u
     w_u8(packet + uv_offset + 1u, (uint8)(uv >> 16u));
 }
 
-uint32 gtos_model_clip_texture(uint32 context)
+/* Original: GTOS.EXE:sub_800390B4. */ uint32 gtos_model_clip_texture(uint32 context)
 {
     uint32 any = 0u, all = 0xFFFFFFFFu, near_plane = r_u16(context + 8u);
     uint32 list = context + 204u, point = context + 324u, plane, packet, last = 0u;

@@ -177,12 +177,12 @@ restore:
     return result;
 }
 
-sint32 gtmain_polygon_clip_flat(uint32 context)
+/* Original: GTMAIN.EXE:sub_80068CB0. */ sint32 gtmain_polygon_clip_flat(uint32 context)
 {
     return (sint32)colored_clip(context, 0);
 }
 
-sint32 gtmain_polygon_clip_gouraud(uint32 context)
+/* Original: GTMAIN.EXE:sub_80069254. */ sint32 gtmain_polygon_clip_gouraud(uint32 context)
 {
     return (sint32)colored_clip(context, 1);
 }

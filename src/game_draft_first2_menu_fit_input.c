@@ -1,34 +1,30 @@
 #include "game_first2_registry.h"
-
-static void menu_selector_layout_missing(uint32 selector)
-{
-    /* TODO Bind the unselected selector layout */
-    gt_draft_failure("Menu selector layout", 0x8003B88Cu);
-}
+#include "xport_trace.h"
 
 static sint32 menu_overlay_draw_missing(uint32 context)
 {
-    /* TODO Bind the unselected overlay draw and actual result */
-    gt_draft_failure("Menu overlay draw", 0x8006F798u);
+    return (sint32)gtmain_menu_image_upload(context);
 }
 
 /* GTMAIN.EXE 80036B34 */
-sint32 gtmain_menu_parameter_page_tick(void)
+/* Original: GTMAIN.EXE:sub_80036B34. */ sint32 gtmain_menu_parameter_page_tick(void)
 {
-    uint32 input = r_u32(0x800BDD08u);
+    uint32 input;
     sint32 selected;
+    FUNCTION_MARKER(0x80036B34, "GTMAIN.EXE");
+    input = r_u32(0x800BDD08u);
     gtmain_menu_stream_check();
     if (!r_s8(input)) return 0;
     gtmain_menu_parameter_selector_input(0x80092324u, input + 2u);
     selected = gtmain_menu_selector_input(0x80092314u, input + 2u);
-    menu_selector_layout_missing(0x80092314u);
+    gtmain_menu_selector_layout(0x80092314u);
     if (selected == -1) return 0;
     gtmain_menu_sound(selected == -2 ? 2 : 4);
     return 1;
 }
 
 /* GTMAIN.EXE 80035D90 */
-sint32 gtmain_menu_overlay_tick(void)
+/* Original: GTMAIN.EXE:sub_80035D90. */ sint32 gtmain_menu_overlay_tick(void)
 {
     sint32 enabled = r_s8(0x80091B39u);
     if (enabled) return menu_overlay_draw_missing(0x801F3FDCu);
@@ -36,7 +32,7 @@ sint32 gtmain_menu_overlay_tick(void)
 }
 
 /* GTMAIN.EXE 8003B954 */
-sint32 gtmain_menu_selector_input(uint32 selector, uint32 input)
+/* Original: GTMAIN.EXE:sub_8003B954. */ sint32 gtmain_menu_selector_input(uint32 selector, uint32 input)
 {
     uint8 previous = r_u8(selector + 1u);
     uint16 buttons;
@@ -55,7 +51,7 @@ sint32 gtmain_menu_selector_input(uint32 selector, uint32 input)
 }
 
 /* GTMAIN.EXE 800367D0 */
-sint32 gtmain_menu_angle_selector_tick(void)
+/* Original: GTMAIN.EXE:sub_800367D0. */ sint32 gtmain_menu_angle_selector_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u);
     sint32 selected;
@@ -72,7 +68,7 @@ sint32 gtmain_menu_angle_selector_tick(void)
 }
 
 /* GTMAIN.EXE 80048AF8 */
-uint32 gtmain_menu_text_fit(uint32 text, sint32 width)
+/* Original: GTMAIN.EXE:sub_80048AF8. */ uint32 gtmain_menu_text_fit(uint32 text, sint32 width)
 {
     sint32 remaining = (sint32)gtmain_string_length(text);
     uint32 tail = text + (uint32)remaining, changed = 0u, result;
@@ -90,15 +86,18 @@ uint32 gtmain_menu_text_fit(uint32 text, sint32 width)
 }
 
 /* GTMAIN.EXE 8003A304 */
-void gtmain_menu_stream_check(void)
+/* Original: GTMAIN.EXE:sub_8003A304. */ sint32 gtmain_menu_stream_check(void)
 {
-    if ((sint8)r_u8(0x800B52FAu) == 1) {
-        if (!gtmain_stream_stop_async()) gtmain_stream_pause_if_loaded();
+    sint32 result = 1;
+    if (r_s8(0x800B52FAu) == 1) {
+        result = gtmain_stream_stop_async();
+        if (!result) return gtmain_stream_pause_if_loaded();
     }
+    return result;
 }
 
 /* GTMAIN.EXE 80044678 */
-uint32 gtmain_menu_any_button_accept(void)
+/* Original: GTMAIN.EXE:sub_80044678. */ uint32 gtmain_menu_any_button_accept(void)
 {
     uint32 input = r_u32(0x800BDD08u);
     gtmain_menu_stream_check();

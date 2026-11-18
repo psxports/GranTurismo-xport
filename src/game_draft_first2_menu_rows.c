@@ -11,7 +11,7 @@ static uint32 row_native_character(uint32 ordering, sint32 x, sint32 y, const ch
     gt_draft_failure("Native menu character string adapter", 0x8003A8ACu);
 }
 static sint32 row_half(uint32 value) { return (sint32)value >> 1; }
-uint32 gtmain_menu_row_draw(uint32 ordering, sint32 x, sint32 y, uint32 guest_text, sint32 span, sint32 row, uint32 animated, sint32 number, uint32 alternate)
+/* Original: GTMAIN.EXE:sub_800321A0. */ uint32 gtmain_menu_row_draw(uint32 ordering, sint32 x, sint32 y, uint32 guest_text, sint32 span, sint32 row, uint32 animated, sint32 number, uint32 alternate)
 {
     char formatted[16], character[8];
     uint32 position = (uint32)x + (uint32)row * 24u, color, result, i;
@@ -44,7 +44,7 @@ uint32 gtmain_menu_row_draw(uint32 ordering, sint32 x, sint32 y, uint32 guest_te
     }
     return result;
 }
-uint32 gtmain_menu_row_transition(uint32 ordering, sint32 x, sint32 y, uint32 guest_text, sint32 span, sint32 row, sint32 palette)
+/* Original: GTMAIN.EXE:sub_800323A0. */ uint32 gtmain_menu_row_transition(uint32 ordering, sint32 x, sint32 y, uint32 guest_text, sint32 span, sint32 row, sint32 palette)
 {
     uint32 remaining, position, color;
     sint32 product, intensity;
@@ -57,7 +57,7 @@ uint32 gtmain_menu_row_transition(uint32 ordering, sint32 x, sint32 y, uint32 gu
     (void)gtmain_text_color(color);
     return gtmain_menu_text_draw(ordering, (sint32)position, y, guest_text, 0);
 }
-uint32 gtmain_menu_footer_draw(uint32 ordering, sint32 x, sint32 y, sint32 span)
+/* Original: GTMAIN.EXE:sub_80032520. */ uint32 gtmain_menu_footer_draw(uint32 ordering, sint32 x, sint32 y, sint32 span)
 {
     uint32 color, text;
     sint32 width;

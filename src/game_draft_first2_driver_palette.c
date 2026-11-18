@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8001E600 */
-uint32 gtmain_race_driver_selection(uint32 index, uint32 archive)
+/* Original: GTMAIN.EXE:sub_8001E600. */ uint32 gtmain_race_driver_selection(uint32 index, uint32 archive)
 {
     uint32 input = 0x800CB7FAu + index * 6u;
     uint32 destination = 0x800BB790u + index * 96u;
@@ -30,7 +30,7 @@ static void race_saved_selection(uint32 index, uint32 selection, uint32 archive)
 
 /* Independent record lookup and name-binding owners retain their TODOs */
 /* GTMAIN.EXE 8001E988 */
-uint32 gtmain_race_driver_configurations(uint32 archive, uint32 kind,
+/* Original: GTMAIN.EXE:sub_8001E988. */ uint32 gtmain_race_driver_configurations(uint32 archive, uint32 kind,
     uint32 mode, uint32 section)
 {
     uint32 count = 1u, i = 0u;
@@ -65,7 +65,7 @@ Build:
 }
 
 /* GTMAIN.EXE 80022310 */
-uint32 gtmain_car_palette_tint(uint8 *output, const uint8 *input,
+/* Original: GTMAIN.EXE:sub_80022310. */ uint32 gtmain_car_palette_tint(uint8 *output, const uint8 *input,
     uint32 tint, uint32 masks)
 {
     uint32 percent = r_u8(tint + 3u), first = r_u8(tint), second = r_u8(tint + 1u);

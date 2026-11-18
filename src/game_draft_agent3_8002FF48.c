@@ -1,6 +1,6 @@
 #include "game_first2_registry.h"
 
-sint32 gtmain_race_banner_draw(void)
+/* Original: GTMAIN.EXE:sub_8002FF48. */ sint32 gtmain_race_banner_draw(void)
 {
     sint32 result = 1;
     if (r_u32(0x800B630Cu) == 1u)

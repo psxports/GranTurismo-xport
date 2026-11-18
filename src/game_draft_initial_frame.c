@@ -149,7 +149,7 @@ static void gtmain_vblank_dispatch(uint32 callback)
     gtmain_frame_callback(callback);
 }
 
-void gtmain_frame_vblank(void)
+/* Original: GTMAIN.EXE:sub_8006F124. */ void gtmain_frame_vblank(void)
 {
     uint32 ticks = r_u32(0x800C009Cu), callback = r_u32(0x800C0090u);
     w_u32(0x800C009Cu, ticks + 1u);

@@ -48,7 +48,7 @@ static uint32 camera_texture_ids(const uint32 *ids, uint32 ids_count, uint32 pac
     uint32 index;
     for (index = 0u; (sint32)index < count; ++index) {
         uint32 slot = r_u16(packets + 22u), word, second_word, value, first, second;
-        uint8 *clut, *page;
+        uint32 clut, page;
         sint32 x, y;
         if (!ids || slot >= ids_count)
             boundary("Native camera texture ID array extent", 0x8001C170u);
@@ -57,16 +57,16 @@ static uint32 camera_texture_ids(const uint32 *ids, uint32 ids_count, uint32 pac
         x = gtmain_texture_x_native(ids[slot]);
         y = gtmain_texture_y_native(ids[slot]);
         word = r_u32(packets + page_offset);
-        value = xport_load_le16(clut);
+        value = r_u16(clut);
         word &= 0xFFE0FFFFu;
         w_u16(packets + 22u, (uint16)value);
-        value = xport_load_le16(page);
+        value = r_u16(page);
         first = r_u8(packets + third_uv);
         word |= (value & 31u) << 16u;
         second = r_u8(packets + 20u);
         second_word = word & 0xFE7FFFFFu;
         w_u32(packets + page_offset, word);
-        value = xport_load_le16(page);
+        value = r_u16(page);
         w_u8(packets + third_uv, (uint8)(first + (uint32)x));
         w_u8(packets + 20u, (uint8)(second + (uint32)x));
         second = r_u8(packets + 21u);
@@ -89,20 +89,20 @@ static uint32 camera_texture_ids(const uint32 *ids, uint32 ids_count, uint32 pac
 }
 
 /* GTMAIN.EXE 8001C170 */
-uint32 gtmain_camera_flat_texture_ids(const uint32 *ids, uint32 ids_count,
+/* Original: GTMAIN.EXE:sub_8001C170. */ uint32 gtmain_camera_flat_texture_ids(const uint32 *ids, uint32 ids_count,
     uint32 packets, sint32 count, uint32 vertices)
 {
     return camera_texture_ids(ids, ids_count, packets, count, vertices, 28u, 36u, 44u);
 }
 
 /* GTMAIN.EXE 8001C304 */
-uint32 gtmain_camera_gouraud_texture_ids(const uint32 *ids, uint32 ids_count,
+/* Original: GTMAIN.EXE:sub_8001C304. */ uint32 gtmain_camera_gouraud_texture_ids(const uint32 *ids, uint32 ids_count,
     uint32 packets, sint32 count, uint32 vertices)
 {
     return camera_texture_ids(ids, ids_count, packets, count, vertices, 32u, 44u, 56u);
 }
 
-uint32 gtmain_camera_resource_relocate(uint32 resource)
+/* Original: GTMAIN.EXE:sub_8001C498. */ uint32 gtmain_camera_resource_relocate(uint32 resource)
 {
     uint32 vertices = r_u32(resource + 36u);
     uint32 first_count = r_u16(resource + 40u);
@@ -141,12 +141,7 @@ uint32 gtmain_camera_resource_relocate(uint32 resource)
     return 0;
 }
 
-static void camera_workspace_native(uint8 *workspace, uint32 capacity)
-{
-    gtmain_texture_workspace_publish(workspace, capacity);
-}
-
-uint32 gtmain_camera_resource_load(uint32 car_index)
+/* Original: GTMAIN.EXE:sub_8001C688. */ uint32 gtmain_camera_resource_load(uint32 car_index)
 {
     uint32 previous = r_u32(0x8008F224u);
     if (previous == car_index) return previous;
@@ -166,18 +161,16 @@ uint32 gtmain_camera_resource_load(uint32 car_index)
     xport_store_le32(descriptor + 28u, a); xport_store_le32(descriptor + 32u, b); xport_store_le32(descriptor + 36u, c);
     uint32 image = gtmain_archive_section_load(path, descriptor, sector, 1, 0x801BB70Cu, 0);
     uint32 capacity = (gtmain_texture_workspace_size(image) + 14u) & ~7u;
-    uint8 *workspace = (uint8 *)malloc(capacity);
-    if (!workspace && capacity) boundary("GTMAIN camera texture workspace allocation", 0x8001C688u);
-    camera_workspace_native(workspace, capacity);
+    GT_LOCAL_STACK_FRAME workspace = gt_local_stack_push(capacity, 0x8001C688u);
+    gtmain_texture_workspace_publish(workspace.address);
     gtmain_texture_records_load(image);
     image = gtmain_archive_section_load(path, descriptor, sector, 0, 0x800CFFDCu, 0);
     uint32 result = gtmain_camera_resource_relocate(image);
-    gtmain_texture_workspace_release(workspace);
-    free(workspace);
+    gt_local_stack_pop(workspace);
     return result;
 }
 
-uint32 gtmain_camera_interval_update(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001CB64. */ uint32 gtmain_camera_interval_update(uint32 camera)
 {
     uint32 descriptor = r_u32(camera + 184u);
     uint32 buttons = r_u16(descriptor + 8u);
@@ -212,7 +205,7 @@ uint32 gtmain_camera_interval_update(uint32 camera)
     return 3u;
 }
 
-uint32 gtmain_camera_spline_position(uint32 spline, uint8 *position12)
+/* Original: GTMAIN.EXE:sub_8001CE98. */ uint32 gtmain_camera_spline_position(uint32 spline, uint8 *position12)
 {
     uint32 count = r_u16(spline + 2u), total = 0;
     for (uint32 i = 0; i < count; ++i) total += r_u32(spline + i * 56u + 4u);
@@ -256,7 +249,7 @@ static uint32 *roster_stack_list(uint32 address, uint32 count)
     return (uint32 *)psx_addr(address, (size_t)bytes);
 }
 
-void gtmain_roster_generate(uint32 guest_list, uint32 count, uint32 mode, uint32 spec)
+/* Original: GTMAIN.EXE:sub_8001F5C8. */ void gtmain_roster_generate(uint32 guest_list, uint32 count, uint32 mode, uint32 spec)
 {
     gtmain_race_config_reset();
     uint32 workspace = gt_local_stack_workspace(0x28C0u, 56u, 0x8001F5C8u);
@@ -272,7 +265,7 @@ void gtmain_roster_generate(uint32 guest_list, uint32 count, uint32 mode, uint32
     gtmain_roster_commit(selected, variants, (sint32)count, initial);
 }
 
-uint32 gtmain_car_start_delays(uint32 base_time)
+/* Original: GTMAIN.EXE:sub_8001F698. */ uint32 gtmain_car_start_delays(uint32 base_time)
 {
     uint32 seed = r_u32(0x800B6640u), result = random_native(&seed);
     uint32 span = result % 500u, eligible = 0, index = 0;
@@ -301,7 +294,7 @@ uint32 gtmain_car_start_delays(uint32 base_time)
 static void race_secondary_settings_apply(uint32 value)
 {
     /* TODO Bind the unselected original secondary settings service */
-    gt_draft_unresolved_call(0x80051F04u, value, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_race_settings_triplet_set(value);
 }
 
 static void roster_single_player_complete(void)
@@ -311,7 +304,7 @@ static void roster_single_player_complete(void)
 }
 
 /* GTMAIN.EXE 8001F930 */
-uint32 gtmain_race_settings_snapshot(void)
+/* Original: GTMAIN.EXE:sub_8001F930. */ uint32 gtmain_race_settings_snapshot(void)
 {
     gtmain_memory_copy(0x80093C08u, 0x800BC160u, 69);
     gtmain_memory_copy(0x80093C50u, 0x8008F374u, 32);
@@ -331,7 +324,7 @@ uint32 gtmain_race_settings_snapshot(void)
 }
 
 /* GTMAIN.EXE 8001FBAC */
-uint32 gtmain_roster_initialize(void)
+/* Original: GTMAIN.EXE:sub_8001FBAC. */ uint32 gtmain_roster_initialize(void)
 {
     uint32 mode;
     sub_8007BD58(0x800B6670u, 0u, 456u);
@@ -348,7 +341,7 @@ uint32 gtmain_roster_initialize(void)
     return gtmain_car_config_bind(path, 0x8008B900u, 0x8008B90Cu, 6, 14);
 }
 
-sint32 gtmain_car_grid_place(uint32 car, uint32 grid_index, uint32 course_segment)
+/* Original: GTMAIN.EXE:sub_8001FD1C. */ sint32 gtmain_car_grid_place(uint32 car, uint32 grid_index, uint32 course_segment)
 {
     uint32 point = gtmain_course_grid_position(grid_index);
     uint32 x = r_u32(point), y = r_u32(point + 4u), z = r_u32(point + 8u);
@@ -368,7 +361,7 @@ sint32 gtmain_car_grid_place(uint32 car, uint32 grid_index, uint32 course_segmen
     return segment;
 }
 
-uint32 gtmain_race_cars_initialize(void)
+/* Original: GTMAIN.EXE:sub_8001FE20. */ uint32 gtmain_race_cars_initialize(void)
 {
     uint32 race_mode = r_u32(0x800B630Cu);
     gtmain_race_split_header_clear();
@@ -474,7 +467,7 @@ uint32 gtmain_race_cars_initialize(void)
     return gtmain_race_rank_list_sort();
 }
 
-uint32 gtmain_camera_projection_set(uint32 camera, sint32 distance)
+/* Original: GTMAIN.EXE:sub_8001DF30. */ uint32 gtmain_camera_projection_set(uint32 camera, sint32 distance)
 {
     uint32 result;
     w_u16(camera + 12u, (uint32)distance);
@@ -486,7 +479,7 @@ uint32 gtmain_camera_projection_set(uint32 camera, sint32 distance)
     return result;
 }
 
-uint32 gtmain_camera_mode_update(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001DEB4. */ uint32 gtmain_camera_mode_update(uint32 camera)
 {
     sint32 mode = r_s8(camera + 253u);
     if (mode == 0) return gtmain_camera_follow_controls(camera);

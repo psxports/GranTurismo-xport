@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* Unverified translation from complete pseudocode and original MIPS */
-uint32 gtmain_camera_path_phase_update(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001D360. */ uint32 gtmain_camera_path_phase_update(uint32 camera)
 {
     uint32 config = r_u32(0x800B6400u);
     uint32 car = r_u32(camera + 180u);

@@ -13,7 +13,7 @@ static uint32 pair_low(uint32 a, uint32 b, sint32 divisor)
 }
 
 /* GTMAIN.EXE 80062D18 */
-void gtmain_race_pair_response(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80062D18. */ void gtmain_race_pair_response(uint32 cars, sint32 count)
 {
     sint32 outer, inner;
     uint32 normal = gt_local_stack_workspace(0x2E00u, 6u, 0x80062D18u);

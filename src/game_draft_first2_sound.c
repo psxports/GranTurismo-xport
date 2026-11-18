@@ -2,13 +2,13 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8007EBA8 */
-void gtmain_sound_tick_limit(sint16 limit)
+/* Original: GTMAIN.EXE:sub_8007EBA8. */ void gtmain_sound_tick_limit(sint16 limit)
 {
     w_u16(0x800B59A0u, (uint16)limit);
 }
 
 /* GTMAIN.EXE 8007EDF8 */
-uint32 gtmain_spu_master_volume(sint16 left, sint16 right)
+/* Original: GTMAIN.EXE:sub_8007EDF8. */ uint32 gtmain_spu_master_volume(sint16 left, sint16 right)
 {
     w_u16(0x1F801D84u, (uint16)left);
     w_u16(0x1F801D86u, (uint16)right);
@@ -16,7 +16,7 @@ uint32 gtmain_spu_master_volume(sint16 left, sint16 right)
 }
 
 /* GTMAIN.EXE 8007EEE8 */
-uint32 gtmain_sound_voice_pitch(uint32 owner, sint16 pitch)
+/* Original: GTMAIN.EXE:sub_8007EEE8. */ uint32 gtmain_sound_voice_pitch(uint32 owner, sint16 pitch)
 {
     sint32 index = (sint8)r_u8(owner);
     uint32 voice;
@@ -37,7 +37,7 @@ uint32 gtmain_sound_voice_pitch(uint32 owner, sint16 pitch)
 }
 
 /* GTMAIN.EXE 8007EF48 */
-uint32 gtmain_sound_voice_volume(uint32 owner, uint32 volume_address)
+/* Original: GTMAIN.EXE:sub_8007EF48. */ uint32 gtmain_sound_voice_volume(uint32 owner, uint32 volume_address)
 {
     sint32 index = (sint8)r_u8(owner);
     uint32 voice, bound_owner, volume;
@@ -61,7 +61,7 @@ uint32 gtmain_sound_voice_volume(uint32 owner, uint32 volume_address)
 }
 
 /* GTMAIN.EXE 8007F018 */
-uint32 gtmain_sound_voice_release(uint32 owner)
+/* Original: GTMAIN.EXE:sub_8007F018. */ uint32 gtmain_sound_voice_release(uint32 owner)
 {
     sint32 index = (sint8)r_u8(owner);
     uint32 voice;
@@ -76,7 +76,7 @@ uint32 gtmain_sound_voice_release(uint32 owner)
 }
 
 /* GTMAIN.EXE 8007F068 */
-uint32 gtmain_sound_voice_detach(uint32 owner)
+/* Original: GTMAIN.EXE:sub_8007F068. */ uint32 gtmain_sound_voice_detach(uint32 owner)
 {
     sint32 index = (sint8)r_u8(owner);
     uint32 voice;
@@ -94,7 +94,7 @@ uint32 gtmain_sound_voice_detach(uint32 owner)
 }
 
 /* GTMAIN.EXE 8007F0C8 */
-uint32 gtmain_sound_voice_reverb(uint32 owner, uint8 reverb)
+/* Original: GTMAIN.EXE:sub_8007F0C8. */ uint32 gtmain_sound_voice_reverb(uint32 owner, uint8 reverb)
 {
     sint32 index = (sint8)r_u8(owner);
     uint32 voice;
@@ -112,7 +112,7 @@ uint32 gtmain_sound_voice_reverb(uint32 owner, uint8 reverb)
 }
 
 /* GTMAIN.EXE 8007F268 */
-uint32 gtmain_sound_voice_priority(uint32 owner, uint8 priority)
+/* Original: GTMAIN.EXE:sub_8007F268. */ uint32 gtmain_sound_voice_priority(uint32 owner, uint8 priority)
 {
     sint32 index = (sint8)r_u8(owner);
     uint32 voice;
@@ -127,7 +127,7 @@ uint32 gtmain_sound_voice_priority(uint32 owner, uint8 priority)
 }
 
 /* GTMAIN.EXE 8007EE18 */
-uint32 gtmain_sound_pan(uint32 output, uint32 volume, uint32 pan)
+/* Original: GTMAIN.EXE:sub_8007EE18. */ uint32 gtmain_sound_pan(uint32 output, uint32 volume, uint32 pan)
 {
     uint32 offset = pan * 2u;
     uint32 product = r_u16(0x8008EA86u - offset) * volume;
@@ -138,7 +138,7 @@ uint32 gtmain_sound_pan(uint32 output, uint32 volume, uint32 pan)
 }
 
 /* GTMAIN.EXE 8007EE68 */
-uint32 gtmain_sound_pitch_ratio(uint32 pitch, uint32 reference)
+/* Original: GTMAIN.EXE:sub_8007EE68. */ uint32 gtmain_sound_pitch_ratio(uint32 pitch, uint32 reference)
 {
     sint32 delta = (sint32)(pitch - reference);
     sint32 exponent = -2;
@@ -152,7 +152,7 @@ uint32 gtmain_sound_pitch_ratio(uint32 pitch, uint32 reference)
 }
 
 /* GTMAIN.EXE 8007F178 */
-uint32 gtmain_sound_instrument_relocate(uint32 image, uint32 spu_base)
+/* Original: GTMAIN.EXE:sub_8007F178. */ uint32 gtmain_sound_instrument_relocate(uint32 image, uint32 spu_base)
 {
     uint32 base, table, i, old_spu;
     if (r_u32(image) != 0x54534E49u) return 0;
@@ -178,7 +178,7 @@ uint32 gtmain_sound_instrument_relocate(uint32 image, uint32 spu_base)
 }
 
 /* GTMAIN.EXE 8007DD4C */
-uint32 gtmain_sound_engine_relocate(uint32 image, uint32 spu_base)
+/* Original: GTMAIN.EXE:sub_8007DD4C. */ uint32 gtmain_sound_engine_relocate(uint32 image, uint32 spu_base)
 {
     uint32 base, i, old_spu;
     if (r_u32(image) != 0x4E474E45u) return 0;
@@ -204,7 +204,7 @@ uint32 gtmain_sound_engine_relocate(uint32 image, uint32 spu_base)
 }
 
 /* GTMAIN.EXE 8007DC0C */
-uint32 gtmain_sound_engine_channel_init(uint32 channel, uint32 engine, uint32 entry, uint8 priority)
+/* Original: GTMAIN.EXE:sub_8007DC0C. */ uint32 gtmain_sound_engine_channel_init(uint32 channel, uint32 engine, uint32 entry, uint8 priority)
 {
     uint32 record = engine + entry * 8u;
     uint32 data, i;
@@ -224,7 +224,7 @@ uint32 gtmain_sound_engine_channel_init(uint32 channel, uint32 engine, uint32 en
 }
 
 /* GTMAIN.EXE 8007F628 */
-sint32 gtmain_sound_voice_allocate(uint32 priority)
+/* Original: GTMAIN.EXE:sub_8007F628. */ sint32 gtmain_sound_voice_allocate(uint32 priority)
 {
     sint32 index = (sint8)r_u8(0x800B55CCu), selected_index = -1;
     uint32 voice = 0x800B55D4u + (uint32)index * 40u, selected = 0, pass, n;
@@ -266,7 +266,7 @@ sint32 gtmain_sound_voice_allocate(uint32 priority)
 }
 
 /* GTMAIN.EXE 8007F788 */
-void gtmain_sound_voice_initialize(sint32 index, uint32 instrument)
+/* Original: GTMAIN.EXE:sub_8007F788. */ void gtmain_sound_voice_initialize(sint32 index, uint32 instrument)
 {
     uint32 voice = 0x800B55D4u + (uint32)index * 40u;
     uint32 duration, volume, pitch, sample;
@@ -284,7 +284,7 @@ void gtmain_sound_voice_initialize(sint32 index, uint32 instrument)
 }
 
 /* GTMAIN.EXE 8007EFA8 */
-uint32 gtmain_sound_voice_start(uint32 owner, uint32 instrument)
+/* Original: GTMAIN.EXE:sub_8007EFA8. */ uint32 gtmain_sound_voice_start(uint32 owner, uint32 instrument)
 {
     sint32 index = gtmain_sound_voice_allocate(r_u8(instrument + 14u));
     uint32 result;
@@ -299,7 +299,7 @@ uint32 gtmain_sound_voice_start(uint32 owner, uint32 instrument)
 
 
 /* GTMAIN.EXE 8007DC74 */
-void gtmain_sound_engine_channel_stop(uint32 channel)
+/* Original: GTMAIN.EXE:sub_8007DC74. */ void gtmain_sound_engine_channel_stop(uint32 channel)
 {
     uint32 offset;
     for (offset = 0; offset < 24u; offset += 12u) {
@@ -312,7 +312,7 @@ void gtmain_sound_engine_channel_stop(uint32 channel)
 }
 
 /* GTMAIN.EXE 8007DCE0 */
-void gtmain_sound_engine_channel_priority(uint32 channel, uint8 priority)
+/* Original: GTMAIN.EXE:sub_8007DCE0. */ void gtmain_sound_engine_channel_priority(uint32 channel, uint8 priority)
 {
     uint32 offset;
     w_u8(channel + 5u, priority);
@@ -323,7 +323,7 @@ void gtmain_sound_engine_channel_priority(uint32 channel, uint8 priority)
 }
 
 /* GTMAIN.EXE 8007F594 */
-uint32 gtmain_sound_voices_reset(void)
+/* Original: GTMAIN.EXE:sub_8007F594. */ uint32 gtmain_sound_voices_reset(void)
 {
     uint32 enabled = r_u32(0x800B1BE4u), voice, result;
     w_u32(0x800B1BE4u, 0);
@@ -340,7 +340,7 @@ uint32 gtmain_sound_voices_reset(void)
 }
 
 /* GTMAIN.EXE 8007ED98 */
-void gtmain_sound_shutdown(void)
+/* Original: GTMAIN.EXE:sub_8007ED98. */ void gtmain_sound_shutdown(void)
 {
     if (!r_u32(0x800B1BE4u)) return;
     w_u32(0x800B1BE4u, 0);
@@ -350,16 +350,25 @@ void gtmain_sound_shutdown(void)
         gtmain_sound_reverb_enable(0u);
     }
     if (r_u32(0x800B2414u) == 1u) {
+        uint32 handle;
         w_u32(0x800B2414u, 0);
+        EnterCriticalSectionPSX();
         w_u32(0x800B237Cu, 0); w_u32(0x800B2380u, 0);
         DMACallback(4, NULL);
-        /* Original SDK shutdown removes callbacks and retains sample RAM */
+        handle = r_u32(0x800B23ACu);
+        if (handle & 0xFFFF0000u) DisableEventPSX(handle);
+        else DisableEvent((sint32)handle);
+        handle = r_u32(0x800B23ACu);
+        if (handle & 0xFFFF0000u) CloseEventPSX(handle);
+        else CloseEvent((sint32)handle);
+        ExitCriticalSection();
+        /* Original SDK shutdown retains sample RAM */
     }
 }
 
 
 /* GTMAIN.EXE 8007F128 */
-uint32 gtmain_sound_sample_upload(uint32 spu_address, uint32 source, uint32 size, uint32 relocation_result)
+/* Original: GTMAIN.EXE:sub_8007F128. */ uint32 gtmain_sound_sample_upload(uint32 spu_address, uint32 source, uint32 size, uint32 relocation_result)
 {
     uint32 count;
     sint32 completed;
@@ -373,6 +382,7 @@ uint32 gtmain_sound_sample_upload(uint32 spu_address, uint32 source, uint32 size
     completed = SpuIsTransferCompleted(1);
     if (!completed)
         gt_draft_failure("Native SPU sample completion", 0x800858F8u);
+    if (r_u32(0x800B2378u) != 1u) w_u32(0x800B2378u, 1u);
     return (uint32)completed;
 }
 
@@ -400,7 +410,7 @@ static uint32 gtmain_sound_voice_start_native(uint32 owner, uint32 volume,
 }
 
 /* GTMAIN.EXE 8007D708 */
-uint32 gtmain_sound_engine_pitch(uint32 channel, uint32 slot, uint32 speed, uint32 smooth)
+/* Original: GTMAIN.EXE:sub_8007D708. */ uint32 gtmain_sound_engine_pitch(uint32 channel, uint32 slot, uint32 speed, uint32 smooth)
 {
     uint32 subvoice = channel + 12u * slot;
     uint32 record = r_u32(channel) + ((uint32)(sint32)(sint8)r_u8(subvoice + 17u) << 4);
@@ -429,7 +439,7 @@ static sint32 gtmain_sound_engine_divide(sint32 numerator, sint32 denominator)
 }
 
 /* GTMAIN.EXE 8007D7BC */
-uint32 gtmain_sound_engine_volume(uint32 channel, uint32 slot, sint32 speed, uint32 smooth)
+/* Original: GTMAIN.EXE:sub_8007D7BC. */ uint32 gtmain_sound_engine_volume(uint32 channel, uint32 slot, sint32 speed, uint32 smooth)
 {
     uint32 subvoice = channel + 12u * slot;
     uint32 record = r_u32(channel) + ((uint32)(sint32)(sint8)r_u8(subvoice + 17u) << 4);
@@ -469,7 +479,7 @@ uint32 gtmain_sound_engine_volume(uint32 channel, uint32 slot, sint32 speed, uin
 }
 
 /* GTMAIN.EXE 8007D998 */
-uint32 gtmain_sound_engine_channel_update(uint32 channel)
+/* Original: GTMAIN.EXE:sub_8007D998. */ uint32 gtmain_sound_engine_channel_update(uint32 channel)
 {
     uint32 speed = r_u16(channel + 8u), previous = 0, result = 0;
     uint32 record = r_u32(channel), i;

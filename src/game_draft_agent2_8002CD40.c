@@ -1,7 +1,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8002CD40 */
-uint32 gt_draft_8002CD40(void)
+/* Original: GTMAIN.EXE:sub_8002CD40. */ uint32 gt_draft_8002CD40(void)
 {
     uint8 count;
     if (r_u32(0x800B630Cu) == 1u) {

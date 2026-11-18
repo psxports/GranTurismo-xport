@@ -7,7 +7,7 @@ static sint32 response_low(sint32 first, sint32 second) { return (sint32)((uint3
 static sint32 response_wide(sint32 first, sint32 second) { return (sint32)(uint32)(((sint64)first * second) / 4096); }
 
 /* GTMAIN.EXE 80062B84 */
-void gtmain_race_pair_clip_publish(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80062B84. */ void gtmain_race_pair_clip_publish(uint32 cars, sint32 count)
 {
     sint32 index, other;
     for (index = 0; index < count; ++index) {
@@ -30,7 +30,7 @@ void gtmain_race_pair_clip_publish(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 8005FDE8 */
-sint32 gtmain_race_suspension_response(uint32 car, uint32 contact, sint32 height, uint32 parameters, uint32 *inactive_count)
+/* Original: GTMAIN.EXE:sub_8005FDE8. */ sint32 gtmain_race_suspension_response(uint32 car, uint32 contact, sint32 height, uint32 parameters, uint32 *inactive_count)
 {
     sint32 limit = r_s16(parameters + 2u), compression, velocity, force, damping, value, sum;
     if (limit < height) {

@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* Unverified translation from complete pseudocode and original MIPS */
-uint32 gtmain_vector_path_sample(uint32 path, uint32 output)
+/* Original: GTMAIN.EXE:sub_8001CD38. */ uint32 gtmain_vector_path_sample(uint32 path, uint32 output)
 {
     uint32 count = r_u16(path + 2u);
     uint32 sum = 0u, index, segment = 0u, remaining, length;

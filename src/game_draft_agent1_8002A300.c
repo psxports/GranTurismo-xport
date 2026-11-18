@@ -1,7 +1,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8002A300 */
-void gt_draft_8002A300(void)
+/* Original: GTMAIN.EXE:sub_8002A300. */ void gt_draft_8002A300(void)
 {
     sint32 mode = r_s16(0x800B63D6u);
     if (mode == 2) (void)gt_draft_8002A0D4();

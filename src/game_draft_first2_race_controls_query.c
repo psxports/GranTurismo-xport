@@ -9,7 +9,7 @@ static void cq_angle_wrap(uint32 car)
     if (r_s16(car + 1790u) >= 4096) w_u16(car + 1790u, (uint16)(r_u16(car + 1790u) - 4096u));
     if (r_s16(car + 1790u) < -4095) w_u16(car + 1790u, (uint16)(r_u16(car + 1790u) + 4096u));
 }
-uint32 gtmain_race_controls_query(uint32 car, const uint8 *controls, uint32 *output, sint32 mode)
+/* Original: GTMAIN.EXE:sub_80066D9C. */ uint32 gtmain_race_controls_query(uint32 car, const uint8 *controls, uint32 *output, sint32 mode)
 {
     uint32 fraction, flags = 0, contact = 0, i;
     w_u32(car + 60u, r_u32(car + 60u) + xport_load_le32(controls));
@@ -43,7 +43,7 @@ uint32 gtmain_race_controls_query(uint32 car, const uint8 *controls, uint32 *out
     if (mode) gtmain_race_vehicle_bounds_update(car);
     return contact;
 }
-uint32 gtmain_race_controls_commit(uint32 car, uint8 *controls, uint32 output, sint32 mode)
+/* Original: GTMAIN.EXE:sub_80067094. */ uint32 gtmain_race_controls_commit(uint32 car, uint8 *controls, uint32 output, sint32 mode)
 {
     uint32 first = r_u32(car + 1712u);
     sint32 sine = r_s16(car + 1972u);

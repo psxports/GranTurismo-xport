@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8007A694 */
-void gtmain_frame_events_disable(void)
+/* Original: GTMAIN.EXE:sub_8007A694. */ void gtmain_frame_events_disable(void)
 {
     uint32 index;
     EnterCriticalSectionPSX();
@@ -11,7 +11,7 @@ void gtmain_frame_events_disable(void)
 }
 
 /* GTMAIN.EXE 8007B6E4 */
-void gtmain_frame_callback_remove(uint32 node)
+/* Original: GTMAIN.EXE:sub_8007B6E4. */ void gtmain_frame_callback_remove(uint32 node)
 {
     uint32 previous, next, link;
     EnterCriticalSectionPSX();
@@ -24,7 +24,7 @@ void gtmain_frame_callback_remove(uint32 node)
 }
 
 /* GTMAIN.EXE 8007B734 */
-sint32 gtmain_frame_event_open(uint32 event_class, uint32 specification, uint32 mode, uint32 callback_token)
+/* Original: GTMAIN.EXE:sub_8007B734. */ sint32 gtmain_frame_event_open(uint32 event_class, uint32 specification, uint32 mode, uint32 callback_token)
 {
     sint32 result;
     EnterCriticalSectionPSX();
@@ -35,7 +35,7 @@ sint32 gtmain_frame_event_open(uint32 event_class, uint32 specification, uint32 
 }
 
 /* GTMAIN.EXE 8007A7B8 */
-sint32 gtmain_frame_shutdown(void)
+/* Original: GTMAIN.EXE:sub_8007A7B8. */ sint32 gtmain_frame_shutdown(void)
 {
     if (!r_u32(0x800B1A24u)) return -1;
     w_u32(0x800B1A24u, 0);

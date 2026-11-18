@@ -55,13 +55,13 @@ static sint32 front_log(uint32 format, uint32 a0, uint32 a1)
     if (format == 0x8008F058u) return printf("PutDrawEnv(%08x)...\n", (unsigned)a0);
     return (sint32)front_missing(token, format, a0);
 }
-uint32 gtmain_gpu_bytes_fill(uint32 destination, uint8 value, uint32 count)
+/* Original: GTMAIN.EXE:sub_80089698. */ uint32 gtmain_gpu_bytes_fill(uint32 destination, uint8 value, uint32 count)
 {
     uint32 remaining = count - 1u;
     if (count) do { w_u8(destination, value); --remaining; ++destination; } while (remaining != 0xFFFFFFFFu);
     return remaining;
 }
-uint32 gtmain_gpu_control_write(uint32 command)
+/* Original: GTMAIN.EXE:sub_80088790. */ uint32 gtmain_gpu_control_write(uint32 command)
 {
     uint32 opcode;
     front_write(r_u32(0x800B258Cu), command);
@@ -69,7 +69,7 @@ uint32 gtmain_gpu_control_write(uint32 command)
     w_u8(0x800B5FC4u + opcode, (uint8)command);
     return opcode;
 }
-uint32 gtmain_gpu_dma_submit(uint32 packets)
+/* Original: GTMAIN.EXE:sub_80088808. */ uint32 gtmain_gpu_dma_submit(uint32 packets)
 {
     uint32 control;
     front_write(r_u32(0x800B258Cu), 0x04000002u);
@@ -78,7 +78,7 @@ uint32 gtmain_gpu_dma_submit(uint32 packets)
     control = r_u32(0x800B2598u); front_write(control, 0x01000401u);
     return control;
 }
-sint32 gtmain_gpu_ordering_dma_clear(uint32 table, uint32 count)
+/* Original: GTMAIN.EXE:sub_80087FC4. */ sint32 gtmain_gpu_ordering_dma_clear(uint32 table, uint32 count)
 {
     uint32 address = r_u32(0x800B25A8u);
     front_write(address, front_read(address) | 0x08000000u);
@@ -91,7 +91,7 @@ sint32 gtmain_gpu_ordering_dma_clear(uint32 table, uint32 count)
         if (gtmain_gpu_timeout_poll()) return -1;
     return (sint32)count;
 }
-sint32 gtmain_gpu_device_reset(uint32 mode)
+/* Original: GTMAIN.EXE:sub_80088DB4. */ sint32 gtmain_gpu_device_reset(uint32 mode)
 {
     uint32 saved = gtmain_interrupt_mask_exchange(0), zero, selected = mode & 7u;
     w_u32(0x800B25B0u, 0); zero = r_u32(0x800B25B0u);
@@ -121,7 +121,7 @@ sint32 gtmain_gpu_device_reset(uint32 mode)
     if (!selected) return front_detect_native(mode);
     return 0;
 }
-sint32 gtmain_gpu_queue_sync(sint32 mode)
+/* Original: GTMAIN.EXE:sub_80088F04. */ sint32 gtmain_gpu_queue_sync(sint32 mode)
 {
     uint32 pending, head, tail;
     if (mode) {
@@ -148,7 +148,7 @@ sint32 gtmain_gpu_queue_sync(sint32 mode)
         if (gtmain_gpu_timeout_poll()) return -1;
     }
 }
-uint32 gtmain_gpu_display_mask(uint32 enabled)
+/* Original: GTMAIN.EXE:sub_80086A5C. */ uint32 gtmain_gpu_display_mask(uint32 enabled)
 {
     uint32 table;
     if (r_u8(0x800B24B6u) >= 2u) (void)front_log(0x8008EF8Cu, enabled, 0);
@@ -156,7 +156,7 @@ uint32 gtmain_gpu_display_mask(uint32 enabled)
     table = r_u32(0x800B24ACu);
     return front_control(r_u32(table + 16u), enabled ? 0x03000000u : 0x03000001u);
 }
-sint32 gtmain_gpu_draw_sync(sint32 mode)
+/* Original: GTMAIN.EXE:sub_80086AF4. */ sint32 gtmain_gpu_draw_sync(sint32 mode)
 {
     uint32 table;
     if (r_u8(0x800B24B6u) >= 2u) (void)front_log(0x8008EFA0u, (uint32)mode, 0);
@@ -175,7 +175,7 @@ static sint32 front_rectangle_values(uint32 token, uint32 format, sint32 x, sint
     if (token != 0x8008B7D8u) gt_draft_failure("Native GPU rectangle values callback", token);
     return printf("(%d,%d)-(%d,%d)\n", (int)x, (int)y, (int)width, (int)height);
 }
-sint32 gtmain_gpu_rectangle_report(uint32 label, uint32 rectangle)
+/* Original: GTMAIN.EXE:sub_80086B5C. */ sint32 gtmain_gpu_rectangle_report(uint32 label, uint32 rectangle)
 {
     uint32 debug = r_u8(0x800B24B6u), token;
     sint32 x, y, width, height, limit;
@@ -199,28 +199,28 @@ report:
     token = r_u32(0x800B24B0u);
     return front_rectangle_values(token, 0x8008EFC0u, x, y, width, height);
 }
-sint32 gtmain_gpu_image_clear(uint32 rectangle, uint8 red, uint8 green, uint8 blue)
+/* Original: GTMAIN.EXE:sub_80086C78. */ sint32 gtmain_gpu_image_clear(uint32 rectangle, uint8 red, uint8 green, uint8 blue)
 {
     uint32 table, callback, dispatcher;
     (void)gtmain_gpu_rectangle_report(0x8008EFD8u, rectangle);
     table = r_u32(0x800B24ACu); callback = r_u32(table + 12u); dispatcher = r_u32(table + 8u);
     return front_enqueue(dispatcher, callback, rectangle, 8, ((uint32)blue << 16) | ((uint32)green << 8) | red);
 }
-sint32 gtmain_gpu_image_load(uint32 rectangle, uint32 source)
+/* Original: GTMAIN.EXE:sub_80086DA0. */ sint32 gtmain_gpu_image_load(uint32 rectangle, uint32 source)
 {
     uint32 table, callback, dispatcher;
     (void)gtmain_gpu_rectangle_report(0x8008EFF0u, rectangle);
     table = r_u32(0x800B24ACu); callback = r_u32(table + 32u); dispatcher = r_u32(table + 8u);
     return front_enqueue(dispatcher, callback, rectangle, 8, source);
 }
-sint32 gtmain_gpu_image_store(uint32 rectangle, uint32 destination)
+/* Original: GTMAIN.EXE:sub_80086E00. */ sint32 gtmain_gpu_image_store(uint32 rectangle, uint32 destination)
 {
     uint32 table, callback, dispatcher;
     (void)gtmain_gpu_rectangle_report(0x8008EFFCu, rectangle);
     table = r_u32(0x800B24ACu); callback = r_u32(table + 28u); dispatcher = r_u32(table + 8u);
     return front_enqueue(dispatcher, callback, rectangle, 8, destination);
 }
-uint32 gtmain_gpu_ordering_clear(uint32 table, uint32 count)
+/* Original: GTMAIN.EXE:sub_80086FE0. */ uint32 gtmain_gpu_ordering_clear(uint32 table, uint32 count)
 {
     uint32 device, callback;
     if (r_u8(0x800B24B6u) >= 2u) (void)front_log(0x8008F02Cu, table, count);
@@ -231,14 +231,14 @@ uint32 gtmain_gpu_ordering_clear(uint32 table, uint32 count)
     w_u32(table, 0x800B2574u & 0xFFFFFFu);
     return table;
 }
-sint32 gtmain_gpu_ordering_draw(uint32 table)
+/* Original: GTMAIN.EXE:sub_800870E8. */ sint32 gtmain_gpu_ordering_draw(uint32 table)
 {
     uint32 device, callback, dispatcher;
     if (r_u8(0x800B24B6u) >= 2u) (void)front_log(0x8008F044u, table, 0);
     device = r_u32(0x800B24ACu); callback = r_u32(device + 24u); dispatcher = r_u32(device + 8u);
     return front_enqueue(dispatcher, callback, table, 0, 0);
 }
-uint32 gtmain_gpu_draw_environment(uint32 environment)
+/* Original: GTMAIN.EXE:sub_80087158. */ uint32 gtmain_gpu_draw_environment(uint32 environment)
 {
     uint32 packet = environment + 28u, value, table, callback, dispatcher;
     if (r_u8(0x800B24B6u) >= 2u) (void)front_log(0x8008F058u, environment, 0);

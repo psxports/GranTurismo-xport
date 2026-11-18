@@ -2,18 +2,12 @@
 #include "game_draft_registry.h"
 #include <stdio.h>
 
-static void settings_initialize(void)
-{
-    /* TODO Bind unselected settings initializer 80043970 */
-    (void)gt_draft_unresolved_call(0x80043970u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-}
-
 /* GTMAIN.EXE 80044D50 */
-uint32 gtmain_menu_settings_initialize(void)
+/* Original: GTMAIN.EXE:sub_80044D50. */ uint32 gtmain_menu_settings_initialize(void)
 {
     sint32 mode;
     w_u8(0x800B5376u, 0u);
-    settings_initialize();
+    gtmain_parts_settings_bind();
     gtmain_menu_selector_reset(0x80092C28u);
     mode = (sint8)r_u8(0x800BEA24u);
     w_u32(0x80092C24u, 0x800BD098u);
@@ -24,6 +18,6 @@ uint32 gtmain_menu_settings_initialize(void)
         (void)gtmain_menu_asset_activate(16u);
         (void)gtmain_menu_settings_masks_update();
     }
-    printf((const char *)psx_addr(0x8008D960u, 1u));
+    printf((const char *)psx_addr(0x8008D960, 15));
     return 0u;
 }

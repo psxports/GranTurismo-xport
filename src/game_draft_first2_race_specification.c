@@ -72,7 +72,7 @@ static void specification_suspension_curve(uint32 destination, uint32 source, ui
 }
 
 /* GTMAIN.EXE 8004F030 */
-void gtmain_race_specification_initialize(uint32 destination, uint32 specification, sint32 body, uint32 enabled, uint8 transmission)
+/* Original: GTMAIN.EXE:sub_8004F030. */ void gtmain_race_specification_initialize(uint32 destination, uint32 specification, sint32 body, uint32 enabled, uint8 transmission)
 {
     uint32 d = destination, s = specification, i, j, count, old, source, output, first_weight, second_weight, sum;
     sint32 value, other, half, weight, strength, slope, axle, numerator, denominator;

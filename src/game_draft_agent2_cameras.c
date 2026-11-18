@@ -8,7 +8,7 @@ uint32 gt_draft_8001DDD0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_camera_orbit_update(a0);
 }
 
-uint32 gtmain_camera_path_distance_update(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001D4DC. */ uint32 gtmain_camera_path_distance_update(uint32 camera)
 {
     uint32 car = r_u32(camera + 180u);
     uint32 config = r_u32(0x800B6400u);
@@ -53,7 +53,7 @@ uint32 gt_draft_8001D654(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_camera_countdown_update(a0);
 }
 
-uint32 gtmain_camera_countdown_update(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001D654. */ uint32 gtmain_camera_countdown_update(uint32 camera)
 {
     uint32 car = r_u32(camera + 180u), positions, angles, intervals, kind, index = 0, table, result;
     sint32 time, duration, fraction;
@@ -98,13 +98,13 @@ uint32 gtmain_camera_countdown_update(uint32 camera)
     return result;
 }
 
-uint32 gtmain_camera_countdown_mode(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001DD9C. */ uint32 gtmain_camera_countdown_mode(uint32 camera)
 {
     if (r_s16(0x800B63DEu) < 2) w_u8(camera + 253u, 0);
     return gtmain_camera_countdown_update(camera);
 }
 
-uint32 gtmain_camera_orbit_update(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001DDD0. */ uint32 gtmain_camera_orbit_update(uint32 camera)
 {
     uint32 car = r_u32(camera + 180u), angle = r_u16(camera + 264u), yaw = r_u16(car + 20u), result;
     uint8 vector[12];

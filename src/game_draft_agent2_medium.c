@@ -4,31 +4,43 @@
 /* Unverified draft translations */
 /* TODO Resolve unspecified call arguments during integration */
 
-uint32 gt_draft_80029B98(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gt_draft_80029B98(void)
 {
-    gt_draft_unresolved_call(0x80029B7Cu, 0, 0, 0, 0, 0, 0, 0, 0);
-    w_u8(0x8008F890u, 0);
-    if ((sint16)r_u16(0x800B63D6u) == 1) {
-        w_u16(0x800B63D6u, 2);
-        gt_draft_unresolved_call(0x800204ECu, r_u8(0x8008F88Du) != 0, 0, 0, 0, 0, 0, 0, 0);
+    sint32 state, selected;
+    FUNCTION_MARKER(0x80029B98, "GTMAIN.EXE");
+    gtmain_race_message_flags_reset();
+    state = r_s16(0x800B63D6);
+    w_u8(0x8008F890, 0);
+    if (state == 1) {
+        selected = r_s8(0x8008F88D);
+        w_u16(0x800B63D6, 2);
+        gtmain_race_selector_set(selected != 0);
         return gtmain_race_mode_vehicle_prepare();
     }
-    if ((sint16)r_u16(0x800B63D6u) == 2) {
-        w_u16(0x800B63D6u, 1);
-        if (r_u8(0x8008F88Du)) return gtmain_race_mode_vehicle_prepare();
+    if (state == 2) {
+        selected = r_s8(0x8008F88D);
+        w_u16(0x800B63D6, 1);
+        if (selected)
+            return gtmain_race_mode_vehicle_prepare();
     }
     return 1;
 }
 
 /* GTMAIN.EXE 8002AB48 */
-void gt_draft_8002AB48(void)
+/* Original: GTMAIN.EXE:sub_8002AB48. */ sint32 gt_draft_8002AB48(void)
 {
-    if (!r_u8(0x800CB767u) || !r_s8(0x800B63D9u)) return;
-    if (!r_s16(0x800994B4u) && r_u8(0x800994C0u)) {
-        w_u8(0x800B63D9u, 0u);
-        return;
+    sint32 result = r_u8(0x800CB767u);
+    if (!result) return result;
+    result = r_s8(0x800B63D9u);
+    if (!result) return result;
+    if (!r_s16(0x800994B4u)) {
+        result = r_u8(0x800994C0u);
+        if (result) {
+            w_u8(0x800B63D9u, 0u);
+            return result;
+        }
     }
-    gtmain_stream_pause_if_loaded();
+    return gtmain_stream_pause_if_loaded();
 }
 
 uint32 gt_draft_8002ABC0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -36,7 +48,7 @@ uint32 gt_draft_8002ABC0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_race_stream_start((sint32)a0, (sint32)a1);
 }
 
-uint32 gt_draft_8002AC8C(void)
+/* Original: GTMAIN.EXE:sub_8002AC8C. */ uint32 gt_draft_8002AC8C(void)
 {
     gtmain_race_sound_banks_update();
     uint32 mode = r_u8(0x800CB7F5u);
@@ -60,16 +72,9 @@ uint32 gt_draft_8002ADDC(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gt_draft_unresolved_call(0x80022468u, car, 0, 0, 0, 0, 0, 0, 0);
 }
 
-static uint32 menu_parameters_resource(uint32 category)
+/* Original: GTMAIN.EXE:sub_80043320. */ uint32 gt_draft_80043320(void)
 {
-    /* TODO Bind unselected parts resource lookup 8001EB94 */
-    return gt_draft_unresolved_call(0x8001EB94u, category,
-        0u, 0u, 0u, 0u, 0u, 0u, 0u);
-}
-
-uint32 gt_draft_80043320(void)
-{
-    uint32 table = menu_parameters_resource(30u);
+    uint32 table = gtmain_parts_table(30u);
     uint32 offset = r_u8(0x800941DBu);
     uint32 owner = r_u32(0x800BEA64u);
     uint32 index = r_u16(owner + offset);
@@ -87,7 +92,7 @@ uint32 gt_draft_80043320(void)
 }
 
 /* GTMAIN.EXE 8002A7EC */
-uint32 gt_draft_8002A7EC(void)
+/* Original: GTMAIN.EXE:sub_8002A7EC. */ uint32 gt_draft_8002A7EC(void)
 {
     VSync(0);
     gtmain_display_mask(0u);
@@ -103,7 +108,7 @@ uint32 gt_draft_8004A8E8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return (uint32)gtmain_replay_header_check(a0);
 }
 
-uint32 gt_draft_8004A804(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_8004A804. */ uint32 gt_draft_8004A804(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
 {
     uint32 base = a0 + 512u;
     sint32 item = r_u16(base + 52u * a1 + 40u);
@@ -114,7 +119,7 @@ uint32 gt_draft_8004A804(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return (uint32)item;
 }
 
-sint32 gtmain_menu_entry_type_input(uint32 input)
+/* Original: GTMAIN.EXE:sub_80049FD4. */ sint32 gtmain_menu_entry_type_input(uint32 input)
 {
     sint32 candidate, choice;
     w_u8(0x800B53B5u, 0);
@@ -131,28 +136,14 @@ sint32 gtmain_menu_entry_type_input(uint32 input)
     return choice;
 }
 
-static sint32 menu_device_select(uint32 selector, uint32 input)
-{
-    /* TODO Bind unselected two-argument device selection 8004D820 */
-    return (sint32)gt_draft_unresolved_call(0x8004D820u,
-        selector, input, 0u, 0u, 0u, 0u, 0u, 0u);
-}
-
-static void menu_device_transition(sint32 mode, sint32 selection)
-{
-    /* TODO Bind unselected two-argument device transition 800438EC */
-    (void)gt_draft_unresolved_call(0x800438ECu,
-        (uint32)mode, (uint32)selection, 0u, 0u, 0u, 0u, 0u, 0u);
-}
-
-uint32 gtmain_menu_device_selection_input(void)
+/* Original: GTMAIN.EXE:sub_800462AC. */ uint32 gtmain_menu_device_selection_input(void)
 {
     uint32 device = r_u32(0x800BDD08u);
     sint32 result;
     gtmain_menu_stream_check();
     if (!(sint8)r_u8(device)) return 0;
     gtmain_menu_flags(1);
-    result = menu_device_select(0x80092B08u, device + 2u);
+    result = gtmain_parts_field_input(0x80092B08u, device + 2u);
     if (result == -2)
     {
         gtmain_menu_sound(2);
@@ -164,7 +155,7 @@ uint32 gtmain_menu_device_selection_input(void)
         gtmain_menu_sound(4);
         mode = (sint8)r_u8(0x8009278Du);
         selection = (sint8)r_u8(0x800B5375u);
-        menu_device_transition(mode, selection);
+        gtmain_parts_options_apply(mode, selection);
         return 1;
     }
     return 0;
@@ -175,9 +166,9 @@ uint32 gt_draft_80048AF8(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_menu_text_fit(a0, (sint32)a1);
 }
 
-uint32 gt_draft_80042E84(void)
+/* Original: GTMAIN.EXE:sub_80042E84. */ uint32 gt_draft_80042E84(void)
 {
-    uint32 table = menu_parameters_resource(33u);
+    uint32 table = gtmain_parts_table(33u);
     uint32 offset = r_u8(0x800941DEu);
     uint32 owner = r_u32(0x800BEA64u);
     uint32 first = r_u8(owner + 67u);
@@ -199,7 +190,7 @@ uint32 gt_draft_80041980(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return (uint32)gtmain_menu_range_index((sint32)a0, (sint32)a1, (sint32)a2, (sint32)a3);
 }
 
-uint32 gtmain_menu_settings_masks_update(void)
+/* Original: GTMAIN.EXE:sub_8004AAB8. */ uint32 gtmain_menu_settings_masks_update(void)
 {
     uint32 result;
     result = gtmain_menu_settings_mask(0x80093590u, 6);

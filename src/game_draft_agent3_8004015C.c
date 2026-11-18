@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /* GTMAIN.EXE 8004015C */
-uint32 gtmain_menu_record_labels_prepare(void)
+/* Original: GTMAIN.EXE:sub_8004015C. */ uint32 gtmain_menu_record_labels_prepare(void)
 {
     sint32 loading, kind, replay;
     uint32 label = 0u, caption = 5u, text;

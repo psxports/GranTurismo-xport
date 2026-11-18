@@ -36,7 +36,7 @@ static sint32 gtmain_loading_context_run(const uint32 *context)
 }
 
 /* GTMAIN.EXE 80028968 */
-sint32 gtmain_race_loading_tick(void)
+/* Original: GTMAIN.EXE:sub_80028968. */ sint32 gtmain_race_loading_tick(void)
 {
     uint32 value = r_u32(0x8008F880u) - 1u;
     w_u32(0x8008F880u, value);
@@ -44,13 +44,13 @@ sint32 gtmain_race_loading_tick(void)
 }
 
 /* GTMAIN.EXE 80028984 */
-sint32 gtmain_race_loading_done(void)
+/* Original: GTMAIN.EXE:sub_80028984. */ sint32 gtmain_race_loading_done(void)
 {
     return r_u32(0x8008F880u) == 0u;
 }
 
 /* GTMAIN.EXE 80028A60 */
-sint32 gtmain_race_pad_axes_reset(uint32 state)
+/* Original: GTMAIN.EXE:sub_80028A60. */ sint32 gtmain_race_pad_axes_reset(uint32 state)
 {
     w_u8(state + 82u, 0u);
     w_u8(state + 83u, 128u);
@@ -60,7 +60,7 @@ sint32 gtmain_race_pad_axes_reset(uint32 state)
 }
 
 /* GTMAIN.EXE 80028A78 */
-sint32 gtmain_race_pad_reset(uint32 state)
+/* Original: GTMAIN.EXE:sub_80028A78. */ sint32 gtmain_race_pad_reset(uint32 state)
 {
     w_u8(state + 2u, 0u);
     gtmain_input_reset(state + 4u);
@@ -70,7 +70,7 @@ sint32 gtmain_race_pad_reset(uint32 state)
 }
 
 /* GTMAIN.EXE 800288F4 */
-void gtmain_race_loading_draw(void)
+/* Original: GTMAIN.EXE:sub_800288F4. */ sint32 gtmain_race_loading_draw(void)
 {
     uint32 width, ordering_link;
     sint32 x;
@@ -79,11 +79,11 @@ void gtmain_race_loading_draw(void)
     gtmain_text_color(0x808080u);
     ordering_link = gtmain_frame_ordering(0u);
     x = (sint32)(320u - width) >> 1;
-    gtmain_font_text_draw(ordering_link, (sint16)x, 108, 0x800BD944u);
+    return gtmain_font_text_draw(ordering_link, (sint16)x, 108, 0x800BD944u);
 }
 
 /* GTMAIN.EXE 80028994 */
-sint32 gtmain_race_loading_screen(void)
+/* Original: GTMAIN.EXE:sub_80028994. */ sint32 gtmain_race_loading_screen(void)
 {
     uint32 workspace = loading_stack_locals();
     uint32 *context;

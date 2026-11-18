@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8003A6A4 */
-sint32 gtmain_menu_effect_context_bind(uint32 context, uint32 descriptor)
+/* Original: GTMAIN.EXE:sub_8003A6A4. */ sint32 gtmain_menu_effect_context_bind(uint32 context, uint32 descriptor)
 {
     gtmain_menu_callback(r_u32(descriptor + 16u));
     w_u8(0x800BDE10u, 0);

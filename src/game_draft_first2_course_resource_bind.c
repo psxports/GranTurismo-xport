@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-uint32 gtmain_course_headers_relocate(uint32 course)
+/* Original: GTMAIN.EXE:sub_8002455C. */ uint32 gtmain_course_headers_relocate(uint32 course)
 {
     uint32 cursor = course + 404u, i;
     for (i = 0; i < 33; ++i) {
@@ -16,7 +16,7 @@ uint32 gtmain_model_resource_end(uint32 model)
 {
     return gt_draft_8002F8B4(model, 0, 0, 0, 0, 0, 0, 0);
 }
-uint32 gtmain_model_resource_relocate(uint32 guest_model)
+/* Original: GTMAIN.EXE:sub_8002F81C. */ uint32 gtmain_model_resource_relocate(uint32 guest_model)
 {
     uint32 count = r_u16(guest_model + 44u), cursor = guest_model + 88u, i;
     w_u32(guest_model, cursor); cursor += count * 8u;
@@ -29,7 +29,7 @@ uint32 gtmain_model_resource_relocate(uint32 guest_model)
     count = r_u16(guest_model + 64u); w_u32(guest_model + 36u, cursor);
     { uint32 tail_count = r_u16(guest_model + 66u); cursor += count * 28u; w_u32(guest_model + 40u, cursor); return cursor + tail_count * 20u; }
 }
-uint32 gtmain_course_models_relocate(uint32 guest_models)
+/* Original: GTMAIN.EXE:sub_80024980. */ uint32 gtmain_course_models_relocate(uint32 guest_models)
 {
     uint32 count = r_u32(guest_models), index, cursor = guest_models + count * 4u + 4u;
     for (index = 0; index < count; ++index) {
@@ -39,7 +39,7 @@ uint32 gtmain_course_models_relocate(uint32 guest_models)
     }
     return cursor;
 }
-uint32 gtmain_course_resource_bind(uint32 guest_course)
+/* Original: GTMAIN.EXE:sub_80024B44. */ uint32 gtmain_course_resource_bind(uint32 guest_course)
 {
     uint32 header, groups, records, tail, result;
     w_u32(0x800BC1B0u, guest_course);

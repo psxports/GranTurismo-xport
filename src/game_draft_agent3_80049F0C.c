@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /* GTMAIN.EXE 80049F0C */
-sint32 gtmain_menu_save_slot_select(uint32 input)
+/* Original: GTMAIN.EXE:sub_80049F0C. */ sint32 gtmain_menu_save_slot_select(uint32 input)
 {
     sint32 selected, result = -1;
     uint32 table;

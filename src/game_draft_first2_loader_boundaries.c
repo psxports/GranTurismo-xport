@@ -4,12 +4,12 @@
 #include <stdlib.h>
 
 /* GTMAIN.EXE 80071964 */
-void gtmain_cd_file_retry_hook(void)
+/* Original: GTMAIN.EXE:sub_80071964. */ void gtmain_cd_file_retry_hook(void)
 {
 }
 
 /* GTMAIN.EXE 8006F11C */
-void gtmain_loading_callback_noop(void)
+/* Original: GTMAIN.EXE:sub_8006F11C. */ void gtmain_loading_callback_noop(void)
 {
 }
 
@@ -22,7 +22,7 @@ static uint32 loader_exec_thunk_missing(uint32 executable, uint32 argument,
     abort();
 }
 
-uint32 gtmain_loader_exec_image(uint32 executable)
+/* Original: GTMAIN.EXE:sub_8006A334. */ uint32 gtmain_loader_exec_image(uint32 executable)
 {
     uint32 copied_code = gt_local_stack_workspace(0x2400u, 256u, 0x8006A334u);
     uint32 argument;

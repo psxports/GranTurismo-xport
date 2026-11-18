@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8004AB30 */
-uint32 gt_draft_8004AB30(sint32 category, uint16 part)
+/* Original: GTMAIN.EXE:sub_8004AB30. */ uint32 gt_draft_8004AB30(sint32 category, uint16 part)
 {
     uint32 offset = r_u8(0x800941BDu + (uint32)category);
     uint32 context = r_u32(0x800BEA64u), result;

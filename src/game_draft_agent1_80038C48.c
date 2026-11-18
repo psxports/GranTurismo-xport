@@ -16,7 +16,7 @@ static void menu_assets_release(void)
 }
 
 /* GTMAIN.EXE 80038C48 */
-uint32 gt_draft_80038C48(void)
+/* Original: GTMAIN.EXE:sub_80038C48. */ uint32 gt_draft_80038C48(void)
 {
     w_u16(0x801F3004u, 0u);
     w_u8(0x801F2FE5u, 1u);

@@ -13,7 +13,7 @@ static uint32 roster_native_draw(uint32 ordering, sint32 x, sint32 y, const char
 }
 
 /* GTMAIN.EXE:8003687C */
-uint32 gtmain_menu_race_roster_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_8003687C. */ uint32 gtmain_menu_race_roster_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
     uint8 descriptor[152];
     char digit[8];

@@ -5,7 +5,7 @@ static uint32 runtime_destructor(uint32 token)
     /* TODO Dispatch the real native destructor and preserve its result */
     gt_draft_failure("Native runtime destructor token adapter", token);
 }
-uint32 gtmain_runtime_destructors(void)
+/* Original: GTMAIN.EXE:sub_800829B0. */ uint32 gtmain_runtime_destructors(void)
 {
     uint32 count = r_u32(0x801FB710u), result, cursor;
     if (count == 0xFFFFFFFFu) {
@@ -25,7 +25,7 @@ uint32 gtmain_runtime_destructors(void)
     }
     return result;
 }
-uint32 gtmain_runtime_finalize(void)
+/* Original: GTMAIN.EXE:sub_80082A4C. */ uint32 gtmain_runtime_finalize(void)
 {
     uint32 result = r_u32(0x800B5F3Cu);
     if (!result) { w_u32(0x800B5F3Cu, 1); return gtmain_runtime_destructors(); }

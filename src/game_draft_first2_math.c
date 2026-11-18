@@ -9,7 +9,7 @@ static uint32 gtmain_math_asr(uint32 value, uint32 shift)
     return (value >> shift) | ((value & 0x80000000u) ? (~0u << (32u - shift)) : 0u);
 }
 
-uint32 gtmain_model_translation(uint32 context, uint32 vector_nullable)
+/* Original: GTMAIN.EXE:sub_8006A5FC. */ uint32 gtmain_model_translation(uint32 context, uint32 vector_nullable)
 {
     uint32 first = 0, second = 0, third = 0;
     if (vector_nullable) {
@@ -25,7 +25,7 @@ uint32 gtmain_model_translation(uint32 context, uint32 vector_nullable)
     return second;
 }
 
-uint32 gtmain_fixed_sqrt(uint32 value, uint32 fractional_bits)
+/* Original: GTMAIN.EXE:sub_8006AFBC. */ uint32 gtmain_fixed_sqrt(uint32 value, uint32 fractional_bits)
 {
     uint32 count, root = 0u, trial = 0u, remainder = 0u, index;
     if (!value) return 0u;
@@ -57,7 +57,7 @@ uint32 gtmain_fixed_sqrt(uint32 value, uint32 fractional_bits)
     return root;
 }
 
-uint8 *gtmain_vector_lerp(uint8 *out, const uint8 *first, const uint8 *second, sint32 fraction)
+/* Original: GTMAIN.EXE:sub_8006B0A8. */ uint8 *gtmain_vector_lerp(uint8 *out, const uint8 *first, const uint8 *second, sint32 fraction)
 {
     uint32 a[3], result[3], index;
     for (index = 0u; index < 3u; ++index)
@@ -73,7 +73,7 @@ uint8 *gtmain_vector_lerp(uint8 *out, const uint8 *first, const uint8 *second, s
     return out;
 }
 
-sint32 gtmain_model_rotation(uint8 *matrix, sint16 x, sint16 y, sint16 z)
+/* Original: GTMAIN.EXE:sub_8006B134. */ sint32 gtmain_model_rotation(uint8 *matrix, sint16 x, sint16 y, sint16 z)
 {
     uint32 ax = 0x8009423Cu + (((uint32)x & 4095u) << 1);
     uint32 ay = 0x8009423Cu + (((uint32)y & 4095u) << 1);
@@ -103,7 +103,7 @@ sint32 gtmain_model_rotation(uint8 *matrix, sint16 x, sint16 y, sint16 z)
     return (sint32)first;
 }
 
-sint32 gtmain_angles_lerp(uint8 *out, const uint8 *first, const uint8 *second, sint32 fraction)
+/* Original: GTMAIN.EXE:sub_8006B244. */ sint32 gtmain_angles_lerp(uint8 *out, const uint8 *first, const uint8 *second, sint32 fraction)
 {
     uint32 result[3], index;
     const uint32 order[3] = {1u, 0u, 2u};
@@ -120,7 +120,7 @@ sint32 gtmain_angles_lerp(uint8 *out, const uint8 *first, const uint8 *second, s
     return (sint32)result[2];
 }
 
-uint32 gtmain_model_rotate_vector(uint8 *out, const uint8 *matrix, const uint8 *vector)
+/* Original: GTMAIN.EXE:sub_8006B2CC. */ uint32 gtmain_model_rotate_vector(uint8 *out, const uint8 *matrix, const uint8 *vector)
 {
     uint32 value[3], sum[3], index, result;
     for (index = 0u; index < 5u; ++index) gte_ctc2(xport_load_le32(matrix + index * 4u), index);
@@ -141,7 +141,7 @@ uint32 gtmain_model_rotate_vector(uint8 *out, const uint8 *matrix, const uint8 *
     return result;
 }
 
-uint8 *gtmain_vector_subtract(uint8 *out, const uint8 *first, const uint8 *second)
+/* Original: GTMAIN.EXE:sub_8006B474. */ uint8 *gtmain_vector_subtract(uint8 *out, const uint8 *first, const uint8 *second)
 {
     uint32 result[3], index;
     for (index = 0u; index < 3u; ++index) result[index] = xport_load_le32(first + index * 4u) - xport_load_le32(second + index * 4u);
@@ -149,7 +149,7 @@ uint8 *gtmain_vector_subtract(uint8 *out, const uint8 *first, const uint8 *secon
     return out;
 }
 
-sint32 gtmain_vector_narrow(uint8 *out, const uint8 *vector)
+/* Original: GTMAIN.EXE:sub_8006B4AC. */ sint32 gtmain_vector_narrow(uint8 *out, const uint8 *vector)
 {
     uint32 value[3], magnitude = 0u, index;
     sint32 shift;

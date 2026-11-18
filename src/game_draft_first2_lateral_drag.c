@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8005BECC */
-sint32 gtmain_race_lateral_drag_curve(uint32 curve, sint32 speed)
+/* Original: GTMAIN.EXE:sub_8005BECC. */ sint32 gtmain_race_lateral_drag_curve(uint32 curve, sint32 speed)
 {
     uint32 magnitude;
     sint32 value;
@@ -13,7 +13,7 @@ sint32 gtmain_race_lateral_drag_curve(uint32 curve, sint32 speed)
 }
 
 /* GTMAIN.EXE 8005CC9C */
-sint32 gtmain_race_lateral_low_speed(sint32 axle_speed, sint32 projected_speed)
+/* Original: GTMAIN.EXE:sub_8005CC9C. */ sint32 gtmain_race_lateral_low_speed(sint32 axle_speed, sint32 projected_speed)
 {
     sint32 scale, product, attenuation;
     uint32 magnitude;

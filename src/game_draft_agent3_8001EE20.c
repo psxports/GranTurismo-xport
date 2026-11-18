@@ -20,7 +20,7 @@ static uint32 garage_seed_step(uint32 *seed)
 }
 
 /* GTMAIN.EXE:8001EE20 */
-uint32 gt_draft_8001EE20(uint32 guest_name)
+/* Original: GTMAIN.EXE:sub_8001EE20. */ uint32 gt_draft_8001EE20(uint32 guest_name)
 {
     uint32 seed = gtmain_timer_random();
     sint32 index = garage_name_index(guest_name);

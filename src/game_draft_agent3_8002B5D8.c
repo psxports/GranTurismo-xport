@@ -1,9 +1,8 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
 
-/* TODO Bind the independent mode4 caption service 8006F798 */
 /* GTMAIN.EXE 8002B5D8 */
-uint32 gtmain_race_frame_finish(void)
+/* Original: GTMAIN.EXE:sub_8002B5D8. */ uint32 gtmain_race_frame_finish(void)
 {
     if ((sint8)r_u8(0x800B633Cu)) gtmain_ordering_submit(1u);
     if (r_u8(0x800CB7F5u) == 4u)

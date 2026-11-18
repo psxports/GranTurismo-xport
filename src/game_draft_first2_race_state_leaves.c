@@ -2,12 +2,12 @@
 
 uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size);
 
-uint32 gtmain_race_split_header_clear(void)
+/* Original: GTMAIN.EXE:sub_8002DD70. */ uint32 gtmain_race_split_header_clear(void)
 {
     return sub_8007BD58(0x800BDB50u, 0u, 20u);
 }
 
-sint32 gtmain_race_wheel_state_init(uint32 car)
+/* Original: GTMAIN.EXE:sub_8005142C. */ sint32 gtmain_race_wheel_state_init(uint32 car)
 {
     uint32 i;
     for (i = 0; i < 4u; ++i) {
@@ -29,7 +29,7 @@ sint32 gtmain_race_wheel_state_init(uint32 car)
     return 0;
 }
 
-uint32 gtmain_race_gear_reset(uint32 car)
+/* Original: GTMAIN.EXE:sub_800517EC. */ uint32 gtmain_race_gear_reset(uint32 car)
 {
     uint32 gear = r_u16(car + 0x6FEu);
     w_u16(car + 0x68Eu, 0u);
@@ -38,12 +38,12 @@ uint32 gtmain_race_gear_reset(uint32 car)
     return gear;
 }
 
-void gtmain_race_car_kind_set(uint32 car, uint8 kind)
+/* Original: GTMAIN.EXE:sub_8004EEE8. */ void gtmain_race_car_kind_set(uint32 car, uint8 kind)
 {
     w_u8(car + 0x1Cu, kind);
 }
 
-sint32 gtmain_race_car_mode_set(uint32 car, sint8 mode)
+/* Original: GTMAIN.EXE:sub_8004EEF0. */ sint32 gtmain_race_car_mode_set(uint32 car, sint8 mode)
 {
     sint32 result;
     w_u8(car + 0x699u, (uint8)mode);

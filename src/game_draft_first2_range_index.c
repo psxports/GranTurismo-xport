@@ -3,7 +3,7 @@
 __declspec(noreturn) void gt_draft_failure(const char *boundary, uint32 address);
 
 /* GTMAIN.EXE 80041980 */
-sint32 gtmain_menu_range_index(sint32 start, sint32 end, sint32 value, sint32 count)
+/* Original: GTMAIN.EXE:sub_80041980. */ sint32 gtmain_menu_range_index(sint32 start, sint32 end, sint32 value, sint32 count)
 {
     sint32 span = (sint32)((uint32)end - (uint32)start);
     uint32 upper = (uint32)count - 1u;

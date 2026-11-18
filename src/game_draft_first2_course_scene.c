@@ -26,7 +26,7 @@ static void scene_matrix(uint32 address, uint32 first)
     for (index = 0; index < 5; ++index) scene_ctc(first + index, r_u32(address + 4u * index));
 }
 
-uint32 gtmain_car_collision_positions(uint32 car)
+/* Original: GTMAIN.EXE:sub_80020DC8. */ uint32 gtmain_car_collision_positions(uint32 car)
 {
     uint32 first[3], second[3], shift[3], index, total;
     w_u32(car + 20u, r_u32(car + 1932u));
@@ -60,11 +60,11 @@ uint32 gtmain_car_collision_positions(uint32 car)
     return total;
 }
 
-sint32 gtmain_collision_height_query(sint32 x, sint32 z, sint32 y, uint32 *segment)
+/* Original: GTMAIN.EXE:sub_800210EC. */ sint32 gtmain_collision_height_query(sint32 x, sint32 z, sint32 y, uint32 *segment)
 {
     uint8 query[24];
     uint32 height;
-    xport_store_le16(query + 4, (uint16)*segment);
+    xport_store_le16(query + 4, xport_load_le16(segment));
     xport_store_le32(query + 8, (uint32)x << 4);
     xport_store_le32(query + 12, (uint32)y << 4);
     xport_store_le32(query + 16, (uint32)z << 4);
@@ -74,19 +74,26 @@ sint32 gtmain_collision_height_query(sint32 x, sint32 z, sint32 y, uint32 *segme
     return height == 0x7FFFFFFFu ? (sint32)height : (sint32)height >> 4;
 }
 
-void gtmain_car_rumble_update(uint32 car)
+/* Original: GTMAIN.EXE:sub_80020B54. */ uint32 gtmain_car_rumble_update(uint32 car)
 {
-    uint32 slot; uint8 small, large;
-    sint16 mode;
-    if (r_u32(0x800B630Cu) == 1u || r_u8(0x800CB766u)) return;
-    mode = (sint16)r_u16(car + 26u);
-    if (mode == 1) slot = 0; else if (mode == 2) slot = 4; else return;
-    large = r_u8(car + 1822u); small = r_u8(car + 1823u);
-    if (r_u16(0x800B63D6u)) large = small = 0;
-    gtmain_input_rumble(slot, small, large);
+    uint32 result = r_u32(0x800B630Cu), slot, disabled;
+    uint8 small, large;
+    sint32 mode;
+    if (result == 1u) return result;
+    result = r_u8(0x800CB766u);
+    if (result) return result;
+    mode = r_s16(car + 26u);
+    if (mode == 1) slot = 0u;
+    else if (mode == 2) slot = 4u;
+    else return 2u;
+    large = r_u8(car + 1822u);
+    disabled = r_u16(0x800B63D6u);
+    small = r_u8(car + 1823u);
+    if (disabled) large = small = 0u;
+    return gtmain_input_rumble(slot, small, large);
 }
 
-uint32 gtmain_course_segment_transform(uint32 context, uint32 segment)
+/* Original: GTMAIN.EXE:sub_80026EA8. */ uint32 gtmain_course_segment_transform(uint32 context, uint32 segment)
 {
     uint32 p[3], c[3], axis, shift = 0, packed, first[3], second[3], origin[3], coarse[3], final[3];
     uint64 square = 0;
@@ -137,7 +144,7 @@ uint32 gtmain_course_segment_transform(uint32 context, uint32 segment)
     return packed;
 }
 
-uint32 gtmain_model_bounds_classify(uint32 context, const uint8 *points, uint32 count)
+/* Original: GTMAIN.EXE:sub_8006EBB4. */ uint32 gtmain_model_bounds_classify(uint32 context, const uint8 *points, uint32 count)
 {
     uint32 either = 0, every = 0xFFFFFFFFu, screen_every = 0xFFFFFFFFu;
     uint32 threshold; sint32 width, height;
@@ -177,7 +184,7 @@ static sint32 scene_add_checked(sint32 first, sint64 second, uint32 address)
     return (sint32)value;
 }
 
-uint32 gtmain_model_billboards_draw(uint32 context, uint32 records, uint32 count)
+/* Original: GTMAIN.EXE:sub_80026594. */ uint32 gtmain_model_billboards_draw(uint32 context, uint32 records, uint32 count)
 {
     uint32 work = context + 184u, packet, attributes, links, shades, shift;
     if (!count) return records;
@@ -260,7 +267,7 @@ static void scene_render_missing(uint32 owner, uint32 context, uint32 segment, u
     scene_secondary_render_missing(context, segment);
 }
 
-uint32 gtmain_course_scene_draw(uint32 context, uint32 camera, uint32 mode)
+/* Original: GTMAIN.EXE:sub_800250C8. */ uint32 gtmain_course_scene_draw(uint32 context, uint32 camera, uint32 mode)
 {
     uint32 buckets[3][64], counts[3] = {0, 0, 0};
     uint32 course, segment, list, total, index, all_flags = 0, axis;
@@ -361,7 +368,7 @@ uint32 gtmain_course_scene_draw(uint32 context, uint32 camera, uint32 mode)
 
 
 /* GTMAIN.EXE:800267E4 */
-uint32 gtmain_model_radial_draw(uint32 context, uint32 records, uint32 count)
+/* Original: GTMAIN.EXE:sub_800267E4. */ uint32 gtmain_model_radial_draw(uint32 context, uint32 records, uint32 count)
 {
     uint32 packet, axis, item;
     PsxGteSnapshot initial;
@@ -383,11 +390,9 @@ uint32 gtmain_model_radial_draw(uint32 context, uint32 records, uint32 count)
         uint32 shift = r_u16(context + 42u), first_packet, second_packet, old_link, ordering;
         sint32 depth, ir0, components[3], mac_x, mac_z, norm, thickness, scale, radius, diagonal, half;
         sint32 pixel_x, pixel_y, half_pixel, screen_x, screen_y, ratio;
-        SVECTOR operand;
-        VECTOR product;
         uint32 sxy[3], shaded;
         xport_gte_write_data(0u, first); xport_gte_write_data(1u, second);
-        --count;
+        count = (uint32)scene_add_checked((sint32)count, -1, 0x800268C4u);
         xport_gte_execute(0x180001u);
         color = r_u32(records + 16u);
         xport_gte_write_data(2u, r_u32(records + 8u)); xport_gte_write_data(3u, r_u32(records + 12u));
@@ -426,11 +431,7 @@ uint32 gtmain_model_radial_draw(uint32 context, uint32 records, uint32 count)
         else if (ratio == (-2147483647 - 1) && norm == -1) ratio = (-2147483647 - 1);
         else ratio /= norm;
         xport_gte_write_data(8u, scale); xport_gte_write_data(9u, second);
-        operand.vx = (sint16)xport_gte_read_data(9u);
-        operand.vy = (sint16)xport_gte_read_data(10u);
-        operand.vz = (sint16)xport_gte_read_data(11u);
-        operand.pad = 0;
-        gte_gpf12(&operand, (sint32)xport_gte_read_data(8u), &product);
+        xport_gte_execute(0x198003Du);
         w_u32(packet, (first_packet & 0xFFFFFFu) | 0x01000000u); w_u32(packet + 4u, 0xE1000220u);
         for (item = 0; item < 6u; ++item)
             w_u32(first_packet + item * 36u, ((first_packet & 0xFFFFFFu) | 0x08000000u) + (item + 1u) * 36u);
@@ -508,7 +509,7 @@ radial_next:
     return records;
 }
 
-uint32 gtmain_model_sprites_draw(uint32 context, uint32 records, uint32 count)
+/* Original: GTMAIN.EXE:sub_8002E954. */ uint32 gtmain_model_sprites_draw(uint32 context, uint32 records, uint32 count)
 {
     uint32 work = context + 184u, packet, links, shades, shift;
     if (!count) return records;
@@ -584,7 +585,7 @@ uint32 gtmain_model_sprites_draw(uint32 context, uint32 records, uint32 count)
     return records;
 }
 
-uint32 gtmain_model_radial_effect_draw(uint32 context, uint32 records, uint32 count)
+/* Original: GTMAIN.EXE:sub_8002EBA4. */ uint32 gtmain_model_radial_effect_draw(uint32 context, uint32 records, uint32 count)
 {
     uint32 packet, axis, item;
     PsxGteSnapshot initial;
@@ -606,8 +607,6 @@ uint32 gtmain_model_radial_effect_draw(uint32 context, uint32 records, uint32 co
         uint32 shift = r_u16(context + 42u), first_packet, second_packet, old_link, ordering;
         sint32 depth, ir0, components[3], mac_x, mac_z, norm, thickness, scale, radius, diagonal, half;
         sint32 pixel_x, pixel_y, half_pixel, screen_x, screen_y, ratio;
-        SVECTOR operand;
-        VECTOR product;
         uint32 sxy[3], shaded;
         xport_gte_write_data(0u, first); xport_gte_write_data(1u, second);
         count = (uint32)scene_add_checked((sint32)count, -1, 0x8002EC84u);
@@ -649,11 +648,7 @@ uint32 gtmain_model_radial_effect_draw(uint32 context, uint32 records, uint32 co
         else if (ratio == (-2147483647 - 1) && norm == -1) ratio = (-2147483647 - 1);
         else ratio /= norm;
         xport_gte_write_data(8u, scale); xport_gte_write_data(9u, second);
-        operand.vx = (sint16)xport_gte_read_data(9u);
-        operand.vy = (sint16)xport_gte_read_data(10u);
-        operand.vz = (sint16)xport_gte_read_data(11u);
-        operand.pad = 0;
-        gte_gpf12(&operand, (sint32)xport_gte_read_data(8u), &product);
+        xport_gte_execute(0x198003Du);
         w_u32(packet, (first_packet & 0xFFFFFFu) | 0x01000000u); w_u32(packet + 4u, 0xE1000220u);
         for (item = 0; item < 6u; ++item)
             w_u32(first_packet + item * 36u, ((first_packet & 0xFFFFFFu) | 0x08000000u) + (item + 1u) * 36u);

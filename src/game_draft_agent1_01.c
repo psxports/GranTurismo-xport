@@ -7,7 +7,7 @@ uint32 gt_draft_800380B4(uint32 a0,uint32 a1,uint32 a2,uint32 a3,uint32 a4,uint3
     return gtmain_menu_countdown_toggle_tail((sint32)a4);
 }
 
-uint32 gt_draft_8001A068(void)
+/* Original: GTMAIN.EXE:sub_8001A068. */ uint32 gt_draft_8001A068(void)
 {
     gt_draft_80019F10();
     gtmain_mode_init();

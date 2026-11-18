@@ -18,7 +18,7 @@ static sint32 spline_weight(uint32 numerator, uint32 denominator)
 }
 
 /* GTMAIN.EXE 80054164 */
-void gtmain_race_ai_spline_position(sint32 mode, sint32 segment, sint32 progress, sint32 *first, sint32 *second)
+/* Original: GTMAIN.EXE:sub_80054164. */ void gtmain_race_ai_spline_position(sint32 mode, sint32 segment, sint32 progress, sint32 *first, sint32 *second)
 {
     uint32 table = r_u32(r_u32(0x800BF51Cu) + 8u + 4u * (uint32)mode), rows = table + 4u;
     sint32 length = r_s32(r_u32(0x800BC1A8u)), count = r_s32(table), previous = 0, next = 0, weight = 0;
@@ -82,7 +82,7 @@ void gtmain_race_ai_spline_position(sint32 mode, sint32 segment, sint32 progress
 }
 
 /* GTMAIN.EXE 80053CD8 */
-void gtmain_race_ai_segment_speed(uint32 car)
+/* Original: GTMAIN.EXE:sub_80053CD8. */ void gtmain_race_ai_segment_speed(uint32 car)
 {
     uint32 table = r_u32(r_u32(0x800BF51Cu) + 8u + 4u * r_u8(car + 1912u)), rows = table + 4u;
     uint32 old_speed = r_u32(car + 1920u), segment, sum, wheel, sqrt_value;
@@ -126,7 +126,7 @@ void gtmain_race_ai_segment_speed(uint32 car)
 }
 
 /* GTMAIN.EXE 800548F0 */
-void gtmain_race_ai_segment_bind(uint32 car)
+/* Original: GTMAIN.EXE:sub_800548F0. */ void gtmain_race_ai_segment_bind(uint32 car)
 {
     uint32 table = r_u32(r_u32(0x800BF51Cu) + 8u + 4u * r_u8(car + 1912u)), rows = table + 4u;
     sint32 progress = r_s32(car + 1804u), count = r_s32(table), index;
@@ -144,7 +144,7 @@ void gtmain_race_ai_segment_bind(uint32 car)
 }
 
 /* GTMAIN.EXE 80053AF0 */
-sint32 gtmain_race_ai_mode_select(uint32 mode)
+/* Original: GTMAIN.EXE:sub_80053AF0. */ sint32 gtmain_race_ai_mode_select(uint32 mode)
 {
     uint32 header, table, i;
     sint32 candidate;
@@ -158,14 +158,14 @@ sint32 gtmain_race_ai_mode_select(uint32 mode)
 }
 
 /* GTMAIN.EXE 8002DB8C */
-void gtmain_race_best_time_set(uint32 time)
+/* Original: GTMAIN.EXE:sub_8002DB8C. */ void gtmain_race_best_time_set(uint32 time)
 {
     uint32 old = r_u32(0x800BDB4Cu);
     if (!old || time < old) { w_u32(0x800BDB4Cu, time); gtmain_time_string(0x801A8FECu, time); w_u8(0x800BDD01u, 1); }
 }
 
 /* GTMAIN.EXE 8002DCA0 */
-void gtmain_race_best_lap_set(uint32 elapsed)
+/* Original: GTMAIN.EXE:sub_8002DCA0. */ void gtmain_race_best_lap_set(uint32 elapsed)
 {
     uint32 old = r_u32(0x800BDB48u);
     if (!old || elapsed < old) { w_u32(0x800BDB48u, elapsed); gtmain_time_string(0x801A8FFCu, elapsed); w_u8(0x800BDD00u, 1); }

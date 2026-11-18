@@ -6,7 +6,7 @@ static sint32 status_text_center(sint32 x, sint32 width)
 }
 
 /* Unverified translation from complete pseudocode and original MIPS */
-uint32 gtmain_menu_status_text_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_8003CD50. */ uint32 gtmain_menu_status_text_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
     uint32 first_text = 0x800BCCAEu, second_text = 0x800BCCCAu;
     uint32 context = r_u32(0x800B52FCu);

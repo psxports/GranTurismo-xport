@@ -1,6 +1,6 @@
 #include "game_first2_registry.h"
 
-sint32 gtmain_angle_asin(sint16 value)
+/* Original: GTMAIN.EXE:sub_800722C4. */ sint32 gtmain_angle_asin(sint16 value)
 {
     uint32 index;
     if (value < -4095) return -1024;
@@ -10,7 +10,7 @@ sint32 gtmain_angle_asin(sint16 value)
     return (sint16)(0u - r_u16(0x800AD9B4u + index * 2u));
 }
 
-sint32 gtmain_angle_atan(sint16 x, sint16 y)
+/* Original: GTMAIN.EXE:sub_80072348. */ sint32 gtmain_angle_atan(sint16 x, sint16 y)
 {
     uint32 magnitude_y, magnitude_x, ratio, quadrant = 0u;
     sint32 sign, offset;
@@ -29,7 +29,7 @@ sint32 gtmain_angle_atan(sint16 x, sint16 y)
     return (sint16)((angle ^ (uint32)sign) + (uint32)offset);
 }
 
-sint32 gtmain_matrix_angles(uint8 *out, const uint8 *matrix)
+/* Original: GTMAIN.EXE:sub_8006C4AC. */ sint32 gtmain_matrix_angles(uint8 *out, const uint8 *matrix)
 {
     sint32 absolute, branch, first, second, third = 0, result;
     result = gtmain_angle_asin((sint16)xport_load_le16(matrix + 10u));
@@ -56,7 +56,7 @@ sint32 gtmain_matrix_angles(uint8 *out, const uint8 *matrix)
     return result;
 }
 
-sint32 gtmain_model_orientation(uint32 context, uint32 reference_nullable)
+/* Original: GTMAIN.EXE:sub_8006B40C. */ sint32 gtmain_model_orientation(uint32 context, uint32 reference_nullable)
 {
     uint8 *angles = (uint8 *)psx_addr(context + 132u, 6u);
     const uint8 *rotation = (const uint8 *)psx_addr(context + 140u, 18u);

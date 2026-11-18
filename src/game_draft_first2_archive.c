@@ -12,7 +12,8 @@ static uint32 gtmain_archive_sector(const uint8 descriptor[24])
 static uint32 archive_stack_sector(uint32 offset)
 {
     uint32 launch = r_u32(0x8008F1D8u), alternate = r_u32(0x800B1AA4u);
-    uint32 top = alternate ? alternate : launch;
+    uint32 baseline = alternate ? alternate : launch;
+    uint32 top = gt_local_stack_top();
     uint32 reserve = r_u32(0x800B1B4Cu);
     uint32 heap = r_u32(0x800B1AACu), bytes = r_u32(0x800B1AA8u);
     uint32 extent = bytes < 16u ? 16u : bytes, address;
@@ -20,6 +21,8 @@ static uint32 archive_stack_sector(uint32 offset)
     if (top < 0x80010018u + offset || top > 0x80200000u || (top & 7u) || offset < 2048u)
         gt_draft_failure("GTMAIN archive stack range", 0x8006AD20u);
     address = top - offset;
+    if (top != baseline && address - 24u < baseline - 0x41D8u)
+        gt_draft_failure("GTMAIN nested archive stack overlap", 0x8006AD20u);
     if (address - 24u < 0x801FB724u || heap < 0x80010000u || heap > address - 24u ||
         extent > address - 24u - heap || (!alternate && (reserve < offset + 24u || address - 24u < launch - reserve)))
         gt_draft_failure("GTMAIN archive stack overlap", 0x8006AD20u);
@@ -63,7 +66,7 @@ static GTMainArchiveTable archive_table_load_into(uint32 path, uint32 *sector, u
     }
 }
 
-GTMainArchiveTable gtmain_archive_table_load(uint32 path, uint32 *sector, uint8 *buffer, uint32 buffer_guest, uint32 capacity)
+/* Original: GTMAIN.EXE:sub_8006AD20. */ GTMainArchiveTable gtmain_archive_table_load(uint32 path, uint32 *sector, uint8 *buffer, uint32 buffer_guest, uint32 capacity)
 {
     if (!sector) gt_draft_failure("Native archive sector output unavailable", 0x8006AD20u);
     return archive_table_load_into(path, sector, 0u, 0u, buffer, buffer_guest, capacity);
@@ -77,7 +80,7 @@ uint32 gtmain_archive_table_load_guest(uint32 path, uint32 sector_out, uint32 bu
     return result.guest_address;
 }
 
-uint32 gtmain_archive_section_load(uint32 path, const uint8 *table, uint32 sector, uint32 index, uint32 destination, uint32 limit)
+/* Original: GTMAIN.EXE:sub_8006AE5C. */ uint32 gtmain_archive_section_load(uint32 path, const uint8 *table, uint32 sector, uint32 index, uint32 destination, uint32 limit)
 {
     uint32 temporary_address = archive_stack_sector(0x2100u);
     uint8 *temporary = (uint8 *)psx_addr(temporary_address, 2048u);
@@ -132,7 +135,7 @@ uint32 gtmain_archive_section_load(uint32 path, const uint8 *table, uint32 secto
     }
 }
 
-uint32 gtmain_sound_bank_load_original(uint32 destination, uint32 spu_base, uint32 buffer, uint32 mode)
+/* Original: GTMAIN.EXE:sub_80070DD8. */ uint32 gtmain_sound_bank_load_original(uint32 destination, uint32 spu_base, uint32 buffer, uint32 mode)
 {
     uint32 temporary = gt_sound_stack_workspace(0x3000u, 2052u, 0x80070DD8u);
     uint32 table;

@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /* GTMAIN.EXE 800479F0 */
-sint32 gtmain_menu_roster_item_select(uint32 input)
+/* Original: GTMAIN.EXE:sub_800479F0. */ sint32 gtmain_menu_roster_item_select(uint32 input)
 {
     uint16 first_buttons = r_u16(input + 4u);
     uint16 repeat_buttons = r_u16(input + 8u);

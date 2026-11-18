@@ -5,8 +5,7 @@
 
 static void stream_playlist_shuffle(uint32 data, uint32 count)
 {
-    /* TODO Bind the unselected shuffle owner with its meaningful count argument */
-    gt_draft_failure("GTMAIN stream playlist shuffle", 0x8007917Cu);
+    gtmain_stream_playlist_shuffle(data, (sint32)count);
 }
 
 static uint32 texture_source_extent(uint32 resource)
@@ -85,25 +84,26 @@ uint32 gtmain_tim_upload_native(const uint8 *image, uint32 capacity, sint32 firs
 }
 
 /* GTMAIN.EXE 80070024 */
-sint32 gtmain_stream_entry_find(uint32 index)
+/* Original: GTMAIN.EXE:sub_80070024. */ sint32 gtmain_stream_entry_find(uint32 index)
 {
     return gtmain_stream_name_find(r_u32(0x800994CCu + 4u * index));
 }
 
 /* GTMAIN.EXE 80070190 */
-void gtmain_stream_mode_set(uint8 mode)
+/* Original: GTMAIN.EXE:sub_80070190. */ sint32 gtmain_stream_mode_set(uint8 mode)
 {
     uint32 changed = (r_u8(0x800994C8u) ^ mode) & 128u;
     w_u8(0x800994C8u, mode);
     if (changed) {
         CdControl(14u, (uint8 *)psx_addr(0x800994C8u, 1u), NULL);
         VSync(0);
-        VSync(3);
+        return VSync(3);
     }
+    return 0;
 }
 
 /* GTMAIN.EXE 80070054 */
-sint32 gtmain_stream_entry_prepare(uint32 entry, uint32 parameter)
+/* Original: GTMAIN.EXE:sub_80070054. */ sint32 gtmain_stream_entry_prepare(uint32 entry, uint32 parameter)
 {
     uint32 record, first, base, bytes, end;
     gtmain_stream_mode_set(0u);
@@ -124,13 +124,13 @@ sint32 gtmain_stream_entry_prepare(uint32 entry, uint32 parameter)
 }
 
 /* GTMAIN.EXE 80070118 */
-void gtmain_stream_begin_if_loaded(void)
+/* Original: GTMAIN.EXE:sub_80070118. */ sint32 gtmain_stream_begin_if_loaded(void)
 {
-    if (r_u32(0x800994A8u)) gtmain_stream_begin();
+    return r_u32(0x800994A8u) ? gtmain_stream_begin() : 0;
 }
 
 /* GTMAIN.EXE 80070144 */
-uint32 gtmain_stream_playlist_next(uint32 playlist)
+/* Original: GTMAIN.EXE:sub_80070144. */ uint32 gtmain_stream_playlist_next(uint32 playlist)
 {
     uint32 index = r_u8(playlist);
     uint32 count = r_u8(playlist + 1u), entry;
@@ -146,7 +146,7 @@ uint32 gtmain_stream_playlist_next(uint32 playlist)
 }
 
 /* GTMAIN.EXE 800701E4 */
-sint32 gtmain_stream_stop_wait(uint32 wait)
+/* Original: GTMAIN.EXE:sub_800701E4. */ sint32 gtmain_stream_stop_wait(uint32 wait)
 {
     sint32 result = gtmain_cd_stop();
     if (wait) do { result = gtmain_cd_stop_status(0u); } while (result);
@@ -154,16 +154,17 @@ sint32 gtmain_stream_stop_wait(uint32 wait)
 }
 
 /* GTMAIN.EXE 80070220 */
-sint32 gtmain_stream_stop_async(void)
+/* Original: GTMAIN.EXE:sub_80070220. */ sint32 gtmain_stream_stop_async(void)
 {
     return gtmain_cd_stop_status(1u);
 }
 
 /* GTMAIN.EXE 8006FF54 */
-void gtmain_stream_pause_state(void)
+/* Original: GTMAIN.EXE:sub_8006FF54. */ sint32 gtmain_stream_pause_state(void)
 {
     uint32 state, request;
-    if (gtmain_cd_pending_command()) return;
+    sint32 pending = gtmain_cd_pending_command();
+    if (pending) return pending;
     EnterCriticalSectionPSX();
     state = r_u8(0x800994C2u);
     if (gtmain_stream_state_active(state)) {
@@ -176,16 +177,17 @@ void gtmain_stream_pause_state(void)
         w_u8(0x800994BFu, request);
     }
     ExitCriticalSection();
+    return 0;
 }
 
 /* GTMAIN.EXE 8006FFF8 */
-void gtmain_stream_pause_if_loaded(void)
+/* Original: GTMAIN.EXE:sub_8006FFF8. */ sint32 gtmain_stream_pause_if_loaded(void)
 {
-    if (r_u32(0x800994A8u)) gtmain_stream_pause_state();
+    return r_u32(0x800994A8u) ? gtmain_stream_pause_state() : 0;
 }
 
 /* GTMAIN.EXE 80070500 */
-uint32 gtmain_tim_block_upload(uint32 block, sint32 xy, sint32 wh)
+/* Original: GTMAIN.EXE:sub_80070500. */ uint32 gtmain_tim_block_upload(uint32 block, sint32 xy, sint32 wh)
 {
     uint32 packed_xy = (uint32)xy, packed_wh = (uint32)wh;
     PSX_RECT rectangle;
@@ -202,13 +204,17 @@ uint32 gtmain_tim_block_upload(uint32 block, sint32 xy, sint32 wh)
     rectangle.w = (sint16)packed_wh;
     rectangle.h = (sint16)(packed_wh >> 16);
     DrawSync(0);
-    LoadImagePSX(&rectangle, (uint32 *)psx_addr(block + 12u, 1u));
+    {
+        uint32 bytes = rectangle.w > 0 && rectangle.h > 0
+            ? (uint32)rectangle.w * (uint32)rectangle.h * 2u : 1u;
+        LoadImagePSX(&rectangle, (uint32 *)psx_addr(block + 12u, bytes));
+    }
     DrawSync(0);
     return packed_xy;
 }
 
 /* GTMAIN.EXE 800705F4 */
-uint32 gtmain_tim_upload(uint32 image, sint32 first_xy, sint32 first_wh,
+/* Original: GTMAIN.EXE:sub_800705F4. */ uint32 gtmain_tim_upload(uint32 image, sint32 first_xy, sint32 first_wh,
     sint32 second_xy, sint32 second_wh, uint32 reverse_order)
 {
     uint32 block = image + 8u, palette;
@@ -223,7 +229,7 @@ uint32 gtmain_tim_upload(uint32 image, sint32 first_xy, sint32 first_wh,
 }
 
 /* GTMAIN.EXE 80070598 */
-uint32 gtmain_texture_decode(uint32 destination, uint32 resource)
+/* Original: GTMAIN.EXE:sub_80070598. */ uint32 gtmain_texture_decode(uint32 destination, uint32 resource)
 {
     uint32 bytes = r_u32(resource + 12u), source_capacity;
     if (!destination) {

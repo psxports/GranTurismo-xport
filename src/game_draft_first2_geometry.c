@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 #include "psx_gte.h"
 
-sint32 gtmain_light_pair_transform(const uint8 *coefficients, const uint8 *vector)
+/* Original: GTMAIN.EXE:sub_80070C84. */ sint32 gtmain_light_pair_transform(const uint8 *coefficients, const uint8 *vector)
 {
     uint32 first = xport_load_le32(coefficients);
     uint32 second = xport_load_le32(coefficients + 4u);

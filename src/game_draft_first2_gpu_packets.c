@@ -43,18 +43,18 @@ static void gpu_log_environment(uint32 format, uint32 argument)
     if (token == 0x8008B7D8u) printf("PutDispEnv(%08x)...\n", (unsigned)argument);
     else (void)gpu_missing(token, format, argument);
 }
-uint32 gtmain_gpu_draw_mode(uint32 dither, uint32 display, uint16 texture_page)
+/* Original: GTMAIN.EXE:sub_80087DC0. */ uint32 gtmain_gpu_draw_mode(uint32 dither, uint32 display, uint16 texture_page)
 {
     uint32 command = display ? 0xE1000200u : 0xE1000000u;
     uint32 bits = texture_page & 0x9FFu;
     if (dither) bits |= 0x400u;
     return command | bits;
 }
-uint32 gtmain_gpu_draw_offset(sint16 x, sint16 y)
+/* Original: GTMAIN.EXE:sub_80087F10. */ uint32 gtmain_gpu_draw_offset(sint16 x, sint16 y)
 {
     return 0xE5000000u | ((uint32)y & 0x7FFu) << 11 | ((uint32)x & 0x7FFu);
 }
-uint32 gtmain_gpu_texture_window(uint32 rectangle)
+/* Original: GTMAIN.EXE:sub_80087F2C. */ uint32 gtmain_gpu_texture_window(uint32 rectangle)
 {
     uint32 x, y, width, height;
     if (!rectangle) return 0;
@@ -80,15 +80,15 @@ static uint32 gpu_clip(uint32 opcode, sint16 x, sint16 y)
     }
     return opcode | (cy & 1023u) << 10 | (cx & 1023u);
 }
-uint32 gtmain_gpu_clip_begin(sint16 x, sint16 y) { return gpu_clip(0xE3000000u, x, y); }
-uint32 gtmain_gpu_clip_end(sint16 x, sint16 y) { return gpu_clip(0xE4000000u, x, y); }
-uint32 gtmain_gpu_timeout_begin(void)
+/* Original: GTMAIN.EXE:sub_80087DE0. */ uint32 gtmain_gpu_clip_begin(sint16 x, sint16 y) { return gpu_clip(0xE3000000u, x, y); }
+/* Original: GTMAIN.EXE:sub_80087E78. */ uint32 gtmain_gpu_clip_end(sint16 x, sint16 y) { return gpu_clip(0xE4000000u, x, y); }
+/* Original: GTMAIN.EXE:sub_80089040. */ uint32 gtmain_gpu_timeout_begin(void)
 {
     uint32 value = (uint32)VSync(-1) + 240u;
     w_u32(0x800B25C0u, value); w_u32(0x800B25C4u, 0);
     return value;
 }
-sint32 gtmain_gpu_timeout_poll(void)
+/* Original: GTMAIN.EXE:sub_80089074. */ sint32 gtmain_gpu_timeout_poll(void)
 {
     uint32 now = (uint32)VSync(-1), old, result;
     if ((sint32)r_u32(0x800B25C0u) >= (sint32)now) {
@@ -143,7 +143,7 @@ static uint32 gpu_transfer_shape(uint32 rectangle, uint32 *blocks, uint32 *remai
     *remainder = (uint32)((sint32)adjusted >> 1) - (*blocks << 4);
     return (uint32)((sint32)adjusted >> 1);
 }
-sint32 gtmain_gpu_pixels_write(uint32 rectangle, uint32 source)
+/* Original: GTMAIN.EXE:sub_800882D4. */ sint32 gtmain_gpu_pixels_write(uint32 rectangle, uint32 source)
 {
     uint32 blocks, remainder, count, command = 0xA0000000u;
     (void)gtmain_gpu_timeout_begin();
@@ -171,7 +171,7 @@ sint32 gtmain_gpu_pixels_write(uint32 rectangle, uint32 source)
     }
     return 0;
 }
-sint32 gtmain_gpu_pixels_read(uint32 rectangle, uint32 destination)
+/* Original: GTMAIN.EXE:sub_80088510. */ sint32 gtmain_gpu_pixels_read(uint32 rectangle, uint32 destination)
 {
     uint32 blocks, remainder, count;
     (void)gtmain_gpu_timeout_begin();
@@ -208,7 +208,7 @@ static void gpu_queue_callback_install_missing(uint32 index, uint32 token)
     /* TODO Bind the unselected DMA registration table adapter */
     gt_draft_failure("GTMAIN GPU queue callback registration", 0x8008A2A8u);
 }
-sint32 gtmain_gpu_command_enqueue(uint32 callback_token, uint32 data, sint32 copy_bytes, uint32 argument)
+/* Original: GTMAIN.EXE:sub_800888A4. */ sint32 gtmain_gpu_command_enqueue(uint32 callback_token, uint32 data, sint32 copy_bytes, uint32 argument)
 {
     uint32 head, tail, mask, table, index, pointer;
     (void)gtmain_gpu_timeout_begin();
@@ -264,7 +264,7 @@ static uint16 gpu_dimension(uint16 bits, uint32 limit_address)
         return (uint16)(limit < (sint16)bits ? limit_bits : bits);
     }
 }
-uint32 gtmain_gpu_draw_packet(uint32 packet, uint32 environment)
+/* Original: GTMAIN.EXE:sub_80087B50. */ uint32 gtmain_gpu_draw_packet(uint32 packet, uint32 environment)
 {
     uint32 value, length = 7, xy, wh, color;
     sint16 x = (sint16)r_u16(environment), y = (sint16)r_u16(environment + 2u);
@@ -320,7 +320,7 @@ static uint32 gpu_drawing_register_missing(uint32 index)
     /* TODO Bind the unselected one-argument drawing register readback */
     gt_draft_failure("GTMAIN GPU drawing register readback", 0x80088850u);
 }
-sint32 gtmain_gpu_clear_packet(uint32 rectangle, uint32 packed_color)
+/* Original: GTMAIN.EXE:sub_800880A4. */ sint32 gtmain_gpu_clear_packet(uint32 rectangle, uint32 packed_color)
 {
     sint32 dimension = r_s16(rectangle + 4u);
     uint16 width = r_u16(rectangle + 4u), height;
@@ -359,7 +359,7 @@ sint32 gtmain_gpu_clear_packet(uint32 rectangle, uint32 packed_color)
     (void)gtmain_gpu_dma_submit(0x800B5F7Cu);
     return 0;
 }
-uint32 gtmain_gpu_display_environment(uint32 environment)
+/* Original: GTMAIN.EXE:sub_80087324. */ uint32 gtmain_gpu_display_environment(uint32 environment)
 {
     uint32 mode = 0x08000000u, command, changed, index, cached_word, input_word;
     sint32 start_x, end_x, start_y, end_y, value;
@@ -442,7 +442,7 @@ uint32 gtmain_gpu_display_environment(uint32 environment)
     return environment;
 }
 
-uint32 gtmain_video_mode_get(void)
+/* Original: GTMAIN.EXE:sub_8008AB2C. */ uint32 gtmain_video_mode_get(void)
 {
     return r_u32(0x800B3874u);
 }

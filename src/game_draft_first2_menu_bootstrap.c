@@ -7,7 +7,7 @@ static uint32 menu_bootstrap_finish(void)
     return gtmain_memory_copy(0x800BC160u, 0x80093C08u, 69u);
 }
 
-uint32 gtmain_menu_status_reset(void)
+/* Original: GTMAIN.EXE:sub_800272A8. */ uint32 gtmain_menu_status_reset(void)
 {
     uint32 status = r_u16(0x800CB758u), first, second;
     first = r_u32(0x80099490u); second = r_u32(0x80099494u);
@@ -20,7 +20,7 @@ uint32 gtmain_menu_status_reset(void)
     w_u8(0x800B63BFu, 0); w_u8(0x800B63BEu, 6);
     return 6;
 }
-uint32 gtmain_menu_bootstrap(void)
+/* Original: GTMAIN.EXE:sub_80027330. */ uint32 gtmain_menu_bootstrap(void)
 {
     uint32 area = r_u32(0x800B1AACu), bytes = r_u32(0x800B1AA8u), end = area + bytes;
     printf("Heap: area = %08X, size = %08X, end = %08X\n", area, bytes, end);

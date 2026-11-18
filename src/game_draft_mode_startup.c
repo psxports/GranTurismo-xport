@@ -69,7 +69,7 @@ static uint32 gtmain_mode_menu_session(void)
 }
 
 /* GTMAIN.EXE:8002881C */
-uint32 gtmain_mode_init(void)
+/* Original: GTMAIN.EXE:sub_8002881C. */ uint32 gtmain_mode_init(void)
 {
     uint32 mode;
     gtmain_heap_reset();

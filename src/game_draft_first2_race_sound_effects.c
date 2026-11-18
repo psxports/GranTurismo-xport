@@ -14,7 +14,7 @@ static uint32 effect_pan(uint32 volume, uint32 pan)
 }
 
 /* GTMAIN.EXE 80070B5C */
-sint32 gtmain_race_sound_instrument(uint32 instrument, sint32 volume, sint32 pan, sint32 priority)
+/* Original: GTMAIN.EXE:sub_80070B5C. */ sint32 gtmain_race_sound_instrument(uint32 instrument, sint32 volume, sint32 pan, sint32 priority)
 {
     sint32 global_volume = (sint32)r_u32(0x80099548u);
     uint32 packed, adsr;
@@ -36,7 +36,7 @@ sint32 gtmain_race_sound_instrument(uint32 instrument, sint32 volume, sint32 pan
 }
 
 /* GTMAIN.EXE 80070C2C */
-sint32 gtmain_race_sound_instrument_pair(uint32 instrument, uint32 stereo)
+/* Original: GTMAIN.EXE:sub_80070C2C. */ sint32 gtmain_race_sound_instrument_pair(uint32 instrument, uint32 stereo)
 {
     sint32 pan = 64;
     if (stereo) {
@@ -48,14 +48,14 @@ sint32 gtmain_race_sound_instrument_pair(uint32 instrument, uint32 stereo)
 }
 
 /* GTMAIN.EXE 80031370 */
-sint32 gtmain_race_sound_effect(sint32 instrument_index, sint32 volume, sint32 pan, sint32 priority)
+/* Original: GTMAIN.EXE:sub_80031370. */ sint32 gtmain_race_sound_effect(sint32 instrument_index, sint32 volume, sint32 pan, sint32 priority)
 {
     uint32 instrument = r_u32(0x800B4A08u) + 20u * (uint32)instrument_index;
     return gtmain_race_sound_instrument(instrument, volume, pan, priority);
 }
 
 /* GTMAIN.EXE 800313A4 */
-sint32 gtmain_race_sound_effect_default(sint32 instrument_index)
+/* Original: GTMAIN.EXE:sub_800313A4. */ sint32 gtmain_race_sound_effect_default(sint32 instrument_index)
 {
     uint32 stereo = instrument_index == 8 || instrument_index == 10;
     uint32 instrument = r_u32(0x800B4A08u) + 20u * (uint32)instrument_index;
@@ -63,14 +63,14 @@ sint32 gtmain_race_sound_effect_default(sint32 instrument_index)
 }
 
 /* GTMAIN.EXE 800314EC */
-uint32 gtmain_race_sound_channel_reverb(uint32 channel)
+/* Original: GTMAIN.EXE:sub_800314EC. */ uint32 gtmain_race_sound_channel_reverb(uint32 channel)
 {
     gtmain_sound_voice_reverb(channel + 16u, 1);
     return gtmain_sound_voice_reverb(channel + 28u, 1);
 }
 
 /* GTMAIN.EXE 80031524 */
-uint32 gtmain_race_sound_car_channels_prepare(uint32 car, uint32 engine_index)
+/* Original: GTMAIN.EXE:sub_80031524. */ uint32 gtmain_race_sound_car_channels_prepare(uint32 car, uint32 engine_index)
 {
     uint32 offset = engine_index * 4u;
     uint32 first = car + 2120u, second = car + 2160u;
@@ -81,7 +81,7 @@ uint32 gtmain_race_sound_car_channels_prepare(uint32 car, uint32 engine_index)
 }
 
 /* GTMAIN.EXE 800315E8 */
-uint32 gtmain_race_sound_car_init(uint32 car)
+/* Original: GTMAIN.EXE:sub_800315E8. */ uint32 gtmain_race_sound_car_init(uint32 car)
 {
     uint32 first = car + 2120u, second = car + 2160u;
     gtmain_sound_engine_channel_init(first, r_u32(0x800B49DCu), 0, 0);
@@ -92,7 +92,7 @@ uint32 gtmain_race_sound_car_init(uint32 car)
 }
 
 /* GTMAIN.EXE 8003169C */
-sint32 gtmain_race_sound_car_stop(uint32 car)
+/* Original: GTMAIN.EXE:sub_8003169C. */ sint32 gtmain_race_sound_car_stop(uint32 car)
 {
     gtmain_sound_engine_channel_stop(car + 2120u);
     gtmain_sound_engine_channel_stop(car + 2160u);

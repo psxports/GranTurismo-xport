@@ -1,14 +1,9 @@
-#include "game_draft_registry.h"
-#include "game_draft_agent3_support.h"
+#include "game_first2_registry.h"
 
-/* Unverified draft from complete exported pseudocode with guest address operations */
-/* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_80040EC4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+void gtmain_menu_parameter_selector_reset(uint32 selector)
 {
-  w_u32((uint32)((a0 + 4u * (uint32)(1))), (uint32)(0));
-  w_u32((uint32)((a0 + 4u * (uint32)(13))), (uint32)(0));
-  w_u32((uint32)((a0 + 4u * (uint32)(14))), (uint32)(0));
-  /* TODO Original void return has no required result value */
-  return 0u;
+    FUNCTION_MARKER(0x80040EC4, "GTMAIN.EXE");
+    w_u8(selector + 1, 0);
+    w_u8(selector + 13, 0);
+    w_u8(selector + 14, 0);
 }
-

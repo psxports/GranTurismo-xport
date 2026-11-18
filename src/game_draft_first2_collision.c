@@ -10,7 +10,7 @@ static sint32 gtmain_collision_sub_checked(sint32 first, sint32 second)
     return (sint32)result;
 }
 
-uint32 gtmain_course_interval_find(sint32 lap, sint32 progress)
+/* Original: GTMAIN.EXE:sub_8002445C. */ uint32 gtmain_course_interval_find(sint32 lap, sint32 progress)
 {
     uint32 list = r_u32(r_u32(0x800BC1B0u) + 24u);
     uint32 course_length = r_u32(r_u32(0x800BC1A8u));
@@ -32,7 +32,7 @@ uint32 gtmain_course_interval_find(sint32 lap, sint32 progress)
     return 0;
 }
 
-uint32 gtmain_collision_probe_segment(uint8 *probes, uint32 segment)
+/* Original: GTMAIN.EXE:sub_800241DC. */ uint32 gtmain_collision_probe_segment(uint8 *probes, uint32 segment)
 {
     uint32 result = r_u32(segment + 152u);
     uint32 count = r_u32(result), edges = result + 4u;
@@ -120,7 +120,7 @@ uint32 gtmain_collision_probe_segment(uint8 *probes, uint32 segment)
     return result;
 }
 
-uint32 gtmain_collision_probes_update(uint32 segment_index, uint8 *probes)
+/* Original: GTMAIN.EXE:sub_80023F30. */ uint32 gtmain_collision_probes_update(uint32 segment_index, uint8 *probes)
 {
     uint32 segment, result;
     xport_store_le32(probes + 24u, 4096); xport_store_le32(probes + 68u, 4096);
@@ -139,7 +139,7 @@ static sint32 gtmain_collision_clip(uint32 point, uint32 first, uint32 second)
     return (sint32)xport_gte_read_data(24u);
 }
 
-uint32 gtmain_collision_polygon_find(uint32 segment, const uint8 *position)
+/* Original: GTMAIN.EXE:sub_80024EF8. */ uint32 gtmain_collision_polygon_find(uint32 segment, const uint8 *position)
 {
     uint32 x_origin = r_u32(segment + 48u);
     uint32 x_position = xport_load_le32(position);
@@ -187,7 +187,7 @@ uint32 gtmain_collision_polygon_find(uint32 segment, const uint8 *position)
     return 0;
 }
 
-uint32 gtmain_collision_polygon_height(uint32 segment, uint32 polygon, const uint8 *position)
+/* Original: GTMAIN.EXE:sub_80025684. */ uint32 gtmain_collision_polygon_height(uint32 segment, uint32 polygon, const uint8 *position)
 {
     uint32 x_origin = r_u32(segment + 48u), x_position = xport_load_le32(position);
     uint32 z_origin = r_u32(segment + 56u), z_position = xport_load_le32(position + 8u);
@@ -261,7 +261,7 @@ uint32 gtmain_collision_polygon_height(uint32 segment, uint32 polygon, const uin
     }
 }
 
-uint32 gtmain_collision_query(uint8 *query)
+/* Original: GTMAIN.EXE:sub_80025A5C. */ uint32 gtmain_collision_query(uint8 *query)
 {
     uint16 index = (uint16)gtmain_course_segment_find(xport_load_le16(query + 4u), query + 8u);
     uint32 owner, segment, polygon, result;
@@ -281,17 +281,17 @@ uint32 gtmain_collision_query(uint8 *query)
     return result;
 }
 
-uint32 gtmain_collision_edges_end(uint32 edges)
+/* Original: GTMAIN.EXE:sub_80024628. */ uint32 gtmain_collision_edges_end(uint32 edges)
 {
     return edges + r_u32(edges) * 8u + 4u;
 }
 
-uint32 gtmain_collision_values_end(uint32 values)
+/* Original: GTMAIN.EXE:sub_800246E8. */ uint32 gtmain_collision_values_end(uint32 values)
 {
     return values + ((r_u16(values) | 1u) * 2u) + 2u;
 }
 
-uint32 gtmain_collision_grid_relocate(uint32 grid, uint32 segment)
+/* Original: GTMAIN.EXE:sub_80024640. */ uint32 gtmain_collision_grid_relocate(uint32 grid, uint32 segment)
 {
     uint32 destination = grid + 104u, cell;
     for (cell = 0; cell < 16u; ++cell)
@@ -316,7 +316,7 @@ uint32 gtmain_collision_grid_relocate(uint32 grid, uint32 segment)
     return destination;
 }
 
-uint32 gtmain_course_segments_relocate(uint32 course)
+/* Original: GTMAIN.EXE:sub_80024704. */ uint32 gtmain_course_segments_relocate(uint32 course)
 {
     uint32 count = r_u16(course + 4u), index;
     uint32 next = course + count * 4u + 12u;
@@ -325,9 +325,9 @@ uint32 gtmain_course_segments_relocate(uint32 course)
     {
         uint32 segment = next;
         w_u32(course + index * 4u + 12u, segment);
-        next = gt_draft_800245A0(segment + 164u, 0, 0, 0, 0, 0, 0, 0);
+        next = gt_draft_800245A0(segment + 164u);
         w_u32(segment + 148u, next);
-        next = gt_draft_800245A0(next, 0, 0, 0, 0, 0, 0, 0);
+        next = gt_draft_800245A0(next);
         w_u32(segment + 152u, next);
         next = gtmain_collision_edges_end(next);
         w_u32(segment + 156u, next);
@@ -355,7 +355,7 @@ uint32 gtmain_course_segments_relocate(uint32 course)
     return end;
 }
 
-uint32 gtmain_distance_groups_relocate(uint32 groups)
+/* Original: GTMAIN.EXE:sub_80024860. */ uint32 gtmain_distance_groups_relocate(uint32 groups)
 {
     uint32 count = r_u32(groups), index;
     uint32 next = groups + count * 4u + 4u;
@@ -367,7 +367,7 @@ uint32 gtmain_distance_groups_relocate(uint32 groups)
     return next;
 }
 
-void gtmain_distance_groups_bind(uint32 groups, uint32 records)
+/* Original: GTMAIN.EXE:sub_800248B4. */ void gtmain_distance_groups_bind(uint32 groups, uint32 records)
 {
     uint32 count = r_u32(groups), index;
     for (index = 0; index < count; ++index)
@@ -385,7 +385,7 @@ void gtmain_distance_groups_bind(uint32 groups, uint32 records)
     }
 }
 
-uint32 gtmain_object_tail_end(uint32 tail)
+/* Original: GTMAIN.EXE:sub_800249FC. */ uint32 gtmain_object_tail_end(uint32 tail)
 {
     uint32 type = r_u16(tail);
     if (!type) return tail + r_u16(tail + 2u) * 16u + 4u;
@@ -393,7 +393,7 @@ uint32 gtmain_object_tail_end(uint32 tail)
     return 0;
 }
 
-uint32 gtmain_object_records_relocate(uint32 records)
+/* Original: GTMAIN.EXE:sub_80024A50. */ uint32 gtmain_object_records_relocate(uint32 records)
 {
     uint32 count = r_u16(records), index;
     uint32 next = records + count * 4u + 4u;

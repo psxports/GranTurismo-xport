@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE:80034470 */
-sint32 gtmain_menu_reward_tick(void)
+/* Original: GTMAIN.EXE:sub_80034470. */ sint32 gtmain_menu_reward_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u), animation;
     sint32 result = 0;

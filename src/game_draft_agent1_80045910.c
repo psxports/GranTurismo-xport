@@ -1,85 +1,145 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "game_local_stack.h"
+#include "xport_trace.h"
 
-static void part_parameters(uint32 category)
-{
-    /* TODO Bind unselected parts parameters 80042C48 */
-    (void)gt_draft_unresolved_call(0x80042C48u, category, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-}
-
-static void parts_refresh(void)
-{
-    /* TODO Bind unselected parts refresh 8001EB08 */
-    (void)gt_draft_unresolved_call(0x8001EB08u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
-}
-
-static void parts_summary(uint32 destination, uint32 summary, uint32 detail)
-{
-    /* TODO Bind unselected parts summary 80058BB0 */
-    (void)gt_draft_unresolved_call(0x80058BB0u, destination, summary, detail, 0u, 0u, 0u, 0u, 0u);
-}
-
-static void parts_detail(uint32 destination, uint32 summary, uint32 detail)
-{
-    /* TODO Bind unselected parts detail 8004D78C */
-    (void)gt_draft_unresolved_call(0x8004D78Cu, destination, summary, detail, 0u, 0u, 0u, 0u, 0u);
-}
-
-/* GTMAIN.EXE 80045910 */
 uint32 gt_draft_80045910(void)
 {
-    uint32 input = r_u32(0x800BDD08u), context, category, part, i;
+    uint32 input, context, category, part, offset, summary, detail, snapshot;
+    uint32 first, second, third, fourth, result = 0;
+    uint32 source, destination, word, lane, base, count, shift, index, words[4];
     sint32 pending, selected, limit;
-    uint32 snapshot[24], summary, detail;
+    GT_LOCAL_STACK_FRAME frame;
+    FUNCTION_MARKER(0x80045910, "GTMAIN.EXE");
+    frame = gt_local_stack_push(0x90, 0x80045910);
+    snapshot = frame.address + 0x10;
+    input = r_u32(0x800BDD08);
     gtmain_menu_stream_check();
-    pending = (sint16)r_u16(0x801D2FDCu);
+    pending = r_s16(0x801D2FDC);
     if (pending >= 0) {
-        if ((sint8)r_u8(0x801D2FE0u + (uint32)pending)) {
-            context = r_u32(0x800BEA64u);
-            for (i = 0u; i < 24u; i += 4u) {
-                snapshot[i] = r_u32(context + 4u * i);
-                snapshot[i + 1u] = r_u32(context + 4u * i + 4u);
-                snapshot[i + 2u] = r_u32(context + 4u * i + 8u);
-                snapshot[i + 3u] = r_u32(context + 4u * i + 12u);
+        if (r_s8(0x801D2FE0 + (uint32)pending)) {
+            context = r_u32(0x800BEA64);
+            for (offset = 0; offset < 96; offset += 16) {
+                source = context + offset;
+                destination = snapshot + offset;
+                if ((source | destination) & 3) {
+                    for (index = 0; index < 4; ++index) {
+                        word = source + index * 4;
+                        base = (word + 3) & ~3;
+                        count = ((word + 3) & 3) + 1;
+                        shift = (4 - count) * 8;
+                        words[index] = 0;
+                        for (lane = 0; lane < count; ++lane)
+                            words[index] |= (uint32)r_u8(base + lane) << (shift + lane * 8);
+                        base = word & ~3;
+                        count = word & 3;
+                        for (lane = count; lane < 4; ++lane) {
+                            shift = (lane - count) * 8;
+                            words[index] = (words[index] & ~((uint32)255 << shift)) |
+                                ((uint32)r_u8(base + lane) << shift);
+                        }
+                    }
+                    for (index = 0; index < 4; ++index) {
+                        word = destination + index * 4;
+                        base = (word + 3) & ~3;
+                        count = ((word + 3) & 3) + 1;
+                        shift = (4 - count) * 8;
+                        for (lane = 0; lane < count; ++lane)
+                            w_u8(base + lane, words[index] >> (shift + lane * 8));
+                        base = word & ~3;
+                        count = word & 3;
+                        for (lane = count; lane < 4; ++lane)
+                            w_u8(base + lane, words[index] >> ((lane - count) * 8));
+                    }
+                } else {
+                    first = r_u32(source);
+                    second = r_u32(source + 4);
+                    third = r_u32(source + 8);
+                    fourth = r_u32(source + 12);
+                    w_u32(destination, first);
+                    w_u32(destination + 4, second);
+                    w_u32(destination + 8, third);
+                    w_u32(destination + 12, fourth);
+                }
             }
-            category = r_u8(0x800B5374u);
-            part = r_u16(0x800B5314u + 8u * (uint32)pending);
-            (void)gt_draft_8004AB30((sint32)category, (uint16)part);
-            category = r_u8(0x800B5374u);
-            part_parameters(category);
-            parts_refresh();
-            summary = 0x801D33F8u + 60u * (uint32)pending;
-            detail = 0x801D3098u + 108u * (uint32)pending;
-            parts_summary(0x800BB850u, summary, detail);
-            parts_detail(0x801D2FE8u, summary, detail);
-            context = r_u32(0x800BEA64u);
-            for (i = 0u; i < 24u; i += 4u) {
-                w_u32(context + 4u * i, snapshot[i]);
-                w_u32(context + 4u * i + 4u, snapshot[i + 1u]);
-                w_u32(context + 4u * i + 8u, snapshot[i + 2u]);
-                w_u32(context + 4u * i + 12u, snapshot[i + 3u]);
+            category = r_u8(0x800B5374);
+            part = r_u16(0x800B5314 + 8 * (uint32)pending);
+            gt_draft_8004AB30((sint32)category, (uint16)part);
+            category = r_u8(0x800B5374);
+            gtmain_menu_parts_parameters_apply(category);
+            gtmain_player_configuration_build();
+            summary = 0x801D33F8 + 60 * (uint32)pending;
+            detail = 0x801D3098 + 108 * (uint32)pending;
+            gtmain_race_specification_summary(0x800BB850, summary, detail);
+            gtmain_menu_selection_peak_update(0x801D2FE8, summary, detail);
+            context = r_u32(0x800BEA64);
+            for (offset = 0; offset < 96; offset += 16) {
+                source = snapshot + offset;
+                destination = context + offset;
+                if ((source | destination) & 3) {
+                    for (index = 0; index < 4; ++index) {
+                        word = source + index * 4;
+                        base = (word + 3) & ~3;
+                        count = ((word + 3) & 3) + 1;
+                        shift = (4 - count) * 8;
+                        words[index] = 0;
+                        for (lane = 0; lane < count; ++lane)
+                            words[index] |= (uint32)r_u8(base + lane) << (shift + lane * 8);
+                        base = word & ~3;
+                        count = word & 3;
+                        for (lane = count; lane < 4; ++lane) {
+                            shift = (lane - count) * 8;
+                            words[index] = (words[index] & ~((uint32)255 << shift)) |
+                                ((uint32)r_u8(base + lane) << shift);
+                        }
+                    }
+                    for (index = 0; index < 4; ++index) {
+                        word = destination + index * 4;
+                        base = (word + 3) & ~3;
+                        count = ((word + 3) & 3) + 1;
+                        shift = (4 - count) * 8;
+                        for (lane = 0; lane < count; ++lane)
+                            w_u8(base + lane, words[index] >> (shift + lane * 8));
+                        base = word & ~3;
+                        count = word & 3;
+                        for (lane = count; lane < 4; ++lane)
+                            w_u8(base + lane, words[index] >> ((lane - count) * 8));
+                    }
+                } else {
+                    first = r_u32(source);
+                    second = r_u32(source + 4);
+                    third = r_u32(source + 8);
+                    fourth = r_u32(source + 12);
+                    w_u32(destination, first);
+                    w_u32(destination + 4, second);
+                    w_u32(destination + 8, third);
+                    w_u32(destination + 12, fourth);
+                }
             }
-            parts_refresh();
+            gtmain_player_configuration_build();
         }
-        limit = (sint16)r_u16(0x801D2FDEu);
+        limit = r_s16(0x801D2FDE);
         ++pending;
         if (pending >= limit) pending = -1;
-        w_u16(0x801D2FDCu, (uint16)pending);
+        w_u16(0x801D2FDC, pending);
     }
-    if (!(sint8)r_u8(input)) return 0u;
-    (void)gtmain_menu_flags(1u);
-    selected = gtmain_menu_selector_input(0x80093530u, input + 2u);
-    if (selected == -2) {
-        (void)gtmain_menu_sound(2);
-        return 1u;
+    if (r_s8(input)) {
+        gtmain_menu_flags(1);
+        selected = gtmain_menu_selector_input(0x80093530, input + 2);
+        if (selected == -2) {
+            gtmain_menu_sound(2);
+            result = 1;
+        } else if (selected != -1) {
+            category = r_u8(0x800B5374);
+            part = r_u16(0x800B5314 + 8 * (uint32)selected);
+            gt_draft_8004AB30((sint32)category, (uint16)part);
+            category = r_u8(0x800B5374);
+            gtmain_menu_parts_parameters_apply(category);
+            gtmain_player_configuration_build();
+            gtmain_menu_sound(4);
+            result = 1;
+        }
     }
-    if (selected == -1) return 0u;
-    category = r_u8(0x800B5374u);
-    part = r_u16(0x800B5314u + 8u * (uint32)selected);
-    (void)gt_draft_8004AB30((sint32)category, (uint16)part);
-    category = r_u8(0x800B5374u);
-    part_parameters(category);
-    parts_refresh();
-    (void)gtmain_menu_sound(4);
-    return 1u;
+    gt_local_stack_pop(frame);
+    return result;
 }

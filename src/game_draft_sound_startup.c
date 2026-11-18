@@ -56,7 +56,7 @@ static uint32 gtmain_spu_initialize(uint32 mode)
     return result;
 }
 
-uint32 gtmain_sound_tempo(uint32 tempo)
+/* Original: GTMAIN.EXE:sub_8007EAD4. */ uint32 gtmain_sound_tempo(uint32 tempo)
 {
     uint32 scaled = tempo << 8;
     w_u16(0x800B55D0u, tempo);
@@ -72,7 +72,7 @@ uint32 gtmain_sound_mode(uint32 mode)
     return selected;
 }
 
-uint32 gtmain_sound_init(uint32 incoming_result)
+/* Original: GTMAIN.EXE:sub_8007EA58. */ uint32 gtmain_sound_init(uint32 incoming_result)
 {
     uint32 result = incoming_result;
     if (!r_u32(0x800B1BE4u)) {
@@ -90,7 +90,7 @@ uint32 gtmain_sound_init(uint32 incoming_result)
 }
 
 
-uint32 gtmain_data_checksum(uint32 address, uint32 size)
+/* Original: GTMAIN.EXE:sub_8007AAD4. */ uint32 gtmain_data_checksum(uint32 address, uint32 size)
 {
     uint32 sum = 0xAAAAu, crc = 0x3770u, i, bit;
     for (i = 0u; i < size; ++i) {
@@ -135,7 +135,7 @@ static sint32 gtmain_saved_data_wait(sint32 mode)
 }
 
 /* GTMAIN.EXE:80069F54 */
-uint32 gtmain_sound_saved_data_init(uint32 buffer)
+/* Original: GTMAIN.EXE:sub_80069F54. */ uint32 gtmain_sound_saved_data_init(uint32 buffer)
 {
     uint32 checksum, header, stored;
     (void)gtmain_spu_transfer_address(0x2000u);
@@ -153,7 +153,7 @@ uint32 gtmain_sound_saved_data_init(uint32 buffer)
     return 0x47546F73u;
 }
 
-void gtmain_sound_sequence_init(void)
+/* Original: GTMAIN.EXE:sub_8007EB08. */ void gtmain_sound_sequence_init(void)
 {
     uint32 i, row;
     if (r_u32(0x800B1BF4u)) return;
@@ -173,12 +173,12 @@ void gtmain_sound_sequence_init(void)
     w_u32(0x800B1BF4u, 1u);
 }
 
-uint32 gtmain_sound_reverb(uint32 preset, uint32 delay, uint32 feedback)
+/* Original: GTMAIN.EXE:sub_8007EBB8. */ uint32 gtmain_sound_reverb(uint32 preset, uint32 delay, uint32 feedback)
 {
     uint32 selected = preset & 0xFFu;
     uint32 row = 0x800B1C18u + selected * 64u;
     uint32 table = 0x800B1C04u + selected * 2u;
-    uint32 i;
+    uint32 i, control;
     if (selected == 7u || selected == 8u) {
         uint32 value = (delay << 13) / 127u;
         uint32 half = (uint32)((sint32)value >> 1);
@@ -196,9 +196,10 @@ uint32 gtmain_sound_reverb(uint32 preset, uint32 delay, uint32 feedback)
         uint32 product = ((feedback << 7) + feedback) << 8;
         w_u16(row + 14u, (uint32)((sint32)product / 127));
     }
+    control = r_u16(0x1F801DAAu);
     w_u16(0x1F801D84u, 0u);
     w_u16(0x1F801D86u, 0u);
-    w_u16(0x1F801DAAu, r_u16(0x1F801DAAu) & 0xFF7Fu);
+    w_u16(0x1F801DAAu, control & 0xFF7Fu);
     w_u16(0x1F801DA2u, r_u16(table));
     for (i = 0u; i < 4u; ++i) {
         uint32 a = r_u32(row + i * 16u);
@@ -220,7 +221,7 @@ uint32 gtmain_sound_reverb(uint32 preset, uint32 delay, uint32 feedback)
     return (0x10000u - r_u16(table)) << 3;
 }
 
-uint32 gtmain_sound_reverb_enable(uint32 mode)
+/* Original: GTMAIN.EXE:sub_8007ED68. */ uint32 gtmain_sound_reverb_enable(uint32 mode)
 {
     uint32 result = (r_u16(0x1F801DAAu) & 0xFF7Fu) | ((mode & 1u) << 7);
     w_u16(0x1F801DAAu, result);

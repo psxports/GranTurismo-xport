@@ -5,7 +5,7 @@
 static uint32 cw_mul(sint32 a, sint32 b) { return (uint32)((sint64)a * b / 4096); }
 static uint32 cw_abs(uint32 a) { return (sint32)a < 0 ? 0u - a : a; }
 static uint32 cw_low(uint32 a, uint32 b, sint32 divisor) { return (uint32)((sint32)(a * b) / divisor); }
-uint32 gtmain_race_contact_query(uint32 car, uint32 *fraction, uint32 *corner)
+/* Original: GTMAIN.EXE:sub_8006161C. */ uint32 gtmain_race_contact_query(uint32 car, uint32 *fraction, uint32 *corner)
 {
     uint32 toggle = r_u8(car + 1961u), old = (1u - toggle) * 32u, current = toggle * 32u, i;
     for (i = 0; i < 4u; ++i) {
@@ -33,7 +33,7 @@ uint32 gtmain_race_contact_query(uint32 car, uint32 *fraction, uint32 *corner)
     w_u16(car + 1974u, r_u16(0x1F800022u + selected * 44u));
     return mask;
 }
-uint32 gtmain_race_contact_response(uint32 car)
+/* Original: GTMAIN.EXE:sub_80066BE4. */ uint32 gtmain_race_contact_response(uint32 car)
 {
     uint32 toggle = r_u8(car + 1961u), corner = r_u8(car + 1706u) * 8u;
     sint32 cosine = r_s16(car + 1974u);
@@ -58,7 +58,7 @@ uint32 gtmain_race_contact_response(uint32 car)
     }
     return result;
 }
-uint32 gtmain_race_controls_impulse(uint32 car, uint8 *controls, uint32 fraction)
+/* Original: GTMAIN.EXE:sub_80065E40. */ uint32 gtmain_race_controls_impulse(uint32 car, uint8 *controls, uint32 fraction)
 {
     uint32 i, result = 0;
     for (i = 0; i < 4u; ++i) {
@@ -69,7 +69,7 @@ uint32 gtmain_race_controls_impulse(uint32 car, uint8 *controls, uint32 fraction
     }
     return result;
 }
-uint32 gtmain_race_wheel_effects_update(uint32 c)
+/* Original: GTMAIN.EXE:sub_800664E4. */ uint32 gtmain_race_wheel_effects_update(uint32 c)
 {
     uint32 slow = r_u32(c + 1724u) + 2275u < 0x11C7u && r_u32(c + 1728u) + 2275u < 0x11C7u;
     uint32 friction = 0, spin = 0, skid = 0, brake = 0, i;
@@ -145,7 +145,7 @@ uint32 gtmain_race_wheel_effects_update(uint32 c)
     if ((sint32)result < 0) w_u32(c + 1968u, 0x7FFFFFFFu);
     return result;
 }
-void gtmain_race_wheel_rotation_update(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80065F64. */ void gtmain_race_wheel_rotation_update(uint32 cars, sint32 count)
 {
     sint32 i;
     for (i = 0; i < count; ++i) {

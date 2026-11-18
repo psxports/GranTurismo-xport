@@ -15,18 +15,18 @@ uint32 gtmain_card_native_present(uint32 channel)
     return result == 0 || result == 3;
 }
 
-void gtmain_bios_card_init(uint32 mode)
+/* Original: GTMAIN.EXE:sub_80082698. */ void gtmain_bios_card_init(uint32 mode)
 {
     /* User-authorized native configuration has two empty card sockets */
     gtmain_card_native_absent_init(mode);
     (void)xport_bios_init_card(mode);
 }
-void gtmain_bios_card_start(void)
+/* Original: GTMAIN.EXE:sub_80082878. */ void gtmain_bios_card_start(void)
 {
     MemCardStart();
     (void)xport_bios_start_card();
 }
-void gtmain_bios_card_stop(void)
+/* Original: GTMAIN.EXE:sub_80082888. */ void gtmain_bios_card_stop(void)
 {
     MemCardStop();
     w_u32(0x74BCu, 0u);

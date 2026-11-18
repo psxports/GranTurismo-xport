@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE:8007A754 */
-void gtmain_input_stop_when_ready(void)
+/* Original: GTMAIN.EXE:sub_8007A754. */ void gtmain_input_stop_when_ready(void)
 {
     uint32 port;
     do {

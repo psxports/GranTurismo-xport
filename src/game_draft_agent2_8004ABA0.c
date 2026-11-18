@@ -4,24 +4,19 @@
 
 static uint32 part_inventory(uint32 inventory, sint32 type)
 {
-    /* TODO Bind unselected inventory bit-table lookup 8006C12C */
-    return gt_draft_unresolved_call(0x8006C12Cu, inventory, (uint32)type,
-        0u, 0u, 0u, 0u, 0u, 0u);
+    return gtmain_parts_inventory_flags(inventory, (uint32)type);
 }
 static uint32 part_equipment_fit(uint32 car, sint32 type, uint32 item, uint32 output)
 {
-    /* TODO Bind unselected four-argument equipment check 8006C058 */
-    return gt_draft_unresolved_call(0x8006C058u, car, (uint32)type,
-        item, output, 0u, 0u, 0u, 0u);
+    return gtmain_parts_record_matches_car(car, (uint32)type, item, output);
 }
 static void part_status_log(uint32 format)
 {
     printf((const char *)psx_addr(format, 1u));
 }
 
-/* TODO Resolve independent inventory and equipment services */
 /* GTMAIN.EXE 8004ABA0 */
-sint32 gt_draft_8004ABA0(uint32 target, sint32 part_type, uint32 context)
+/* Original: GTMAIN.EXE:sub_8004ABA0. */ sint32 gt_draft_8004ABA0(uint32 target, sint32 part_type, uint32 context)
 {
     uint32 offset, item, bits, index, available, current, car;
     if (r_u8(context + 95u) && part_type != 34) return 0;

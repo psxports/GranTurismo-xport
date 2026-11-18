@@ -42,7 +42,7 @@ static uint32 scene_gte_flags(void)
 }
 
 /* GTMAIN.EXE 80028C48 */
-void gtmain_race_pad_map(uint32 state, uint32 packet, uint32 buttons, uint32 threshold,
+/* Original: GTMAIN.EXE:sub_80028C48. */ uint32 gtmain_race_pad_map(uint32 state, uint32 packet, uint32 buttons, uint32 threshold,
     uint32 first_axis, uint32 second_axis, uint32 analog)
 {
     uint32 mapping, held, flags, physical, index;
@@ -91,39 +91,42 @@ void gtmain_race_pad_map(uint32 state, uint32 packet, uint32 buttons, uint32 thr
     mapping = r_u8(buttons + 1u);
     if ((physical >> (mapping & 31u)) & 1u) held |= 512u;
     w_u16(state + 80u, (uint16)held);
+    return (physical >> (mapping & 31u)) & 1u;
 }
 
 /* GTMAIN.EXE 800315A8 */
-void gtmain_race_sound_car_primary(uint32 car)
+/* Original: GTMAIN.EXE:sub_800315A8. */ uint32 gtmain_race_sound_car_primary(uint32 car)
 {
-    gtmain_race_sound_car_channels_prepare(car, 0u);
+    return gtmain_race_sound_car_channels_prepare(car, 0u);
 }
 
 /* GTMAIN.EXE 800315C8 */
-void gtmain_race_sound_car_secondary(uint32 car)
+/* Original: GTMAIN.EXE:sub_800315C8. */ uint32 gtmain_race_sound_car_secondary(uint32 car)
 {
-    gtmain_race_sound_car_channels_prepare(car, 2u);
+    return gtmain_race_sound_car_channels_prepare(car, 2u);
 }
 
 /* GTMAIN.EXE 8002D9C4 */
-void gtmain_race_lap_time_append(uint32 time)
+/* Original: GTMAIN.EXE:sub_8002D9C4. */ uint32 gtmain_race_lap_time_append(uint32 time)
 {
     sint32 index = r_s8(0x800B399Cu);
+    uint32 result = (uint32)index << 2u;
     if (index < 100) {
         w_u32(0x800BDB70u + ((uint32)index << 2), time);
         ++index;
     }
     w_u8(0x800B399Cu, (uint8)index);
+    return result;
 }
 
 static void race_two_player_balance(uint32 first, uint32 second)
 {
     /* TODO Bind the unselected original two-player pair service */
-    gt_draft_unresolved_call(0x80061AACu, first, second, 0, 0, 0, 0, 0, 0);
+    gtmain_race_pair_boost_update(first, second);
 }
 
 /* GTMAIN.EXE 80052C48 */
-void gtmain_race_physics_tick(void)
+/* Original: GTMAIN.EXE:sub_80052C48. */ void gtmain_race_physics_tick(void)
 {
     sint32 count = r_s16(0x800BC1A6u), index;
     uint32 mode;
@@ -157,7 +160,7 @@ void gtmain_race_physics_tick(void)
 }
 
 /* GTMAIN.EXE 8001E07C */
-uint32 gtmain_race_camera_tick(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001E07C. */ uint32 gtmain_race_camera_tick(uint32 camera)
 {
     uint32 mode = r_u32(0x800B630Cu), x, y, z, fourth, last;
     sint32 kind, shift;
@@ -191,23 +194,23 @@ uint32 gtmain_race_camera_tick(uint32 camera)
 }
 
 /* GTMAIN.EXE 8001E218 */
-void gtmain_race_split_screen_update(void)
+/* Original: GTMAIN.EXE:sub_8001E218. */ uint32 gtmain_race_split_screen_update(void)
 {
     sint32 mode = 1, previous;
     uint16 height = 240, width = 104;
     if (r_s16(0x800B6506u) == 1 && r_s16(0x800B661Au) == 1 && r_s16(0x800B6508u) && r_s16(0x800B661Cu)) mode = 2;
     previous = r_s8(0x800B633Cu);
     w_u8(0x800B633Cu, (uint8)mode);
-    if (mode == previous) return;
+    if (mode == previous) return (uint32)previous;
     if (mode == 1) { height = 120; width = 52; }
     w_u16(0x800B6416u, height); w_u16(0x800B641Au, width);
     w_u16(0x800B652Au, height); w_u16(0x800B652Eu, width);
     gtmain_view_projection_prepare(0x800B6410u);
-    gtmain_view_projection_prepare(0x800B6524u);
+    return gtmain_view_projection_prepare(0x800B6524u);
 }
 
 /* GTMAIN.EXE 8002E690 */
-void gtmain_race_effects_draw(void)
+/* Original: GTMAIN.EXE:sub_8002E690. */ uint32 gtmain_race_effects_draw(void)
 {
     uint32 effect = 0x800B39D4u, packet, ordering, group, bit;
     gte_ctc2(0, 5); gte_ctc2(0, 6); gte_ctc2(0, 7);
@@ -267,10 +270,11 @@ void gtmain_race_effects_draw(void)
         }
     }
     w_u32(0x800BFE4Cu, packet);
+    return 0u;
 }
 
 /* GTMAIN.EXE 8002FFB4 */
-uint32 gtmain_race_player_hud_draw(sint32 player, uint32 source)
+/* Original: GTMAIN.EXE:sub_8002FFB4. */ uint32 gtmain_race_player_hud_draw(sint32 player, uint32 source)
 {
     uint32 top = player == 0 ? 12u : 0u, lower = top ^ 12u;
     uint32 link = r_u32(0x800B6368u) + 4u;
@@ -282,7 +286,7 @@ uint32 gtmain_race_player_hud_draw(sint32 player, uint32 source)
 }
 
 /* GTMAIN.EXE 8002B6CC */
-uint32 gtmain_race_demo_view_draw(uint32 context)
+/* Original: GTMAIN.EXE:sub_8002B6CC. */ uint32 gtmain_race_demo_view_draw(uint32 context)
 {
     uint32 storage = gt_local_stack_workspace(0x2780u, 184u, 0x8002B6CCu);
     uint8 *view = (uint8 *)psx_addr(storage, 184u), *vector = view + 120u, *matrix = view + 140u;
@@ -314,7 +318,7 @@ uint32 gtmain_race_demo_view_draw(uint32 context)
 }
 
 /* GTMAIN.EXE 8002ABC0 */
-uint32 gtmain_race_stream_start(sint32 entry, sint32 parameter)
+/* Original: GTMAIN.EXE:sub_8002ABC0. */ uint32 gtmain_race_stream_start(sint32 entry, sint32 parameter)
 {
     uint32 enabled = r_u8(0x800CB767u);
     w_u8(0x800B63D9u, 0);

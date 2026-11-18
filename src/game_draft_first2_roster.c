@@ -1,6 +1,6 @@
 #include "game_first2_registry.h"
 
-sint32 gtmain_driver_mode_set(uint32 unused, uint32 driver, sint32 mode)
+/* Original: GTMAIN.EXE:sub_8001E324. */ sint32 gtmain_driver_mode_set(uint32 unused, uint32 driver, sint32 mode)
 {
     if (mode == 1) { w_u16(driver + 246u, 1); w_u8(driver + 253u, 0); return 1; }
     if (!mode) { w_u16(driver + 246u, 0); return 2; }
@@ -15,7 +15,7 @@ sint32 gtmain_driver_mode_set(uint32 unused, uint32 driver, sint32 mode)
     return 2;
 }
 
-uint32 gtmain_driver_leader(void)
+/* Original: GTMAIN.EXE:sub_8001E2D4. */ uint32 gtmain_driver_leader(void)
 {
     uint32 first = 0x800B6410u, second = first + 276u;
     if (r_u8(0x800CB7F5u) == 2)
@@ -29,7 +29,7 @@ uint32 gtmain_driver_leader(void)
     return first;
 }
 
-sint32 gtmain_driver_assist(uint32 car)
+/* Original: GTMAIN.EXE:sub_8001E39C. */ sint32 gtmain_driver_assist(uint32 car)
 {
     sint32 mode = (sint16)r_u16(car + 26u);
     uint32 driver = r_u32(0x800B6638u);
@@ -39,14 +39,14 @@ sint32 gtmain_driver_assist(uint32 car)
     return (sint16)r_u16(driver + 246u) == 2;
 }
 
-sint32 gtmain_driver_demo_active(void)
+/* Original: GTMAIN.EXE:sub_8001E438. */ sint32 gtmain_driver_demo_active(void)
 {
     uint32 driver = r_u32(0x800B6638u);
     if (!r_u8(driver + 254u)) return 0;
     return r_u8(driver + 255u) == 0;
 }
 
-sint32 gtmain_driver_is_primary(uint32 car)
+/* Original: GTMAIN.EXE:sub_8001E468. */ sint32 gtmain_driver_is_primary(uint32 car)
 {
     uint32 driver = r_u32(0x800B6638u);
     sint32 mode = (sint8)r_u8(driver + 253u);
@@ -54,15 +54,16 @@ sint32 gtmain_driver_is_primary(uint32 car)
     return r_u32(driver + 180u) == car;
 }
 
-uint32 gtmain_car_configuration_export(void)
+/* Original: GTMAIN.EXE:sub_8001E868. */ uint32 gtmain_car_configuration_export(void)
 {
     if (r_u8(0x800CB7F4u) != 2) return 2;
-    if (r_u8(0x800CB7F5u) == 2 || r_u8(0x800CB7F5u) == 4) return 4;
+    uint32 mode = r_u8(0x800CB7F5u);
+    if (mode == 2u || mode == 4u) return 4;
     return gtmain_memory_copy(0x800C4DECu + (uint32)(sint32)(sint16)r_u16(0x800C4C58u) * 96u,
         0x800BB790u, 96u);
 }
 
-sint32 gtmain_name_group_find(uint32 groups, uint32 name)
+/* Original: GTMAIN.EXE:sub_8001EFD8. */ sint32 gtmain_name_group_find(uint32 groups, uint32 name)
 {
     uint32 index = 0, group = r_u32(groups);
     while (group)
@@ -80,7 +81,7 @@ sint32 gtmain_name_group_find(uint32 groups, uint32 name)
     return -1;
 }
 
-sint32 gtmain_race_preset_index(void)
+/* Original: GTMAIN.EXE:sub_8001F808. */ sint32 gtmain_race_preset_index(void)
 {
     uint32 kind = r_u8(0x800CB7F4u);
     if (kind == 1)
@@ -98,7 +99,7 @@ sint32 gtmain_race_preset_index(void)
     return -1;
 }
 
-sint32 gtmain_roster_shift(sint32 position)
+/* Original: GTMAIN.EXE:sub_8001FA18. */ sint32 gtmain_roster_shift(sint32 position)
 {
     uint32 index;
     for (index = 1; index < 6u; ++index)
@@ -110,7 +111,7 @@ sint32 gtmain_roster_shift(sint32 position)
     return 0;
 }
 
-uint32 gtmain_roster_player(uint32 index)
+/* Original: GTMAIN.EXE:sub_8001FA78. */ uint32 gtmain_roster_player(uint32 index)
 {
     uint32 record = 0x800B6670u + index * 76u;
     uint32 equipment = r_u16(0x800BB790u + index * 96u);
@@ -122,7 +123,7 @@ uint32 gtmain_roster_player(uint32 index)
     return record;
 }
 
-sint32 gtmain_roster_opponents(void)
+/* Original: GTMAIN.EXE:sub_8001FB40. */ sint32 gtmain_roster_opponents(void)
 {
     uint32 index;
     for (index = 1; index < 6u; ++index)
@@ -139,7 +140,7 @@ sint32 gtmain_roster_opponents(void)
     return 0;
 }
 
-sint32 gtmain_model_extent(uint32 model)
+/* Original: GTMAIN.EXE:sub_8001FC6C. */ sint32 gtmain_model_extent(uint32 model)
 {
     uint32 geometry = r_u32(model + 68u);
     sint32 shift = (sint16)r_u16(geometry + 76u) - 12;
@@ -148,7 +149,7 @@ sint32 gtmain_model_extent(uint32 model)
     return (sint32)((uint32)value << ((uint32)shift & 31u));
 }
 
-void gtmain_model_marker(uint32 model, uint32 destination)
+/* Original: GTMAIN.EXE:sub_8001FCA0. */ void gtmain_model_marker(uint32 model, uint32 destination)
 {
     if (model)
     {
@@ -169,7 +170,7 @@ void gtmain_model_marker(uint32 model, uint32 destination)
     }
 }
 
-uint32 gtmain_race_course_car_filter(void)
+/* Original: GTMAIN.EXE:sub_80022170. */ uint32 gtmain_race_course_car_filter(void)
 {
     uint32 entry = gtmain_course_entry(r_u8(0x800B63BCu));
     uint32 enabled = r_u8(entry) >> 7;
@@ -177,7 +178,7 @@ uint32 gtmain_race_course_car_filter(void)
     return enabled ? r_u32(0x80097484u) : entry;
 }
 
-uint32 gtmain_race_saved_flag(void)
+/* Original: GTMAIN.EXE:sub_800221A4. */ uint32 gtmain_race_saved_flag(void)
 {
     uint32 result = 1;
     if (r_u8(0x800CB7F5u) == 1)
@@ -192,7 +193,7 @@ uint32 gtmain_race_saved_flag(void)
     return result;
 }
 
-sint32 gtmain_collision_layout(uint8 *out, const uint8 *source)
+/* Original: GTMAIN.EXE:sub_80020D58. */ sint32 gtmain_collision_layout(uint8 *out, const uint8 *source)
 {
     uint32 first = xport_load_le32(source);
     uint32 second = xport_load_le32(source + 8u);
@@ -226,7 +227,7 @@ static void gtmain_roster_swl(uint32 address, uint32 value)
     for (index = 0; index < count; ++index) w_u8(base + index, value >> (index * 8u));
 }
 
-uint32 gtmain_packet_three_tiles(uint32 link, uint32 tile, uint32 xy)
+/* Original: GTMAIN.EXE:sub_8006D14C. */ uint32 gtmain_packet_three_tiles(uint32 link, uint32 tile, uint32 xy)
 {
     uint32 coordinate = tile + 194u;
     uint32 low = (coordinate & 63u) << 4;
@@ -248,7 +249,7 @@ uint32 gtmain_packet_three_tiles(uint32 link, uint32 tile, uint32 xy)
     return packet;
 }
 
-sint32 gtmain_vector_dot_fixed(const uint8 *vector, const uint8 *coefficients)
+/* Original: GTMAIN.EXE:sub_8006E9CC. */ sint32 gtmain_vector_dot_fixed(const uint8 *vector, const uint8 *coefficients)
 {
     sint64 first = (sint64)(sint16)xport_load_le16(coefficients) * (sint32)xport_load_le32(vector);
     sint64 second = (sint64)(sint16)xport_load_le16(coefficients + 2u) * (sint32)xport_load_le32(vector + 4u);
@@ -257,12 +258,12 @@ sint32 gtmain_vector_dot_fixed(const uint8 *vector, const uint8 *coefficients)
     return (sint32)(uint32)(sum >> 12);
 }
 
-uint32 gtmain_course_resource_name(uint32 index)
+/* Original: GTMAIN.EXE:sub_8006EABC. */ uint32 gtmain_course_resource_name(uint32 index)
 {
     return gtmain_packed_bytes_entry(r_u32(0x800C0C10u), index) + 1u;
 }
 
-uint32 gtmain_car_archive_load(uint32 buffer, uint32 capacity)
+/* Original: GTMAIN.EXE:sub_8006E850. */ uint32 gtmain_car_archive_load(uint32 buffer, uint32 capacity)
 {
     uint32 path = r_u32(0x800C00D4u);
     uint32 result = gtmain_archive_table_load_guest(path, 0x800C00D8u, buffer, capacity);

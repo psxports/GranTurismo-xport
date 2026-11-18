@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8002C8E4 */
-uint32 gtmain_race_meter_color(sint32 value)
+/* Original: GTMAIN.EXE:sub_8002C8E4. */ uint32 gtmain_race_meter_color(sint32 value)
 {
     uint32 scaled = (uint32)value << 2;
     if ((sint32)scaled < -255) return 0u;
@@ -12,7 +12,7 @@ uint32 gtmain_race_meter_color(sint32 value)
 }
 
 /* GTMAIN.EXE 8002C944 */
-uint32 gtmain_race_meter_rectangle_draw(uint32 ordering, sint16 x, sint16 y, sint32 value)
+/* Original: GTMAIN.EXE:sub_8002C944. */ uint32 gtmain_race_meter_rectangle_draw(uint32 ordering, sint16 x, sint16 y, sint32 value)
 {
     sint16 corners[4];
     uint32 color;

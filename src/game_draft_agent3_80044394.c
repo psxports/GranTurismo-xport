@@ -3,13 +3,11 @@
 
 static void menu_selection_centered_text(uint32 ordering, uint32 text, sint32 x, sint32 y, sint32 intensity)
 {
-    /* TODO Bind unrecorded centered text renderer 80043F34 */
-    (void)gt_draft_unresolved_call(0x80043F34u, ordering, text,
-        (uint32)x, (uint32)y, (uint32)intensity, 0u, 0u, 0u);
+    gtmain_parts_caption_draw(ordering, text, x, y, intensity);
 }
 
 /* GTMAIN.EXE 80044394 */
-uint32 gt_draft_80044394(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_80044394. */ uint32 gt_draft_80044394(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
     sint32 mode;
     uint32 descriptor, publish;

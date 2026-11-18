@@ -1,13 +1,12 @@
 #include "game_first2_registry.h"
 
-/* TODO Bind unselected vehicle mode initializer */
 static uint32 race_vehicle_mode_initialize(sint32 mode, uint32 car, uint32 first, uint32 second)
 {
-    gt_draft_failure("GTMAIN vehicle mode initializer", 0x80056E48u);
+    return gtmain_race_objective_initialize(mode, car, first, second);
 }
 
 /* GTMAIN.EXE 80029AA8 */
-uint32 gtmain_race_mode_vehicle_prepare(void)
+/* Original: GTMAIN.EXE:sub_80029AA8. */ uint32 gtmain_race_mode_vehicle_prepare(void)
 {
     uint32 record, configuration, first = 0, second = 0;
     sint32 mode;

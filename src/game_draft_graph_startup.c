@@ -10,7 +10,7 @@ static uint32 graph_reset_callback(uint32 token, uint32 argument)
     gt_draft_failure("GTMAIN GPU reset table callback", token);
 }
 
-uint32 gtmain_graph_reset(uint32 mode)
+/* Original: GTMAIN.EXE:sub_80086778. */ uint32 gtmain_graph_reset(uint32 mode)
 {
     uint32 selected = mode & 7u;
     uint32 result, callback, width;
@@ -102,7 +102,7 @@ static void vblank_callback_dispatch(uint32 token)
     gt_draft_failure("GTMAIN VBlank callback target", token);
 }
 
-static uint32 gtmain_vblank(void)
+/* Original: GTMAIN.EXE:sub_8007B650. */ static uint32 gtmain_vblank(void)
 {
     uint32 node = r_u32(0x800B1A20u), previous = 0u;
     uint32 first_ticks, second_ticks;
@@ -130,7 +130,7 @@ static void gtmain_vblank_native(void)
     (void)gtmain_vblank();
 }
 
-uint32 gtmain_frame_init(uint32 mode)
+/* Original: GTMAIN.EXE:sub_8007A400. */ uint32 gtmain_frame_init(uint32 mode)
 {
     if (r_u32(0x800B1A24u)) return 0xFFFFFFFFu;
     w_u32(0x800B1A24u, 1u);
@@ -142,7 +142,7 @@ uint32 gtmain_frame_init(uint32 mode)
     return 0u;
 }
 
-uint32 gtmain_frame_events_init(void)
+/* Original: GTMAIN.EXE:sub_8007A584. */ uint32 gtmain_frame_events_init(void)
 {
     uint32 i;
     for (i = 0u; i < 8u; ++i) {
@@ -156,7 +156,7 @@ uint32 gtmain_frame_events_init(void)
     return 16u;
 }
 
-void gtmain_frame_callback_insert(uint32 node)
+/* Original: GTMAIN.EXE:sub_8007A608. */ void gtmain_frame_callback_insert(uint32 node)
 {
     if (native_frame_node && vblank_dispatching)
         gt_draft_failure("GTMAIN mixed VBlank list mutation", 0x8007A608u);

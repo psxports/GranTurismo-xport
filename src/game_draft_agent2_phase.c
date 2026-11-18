@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 /* Unverified draft adapted from existing phase polygon translation */
 /* GTMAIN.EXE 8001A0E0 */
-uint32 gt_draft_8001A0E0(uint32 context)
+/* Original: GTMAIN.EXE:sub_8001A0E0. */ uint32 gt_draft_8001A0E0(uint32 context)
 {
     uint32 positions[3][4], lengths[3], colors[3];
     uint32 config = r_u32(0x8008F220u);

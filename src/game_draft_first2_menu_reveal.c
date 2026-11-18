@@ -1,9 +1,10 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "xport_trace.h"
 #include <stdio.h>
 
 /* GTMAIN.EXE 80033A1C */
-uint32 gtmain_menu_result_name_request_initialize(void)
+/* Original: GTMAIN.EXE:sub_80033A1C. */ uint32 gtmain_menu_result_name_request_initialize(void)
 {
     sint32 mode = r_s8(0x801D2FECu);
     if ((mode >= 3 && mode < 6) || (mode >= 7 && mode < 9)) {
@@ -15,20 +16,15 @@ uint32 gtmain_menu_result_name_request_initialize(void)
     return 0u;
 }
 
-static void end_panel_initialize_missing(uint32 context)
-{
-    /* TODO Bind the unselected one-argument panel initializer */
-    gt_draft_failure("End panel initialization at801F3018", 0x8003D1A8u);
-}
-
 /* GTMAIN.EXE 80038660 */
-uint32 gtmain_menu_end_panel_initialize(void)
+/* Original: GTMAIN.EXE:sub_80038660. */ uint32 gtmain_menu_end_panel_initialize(void)
 {
     sint32 mode;
     uint32 title, asset;
+    FUNCTION_MARKER(0x80038660, "GTMAIN.EXE");
     w_u16(0x801F3002u, 0u);
     w_u8(0x801F2FE5u, 0u);
-    end_panel_initialize_missing(0x801F3018u);
+    gtmain_menu_pose_initialize(0x801F3018u);
     mode = r_s8(0x801F2FE0u);
     switch (mode) {
     case 1: title = 0x800BCBE3u; asset = 19u; break;
@@ -42,7 +38,7 @@ uint32 gtmain_menu_end_panel_initialize(void)
 }
 
 /* GTMAIN.EXE 80037CC8 */
-sint32 gtmain_menu_quick_end_run(uint32 selector, uint8 disabled, uint32 first,
+/* Original: GTMAIN.EXE:sub_80037CC8. */ sint32 gtmain_menu_quick_end_run(uint32 selector, uint8 disabled, uint32 first,
     uint32 second, uint8 style)
 {
     uint8 course = r_u8(0x800B63BDu);
@@ -66,14 +62,14 @@ sint32 gtmain_menu_quick_end_run(uint32 selector, uint8 disabled, uint32 first,
 }
 
 /* GTMAIN.EXE 80037E00 */
-sint32 gtmain_menu_quick_end_mode3(uint8 disabled)
+/* Original: GTMAIN.EXE:sub_80037E00. */ sint32 gtmain_menu_quick_end_mode3(uint8 disabled)
 {
     return gtmain_menu_quick_end_run(0x80091B8Cu, disabled, 0x80091B7Cu,
         0x80091B74u, 3u);
 }
 
 /* GTMAIN.EXE 800379C0 */
-uint32 gtmain_menu_quick_end_initialize(void)
+/* Original: GTMAIN.EXE:sub_800379C0. */ uint32 gtmain_menu_quick_end_initialize(void)
 {
     uint32 first, second, disabled;
     gtmain_menu_asset_activate(22u);
@@ -97,7 +93,7 @@ static void reveal_panel_create(uint32 owner, uint32 index,
 }
 
 /* GTMAIN.EXE 80034B98 */
-uint32 gtmain_menu_reveal_input_tick(void)
+/* Original: GTMAIN.EXE:sub_80034B98. */ uint32 gtmain_menu_reveal_input_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u), result = 0u;
     gtmain_menu_stream_check();
@@ -125,7 +121,7 @@ uint32 gtmain_menu_reveal_input_tick(void)
 }
 
 /* GTMAIN.EXE 80038304 */
-uint32 gtmain_menu_end_panel_tick(void)
+/* Original: GTMAIN.EXE:sub_80038304. */ uint32 gtmain_menu_end_panel_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u), phase;
     gtmain_menu_stream_check();
@@ -160,35 +156,29 @@ uint32 gtmain_menu_end_panel_tick(void)
     return 0u;
 }
 
-static void end_panel_title_draw(uint32 ordering, sint32 x, sint32 y,
-    uint32 text, sint32 style, sint32 intensity)
-{
-    /* TODO Bind unselected381A4 with the six established argument carriers */
-    gt_draft_failure("End panel title transition", 0x800381A4u);
-}
-
 /* GTMAIN.EXE 80038484 */
-uint32 gtmain_menu_end_panel_draw(uint32 ordering, sint32 x, sint32 y,
+/* Original: GTMAIN.EXE:sub_80038484. */ uint32 gtmain_menu_end_panel_draw(uint32 ordering, sint32 x, sint32 y,
     sint32 intensity)
 {
+    FUNCTION_MARKER(0x80038484, "GTMAIN.EXE");
     gtmain_menu_machine_caption_draw(ordering, x, y, intensity);
     if (r_u16(0x801F3002u) >= 31u) {
         sint32 width, centered, style;
         uint32 mode, text, toggle;
-        gtmain_text_font(3);
-        gtmain_text_flags(0u);
+        gtmain_text_flags(3);
+        gtmain_text_font(0u);
         width = gtmain_text_width(3, r_u32(0x801F2FDCu));
         centered = (sint32)((uint32)x - ((uint32)(width >> 1) - 160u));
         mode = r_u8(0x801F2FE0u);
         text = r_u32(0x801F2FDCu);
         toggle = r_u8(0x801F3008u);
         style = r_s8(0x80091EDCu + 2u * (mode & 3u) + toggle);
-        end_panel_title_draw(ordering, centered,
+        gtmain_menu_end_title_transition_draw(ordering, centered,
             (sint32)((uint32)y + 64u), text, style, intensity);
     }
     if (r_u16(0x801F3002u) >= 90u) {
         sint32 width, centered;
-        gtmain_text_font(2);
+        gtmain_text_flags(2);
         gtmain_text_color(gtmain_menu_pulse_color(intensity >> 1));
         width = gtmain_text_width(2, 0x800BCC0Cu);
         centered = (sint32)((uint32)x - ((uint32)(width >> 1) - 160u));

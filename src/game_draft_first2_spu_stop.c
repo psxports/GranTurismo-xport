@@ -6,7 +6,7 @@ static uint32 stop_bios(uint32 owner, uint32 argument)
     /* TODO Bind the actual BIOS event or critical-return service */
     gt_draft_failure("Native SPU stop BIOS adapter", owner);
 }
-uint32 gtmain_spu_driver_stop(void)
+/* Original: GTMAIN.EXE:sub_800866C8. */ uint32 gtmain_spu_driver_stop(void)
 {
     uint32 handle;
     if (r_u32(0x800B2414u) != 1) return 1;

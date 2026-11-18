@@ -87,7 +87,7 @@ static sint32 frame_status_callback(uint32 token)
 }
 
 /* GTMAIN.EXE 8006A21C */
-uint8 *gtmain_resource_read_retry(uint32 path, uint8 *buffer, uint32 capacity, uint32 decoded_bytes)
+/* Original: GTMAIN.EXE:sub_8006A21C. */ uint8 *gtmain_resource_read_retry(uint32 path, uint8 *buffer, uint32 capacity, uint32 decoded_bytes)
 {
     for (;;) {
         uint8 *result = gtmain_cd_file_load_native(path, buffer, capacity, capacity, decoded_bytes);
@@ -97,7 +97,7 @@ uint8 *gtmain_resource_read_retry(uint32 path, uint8 *buffer, uint32 capacity, u
 }
 
 /* GTMAIN.EXE 80078914 */
-void gtmain_font_texture_upload(uint32 destination, sint32 page, const uint8 *data)
+/* Original: GTMAIN.EXE:sub_80078914. */ void gtmain_font_texture_upload(uint32 destination, sint32 page, const uint8 *data)
 {
     uint32 pixels[8192], value;
     uint32 bits = (uint32)page, x = (bits & 15u) << 6, y = (bits >> 4) << 8;
@@ -120,7 +120,7 @@ void gtmain_font_texture_upload(uint32 destination, sint32 page, const uint8 *da
 }
 
 /* GTMAIN.EXE 8006F078 */
-uint32 gtmain_frame_tables_bind(uint32 *first, uint32 *second, uint32 count)
+/* Original: GTMAIN.EXE:sub_8006F078. */ uint32 gtmain_frame_tables_bind(uint32 *first, uint32 *second, uint32 count)
 {
     frame_tables_publish(first, second, count);
     gtmain_frame_tables_clear(2);
@@ -128,61 +128,67 @@ uint32 gtmain_frame_tables_bind(uint32 *first, uint32 *second, uint32 count)
 }
 
 /* GTMAIN.EXE 80070240 */
-void gtmain_ordering_clear(uint32 index)
+/* Original: GTMAIN.EXE:sub_80070240. */ uint32 gtmain_ordering_clear(uint32 index)
 {
     uint32 table = r_u32(0x800C00E4u + 4u * index);
     uint32 count = r_u32(0x800C00F0u), node;
-    ClearOTagR((uint32 *)psx_addr(table, count * 4u), (sint32)count);
+    uint32 result = table;
+    if (count > 0x80000u) gt_draft_failure("Native ordering table extent", 0x80070240u);
+    ClearOTagRNativePSX((uint32 *)psx_addr(table, count ? count * 4u : 4u),
+        (sint32)count, 0x800B2574u, 0x800B2560u);
     node = r_u32(0x800C00E0u);
     while (node) {
         w_u32(node + 24u, r_u32(node + 16u + 4u * index));
         node = r_u32(node + 4u);
+        result = index << 2u;
     }
+    return result;
 }
 
 /* GTMAIN.EXE 8006C410 */
-void gtmain_frame_tables_clear(sint32 selection)
+/* Original: GTMAIN.EXE:sub_8006C410. */ uint32 gtmain_frame_tables_clear(sint32 selection)
 {
-    if (selection == 0) gtmain_ordering_clear(r_u32(0x800BFF68u));
-    else if (selection == 1) gtmain_ordering_clear(r_u32(0x800BFF6Cu));
+    if (selection == 0) return gtmain_ordering_clear(r_u32(0x800BFF68u));
+    else if (selection == 1) return gtmain_ordering_clear(r_u32(0x800BFF6Cu));
     else if (selection == 2) { gtmain_ordering_clear(0u); gtmain_ordering_clear(1u); }
+    return selection == 2 ? 0u : selection < 2 ? 1u : 2u;
 }
 
 /* GTMAIN.EXE 800702F8 */
-void gtmain_ordering_submit(uint32 index)
+/* Original: GTMAIN.EXE:sub_800702F8. */ void gtmain_ordering_submit(uint32 index)
 {
     uint32 link = gtmain_audio_buffer_end(index);
     DrawOTag((uint32 *)psx_addr(link, 4u));
 }
 
 /* GTMAIN.EXE 80078B60 */
-void gtmain_frame_submit(uint32 alternate)
+/* Original: GTMAIN.EXE:sub_80078B60. */ void gtmain_frame_submit(uint32 alternate)
 {
     gtmain_ordering_submit(r_u32(alternate ? 0x800BFF6Cu : 0x800BFF68u));
 }
 
 /* GTMAIN.EXE 80078BF0 */
-void gtmain_frame_links_reset(uint32 alternate)
+/* Original: GTMAIN.EXE:sub_80078BF0. */ uint32 gtmain_frame_links_reset(uint32 alternate)
 {
-    gtmain_packet_buffer_select(r_u32(alternate ? 0x800BFF6Cu : 0x800BFF68u));
+    return gtmain_packet_buffer_select(r_u32(alternate ? 0x800BFF6Cu : 0x800BFF68u));
 }
 
 /* GTMAIN.EXE 8006F900 */
-void gtmain_frame_prepare(uint32 alternate)
+/* Original: GTMAIN.EXE:sub_8006F900. */ uint32 gtmain_frame_prepare(uint32 alternate)
 {
     gtmain_frame_tables_clear((sint32)alternate);
-    gtmain_frame_links_reset(alternate);
+    return gtmain_frame_links_reset(alternate);
 }
 
 /* GTMAIN.EXE 80078AB0 */
-void gtmain_frame_display_begin(void)
+/* Original: GTMAIN.EXE:sub_80078AB0. */ uint32 gtmain_frame_display_begin(void)
 {
     ResetGraph(1);
-    gtmain_frame_environments_apply();
+    return gtmain_frame_environments_apply();
 }
 
 /* GTMAIN.EXE 80078AD8 */
-void gtmain_frame_swap(uint32 wait_mode)
+/* Original: GTMAIN.EXE:sub_80078AD8. */ void gtmain_frame_swap(uint32 wait_mode)
 {
     uint32 second = r_u32(0x800BFF6Cu), first = r_u32(0x800BFF68u);
     w_u32(0x800BFF68u, second);
@@ -196,7 +202,7 @@ void gtmain_frame_swap(uint32 wait_mode)
 }
 
 /* GTMAIN.EXE 8006F174 */
-sint32 gtmain_frame_run(uint8 *context)
+/* Original: GTMAIN.EXE:sub_8006F174. */ sint32 gtmain_frame_run(uint8 *context)
 {
     uint32 event[4], callback = frame_context_word(context, 0u);
     sint32 result;

@@ -3,13 +3,13 @@
 #include <stdio.h>
 
 /* GTMAIN.EXE:80082A88 */
-uint64 gtmain_negate64(uint64 value)
+/* Original: GTMAIN.EXE:sub_80082A88. */ uint64 gtmain_negate64(uint64 value)
 {
     return (uint64)0 - value;
 }
 
 /* GTMAIN.EXE:80082AA8 */
-uint64 gtmain_unsigned_divide64(uint64 numerator, uint64 denominator, uint64 *remainder)
+/* Original: GTMAIN.EXE:sub_80082AA8. */ uint64 gtmain_unsigned_divide64(uint64 numerator, uint64 denominator, uint64 *remainder)
 {
     uint64 quotient;
     if (!denominator) {
@@ -23,7 +23,7 @@ uint64 gtmain_unsigned_divide64(uint64 numerator, uint64 denominator, uint64 *re
 }
 
 /* GTMAIN.EXE:8001E4A8 */
-sint64 gtmain_signed_divide64(sint64 numerator, sint64 denominator, uint32 caller_link)
+/* Original: GTMAIN.EXE:sub_8001E4A8. */ sint64 gtmain_signed_divide64(sint64 numerator, sint64 denominator, uint32 caller_link)
 {
     uint64 first = (uint64)numerator, second = (uint64)denominator, quotient;
     uint32 negative = 0u;

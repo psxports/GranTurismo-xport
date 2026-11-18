@@ -30,7 +30,7 @@ static void gtmain_sound_voice_volume_native(uint32 owner, uint32 packed_volume)
 }
 
 /* GTMAIN.EXE 8007DE44 */
-uint32 gtmain_sound_voice_tick(void)
+/* Original: GTMAIN.EXE:sub_8007DE44. */ uint32 gtmain_sound_voice_tick(void)
 {
     uint32 update = 0u, off = 0u, on = 0u, i, voice, bit;
     uint32 result = 0x800B55D4u;
@@ -132,24 +132,21 @@ uint32 gtmain_sound_voice_tick(void)
 
 static void sound_sequence_events(uint32 node)
 {
-    /* TODO Bind unselected sequence event handler 8007E3F8 */
-    (void)gt_draft_unresolved_call(0x8007E3F8u, node, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_sound_sequence_events(node);
 }
 
 static uint32 sound_sequence_delta(uint32 ramp)
 {
-    /* TODO Bind unselected control ramp 8007F39C */
-    return gt_draft_unresolved_call(0x8007F39Cu, ramp, 0, 0, 0, 0, 0, 0, 0);
+    return (uint32)gtmain_sound_ramp_step(ramp);
 }
 
 static void sound_sequence_volume(uint32 node)
 {
-    /* TODO Bind unselected channel volume update 8007F4A4 */
-    (void)gt_draft_unresolved_call(0x8007F4A4u, node, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_sound_sequence_volume_apply(node);
 }
 
 /* GTMAIN.EXE 8007E6E8 */
-void gtmain_sound_sequence_tick(void)
+/* Original: GTMAIN.EXE:sub_8007E6E8. */ void gtmain_sound_sequence_tick(void)
 {
     uint32 node;
     if (!r_u32(0x800B1BE4u) || !r_u32(0x800B1BF4u)) return;
@@ -188,7 +185,7 @@ void gtmain_sound_sequence_tick(void)
 }
 
 /* GTMAIN.EXE 8007E81C */
-void gtmain_sound_sequence_voices(void)
+/* Original: GTMAIN.EXE:sub_8007E81C. */ void gtmain_sound_sequence_voices(void)
 {
     uint32 i;
     for (i = 0u; i < 25u; ++i) {

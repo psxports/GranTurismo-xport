@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8002F8CC */
-void gt_draft_8002F8CC(sint32 font, uint32 table)
+/* Original: GTMAIN.EXE:sub_8002F8CC. */ void gt_draft_8002F8CC(sint32 font, uint32 table)
 {
     uint32 index = 0u, text = r_u32(table + 4u);
     while (text)

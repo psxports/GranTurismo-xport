@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 #include "psx_spu.h"
 
-sint32 gtmain_cd_descriptor_sector(const uint8 *descriptor)
+/* Original: GTMAIN.EXE:sub_80083908. */ sint32 gtmain_cd_descriptor_sector(const uint8 *descriptor)
 {
     uint32 minute = descriptor[0], second = descriptor[1], frame;
     uint32 seconds = 60u * (10u * (minute >> 4) + (minute & 15u));
@@ -21,14 +21,14 @@ uint32 gtmain_spu_write_transfer(uint32 guest_source, uint32 bytes)
     }
     return bytes;
 }
-uint32 gtmain_spu_write(uint32 guest_source, uint32 bytes)
+/* Original: GTMAIN.EXE:sub_800859A8. */ uint32 gtmain_spu_write(uint32 guest_source, uint32 bytes)
 {
     if (bytes > 0x7EFF0u) bytes = 0x7EFF0u;
     (void)gtmain_spu_write_transfer(guest_source, bytes);
     if (!r_u32(0x800B237Cu)) w_u32(0x800B2378u, 0);
     return bytes;
 }
-sint32 gtmain_audio_snapshot_upload(uint32 guest_snapshot)
+/* Original: GTMAIN.EXE:sub_8006A150. */ sint32 gtmain_audio_snapshot_upload(uint32 guest_snapshot)
 {
     uint32 clock = r_u32(0x800C0A88u), prior, high, elapsed, checksum, voice;
     sint64 product = (sint64)(sint32)clock * (sint64)(sint32)0x88888889u;
@@ -49,7 +49,7 @@ sint32 gtmain_audio_snapshot_upload(uint32 guest_snapshot)
     (void)gtmain_spu_write(guest_snapshot, 46016u);
     return SpuIsTransferCompleted(1);
 }
-sint32 gtmain_music_sector_init(void)
+/* Original: GTMAIN.EXE:sub_8006EFDC. */ sint32 gtmain_music_sector_init(void)
 {
     uint8 descriptor[24];
     sint32 result;

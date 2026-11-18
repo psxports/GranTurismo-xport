@@ -2,7 +2,7 @@
 #include <stdio.h>
 
 /* GTMAIN.EXE 80033ABC */
-uint32 gtmain_menu_result_panel_run(uint8 flags, sint16 index, uint32 first, uint32 second,
+/* Original: GTMAIN.EXE:sub_80033ABC. */ uint32 gtmain_menu_result_panel_run(uint8 flags, sint16 index, uint32 first, uint32 second,
     uint32 metric, sint16 threshold, uint32 extra, uint8 mode, uint8 style, uint8 panel)
 {
     uint32 cursor = 0x801D3AE4u;
@@ -42,7 +42,7 @@ uint32 gtmain_menu_result_panel_run(uint8 flags, sint16 index, uint32 first, uin
 }
 
 /* GTMAIN.EXE 80033E44 */
-uint32 gtmain_menu_result_mode7_run(uint8 flags, uint32 first, uint32 second, uint32 metric,
+/* Original: GTMAIN.EXE:sub_80033E44. */ uint32 gtmain_menu_result_mode7_run(uint8 flags, uint32 first, uint32 second, uint32 metric,
     sint16 threshold, uint32 extra)
 {
     gtmain_menu_draw_callback_set(0x8009197Cu);
@@ -50,7 +50,7 @@ uint32 gtmain_menu_result_mode7_run(uint8 flags, uint32 first, uint32 second, ui
 }
 
 /* GTMAIN.EXE 80033EE0 */
-uint32 gtmain_menu_result_mode8_run(uint8 flags, uint32 first, uint32 second, uint32 metric,
+/* Original: GTMAIN.EXE:sub_80033EE0. */ uint32 gtmain_menu_result_mode8_run(uint8 flags, uint32 first, uint32 second, uint32 metric,
     sint16 threshold, uint32 extra)
 {
     gtmain_menu_draw_callback_set(0x8009197Cu);
@@ -58,14 +58,14 @@ uint32 gtmain_menu_result_mode8_run(uint8 flags, uint32 first, uint32 second, ui
 }
 
 /* GTMAIN.EXE 800340D4 */
-uint32 gtmain_menu_result_mode4_run(uint32 extra, sint16 index, uint32 first)
+/* Original: GTMAIN.EXE:sub_800340D4. */ uint32 gtmain_menu_result_mode4_run(uint32 extra, sint16 index, uint32 first)
 {
     gtmain_menu_draw_callback_set(0x800919B4u);
     return gtmain_menu_result_panel_run(0u, index, first, 0u, 0u, 1, extra, 4u, 22u, 0u);
 }
 
 /* GTMAIN.EXE 80034150 */
-uint32 gtmain_menu_result_mode4_alternate_run(uint32 extra, sint16 index, uint32 first)
+/* Original: GTMAIN.EXE:sub_80034150. */ uint32 gtmain_menu_result_mode4_alternate_run(uint32 extra, sint16 index, uint32 first)
 {
     gtmain_menu_draw_callback_set(0x800919B4u);
     return gtmain_menu_result_panel_run(0u, index, first, 0u, 0u, 1, extra, 4u, 22u, 0u);

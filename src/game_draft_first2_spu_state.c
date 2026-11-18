@@ -6,7 +6,7 @@ static uint32 spu_callback_slot(uint32 index, uint32 token)
     (void)index; (void)token;
     gt_draft_failure("Native SPU callback slot adapter", 0x8008A2A8u);
 }
-uint32 gtmain_spu_init_cold(void)
+/* Original: GTMAIN.EXE:sub_800866A8. */ uint32 gtmain_spu_init_cold(void)
 {
     return gtmain_spu_init_state(0);
 }
@@ -34,7 +34,7 @@ uint32 gtmain_spu_callback_bind(uint32 token)
 {
     return spu_callback_slot(4, token);
 }
-uint32 gtmain_spu_read(uint32 guest_destination, uint32 bytes)
+/* Original: GTMAIN.EXE:sub_80085898. */ uint32 gtmain_spu_read(uint32 guest_destination, uint32 bytes)
 {
     if (bytes > 0x7EFF0u) bytes = 0x7EFF0u;
     (void)gtmain_spu_dma_read(guest_destination, bytes);

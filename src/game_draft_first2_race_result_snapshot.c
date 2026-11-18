@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8002B078 */
-uint32 gtmain_race_result_snapshot_store(void)
+/* Original: GTMAIN.EXE:sub_8002B078. */ uint32 gtmain_race_result_snapshot_store(void)
 {
     uint32 result = r_u32(0x800B630Cu);
     if (!result) {

@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE:8001ECDC */
-sint32 gtmain_race_selected_vehicle_initialize(void)
+/* Original: GTMAIN.EXE:sub_8001ECDC. */ sint32 gtmain_race_selected_vehicle_initialize(void)
 {
     sint32 start_segment, x, z, sine, cosine;
     uint32 segment, angle_sine, angle_cosine;

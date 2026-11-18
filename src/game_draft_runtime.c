@@ -179,7 +179,7 @@ void gtmain_loader_return(GTMainStartupState *state) { gt_draft_failure("GTMAIN 
 /* Existing link-only dependencies retain fail-fast behavior */
 uint32 sub_8007BC84(void);
 uint32 sub_80019EC0(uint32 argument0, uint32 argument1);
-uint32 sub_80082928(void);
+uint32 sub_80082928(uint32 result);
 void gtmain_8007BC84(GTMainStartupState *state) { state->result = sub_8007BC84(); }
 void gtmain_80019EC0(GTMainStartupState *state) { state->result = sub_80019EC0(state->argument0, state->argument1); }
-void gtmain_80082928(GTMainStartupState *state) { state->result = sub_80082928(); }
+void gtmain_80082928(GTMainStartupState *state) { state->result = sub_80082928(state->argument0); }

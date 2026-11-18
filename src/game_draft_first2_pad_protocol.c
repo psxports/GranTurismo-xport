@@ -92,7 +92,7 @@ uint32 gtmain_pad_callback_bind(void)
 }
 
 /* GTMAIN.EXE 8008108C */
-uint32 gtmain_pad_serial_wait(void)
+/* Original: GTMAIN.EXE:sub_8008108C. */ uint32 gtmain_pad_serial_wait(void)
 {
     uint32 control = r_u32(0x800B1F20u), value;
     do value = pad_read16(control + 4u) & 2u; while (!value);
@@ -179,7 +179,7 @@ uint32 gtmain_pad_response_apply(uint32 port)
 }
 
 /* GTMAIN.EXE 80080FFC */
-uint32 gtmain_pad_serial_ack(void)
+/* Original: GTMAIN.EXE:sub_80080FFC. */ uint32 gtmain_pad_serial_ack(void)
 {
     uint32 irq = r_u32(0x800B1F1Cu), control = r_u32(0x800B1F20u);
     pad_write32(irq, 0xFFFFFF7Fu);
@@ -195,7 +195,7 @@ uint32 gtmain_pad_serial_ack(void)
 }
 
 /* GTMAIN.EXE 80080B28 */
-sint32 gtmain_pad_protocol_step(uint32 port)
+/* Original: GTMAIN.EXE:sub_80080B28. */ sint32 gtmain_pad_protocol_step(uint32 port)
 {
     uint32 index = r_u32(0x800B1F00u);
     uint32 token = r_u32(0x800B1F40u + 4u * index);
@@ -221,7 +221,7 @@ sint32 gtmain_pad_protocol_step(uint32 port)
 }
 
 /* GTMAIN.EXE 80080BF0 */
-sint32 gtmain_pad_exchange(uint32 port, sint32 outgoing)
+/* Original: GTMAIN.EXE:sub_80080BF0. */ sint32 gtmain_pad_exchange(uint32 port, sint32 outgoing)
 {
     uint32 control, value, result;
     if (outgoing < 0) {
@@ -271,7 +271,7 @@ sint32 gtmain_pad_exchange(uint32 port, sint32 outgoing)
 }
 
 /* GTMAIN.EXE 80080DC8 */
-sint32 gtmain_pad_exchange_timed(uint32 port, uint8 outgoing)
+/* Original: GTMAIN.EXE:sub_80080DC8. */ sint32 gtmain_pad_exchange_timed(uint32 port, uint8 outgoing)
 {
     uint32 baud = 136, control, received, length, irq;
     if ((r_u8(r_u32(port + 60u)) >> 4) == 8u && r_u8(port + 68u) >= 9u) baud = 34;

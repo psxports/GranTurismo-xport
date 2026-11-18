@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE:8001CCD4 */
-uint32 gtmain_vector_length10(const uint8 *vector)
+/* Original: GTMAIN.EXE:sub_8001CCD4. */ uint32 gtmain_vector_length10(const uint8 *vector)
 {
     uint32 x = (uint32)((sint32)xport_load_le32(vector) >> 10);
     uint32 x_squared = x * x;

@@ -29,7 +29,7 @@ static void car_scene_copy40(uint32 destination, uint32 source)
     w_u32(destination + 32u, a); w_u32(destination + 36u, b);
 }
 
-uint32 gtmain_race_rank_list_sort(void)
+/* Original: GTMAIN.EXE:sub_80021154. */ uint32 gtmain_race_rank_list_sort(void)
 {
     sint32 index, count = (sint16)r_u16(0x800B6666u);
     uint32 result, current;
@@ -62,7 +62,7 @@ uint32 gtmain_race_rank_list_sort(void)
     return result;
 }
 
-void gtmain_race_player_positions(void)
+/* Original: GTMAIN.EXE:sub_80021290. */ void gtmain_race_player_positions(void)
 {
     uint32 car = r_u32(0x8008F3E4u), index = 0;
     while (car)
@@ -74,7 +74,7 @@ void gtmain_race_player_positions(void)
     }
 }
 
-uint32 gtmain_race_player_positions_latch(void)
+/* Original: GTMAIN.EXE:sub_80021300. */ uint32 gtmain_race_player_positions_latch(void)
 {
     uint32 result = r_u32(0x800B630Cu);
     if (!result)
@@ -86,7 +86,7 @@ uint32 gtmain_race_player_positions_latch(void)
     return result;
 }
 
-uint32 gtmain_car_distance_insert(uint32 car)
+/* Original: GTMAIN.EXE:sub_8002180C. */ uint32 gtmain_car_distance_insert(uint32 car)
 {
     uint32 driver = r_u32(0x800B6638u), x, y, z, distance, divisor, numerator = 0x80000u, small = 0, next, previous = 0, gain, result;
     x = r_u32(car + 2228u) - r_u32(driver + 120u); w_u32(car + 2208u, x);
@@ -114,14 +114,14 @@ uint32 gtmain_car_distance_insert(uint32 car)
     return result;
 }
 
-uint32 gtmain_car_render_defaults(uint32 context)
+/* Original: GTMAIN.EXE:sub_80021988. */ uint32 gtmain_car_render_defaults(uint32 context)
 {
     w_u16(context + 910u, 6); w_u32(context + 916u, 0x267FD3u);
     w_u16(context + 920u, 64); w_u16(context + 922u, 64);
     return 64;
 }
 
-sint32 gtmain_car_model_draw(uint32 context, uint32 car, uint32 mode)
+/* Original: GTMAIN.EXE:sub_800219AC. */ sint32 gtmain_car_model_draw(uint32 context, uint32 car, uint32 mode)
 {
     sint32 fraction = (sint32)(uint32)gtmain_signed_divide64((sint64)(sint32)r_u32(car + 2008u) * 4096, 600000, 0x800219FCu);
     uint32 model, tile, value, classification, distance, detail, wheel;
@@ -177,7 +177,7 @@ sint32 gtmain_car_model_draw(uint32 context, uint32 car, uint32 mode)
     return (sint32)classification;
 }
 
-uint32 gtmain_race_cars_draw(uint32 context)
+/* Original: GTMAIN.EXE:sub_80021DA8. */ uint32 gtmain_race_cars_draw(uint32 context)
 {
     sint32 index = 0, count; uint32 car = 0x800B6850u, result = 0x10000000u, links;
     w_u32(0x8008F370u, 0); gtmain_car_render_defaults(context);
@@ -206,7 +206,7 @@ uint32 gtmain_race_cars_draw(uint32 context)
     return result;
 }
 
-sint32 gtmain_race_cars_secondary_draw(uint32 context, uint32 links)
+/* Original: GTMAIN.EXE:sub_80021EE4. */ sint32 gtmain_race_cars_secondary_draw(uint32 context, uint32 links)
 {
     uint32 car = r_u32(0x8008F370u), index = 0; sint32 result = -1;
     w_u32(context + 928u, links + 16u); w_u16(context + 908u, 0xFFFFu); w_u32(context + 912u, 0);
@@ -222,7 +222,7 @@ sint32 gtmain_race_cars_secondary_draw(uint32 context, uint32 links)
     return result;
 }
 
-uint32 gtmain_race_car_by_rank(sint32 rank)
+/* Original: GTMAIN.EXE:sub_80021F80. */ uint32 gtmain_race_car_by_rank(sint32 rank)
 {
     sint32 count = (sint16)r_u16(0x800BC1A6u), index;
     if (rank <= 0) rank = count; else if (count < rank) rank = 1;

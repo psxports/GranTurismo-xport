@@ -66,7 +66,7 @@ static void record_callback(uint32 callback, uint32 ordering, sint32 x, sint32 y
 }
 
 /* GTMAIN.EXE 8003F6A4 */
-uint32 gtmain_menu_record_screen_draw(uint32 ordering, sint32 x, sint32 y,
+/* Original: GTMAIN.EXE:sub_8003F6A4. */ uint32 gtmain_menu_record_screen_draw(uint32 ordering, sint32 x, sint32 y,
     uint32 carried_argument, sint32 intensity)
 {
     sint32 mode = (sint8)r_u8(0x801F2480u), kind, replay, width, left;

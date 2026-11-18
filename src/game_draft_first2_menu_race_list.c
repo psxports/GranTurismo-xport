@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE:800365EC */
-uint32 gtmain_menu_race_list_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_800365EC. */ uint32 gtmain_menu_race_list_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
     uint8 descriptor[152];
     uint32 index = 0;

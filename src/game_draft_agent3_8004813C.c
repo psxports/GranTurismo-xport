@@ -47,7 +47,7 @@ static sint32 owner_panel_half(const uint8 descriptor[152], uint32 offset)
 
 /* TODO Resolve independent native label, descriptor and unselected row services */
 /* GTMAIN.EXE 8004813C */
-void gt_draft_8004813C(uint32 owner, uint32 ordering, sint32 x, sint32 y,
+/* Original: GTMAIN.EXE:sub_8004813C. */ void gt_draft_8004813C(uint32 owner, uint32 ordering, sint32 x, sint32 y,
     uint32 carried_argument, sint32 intensity, uint32 context)
 {
     char label[128];

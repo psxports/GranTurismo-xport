@@ -17,7 +17,7 @@ static sint32 original_sector_completion(uint32 guest_destination, uint32 words)
     /* TODO Bind original zero-valued controller completion instead of shared boolean */
     gt_draft_failure("Native original CD sector completion adapter", 0x800855C8u);
 }
-uint32 gtmain_cd_sector_read(uint32 guest_destination, uint32 words)
+/* Original: GTMAIN.EXE:sub_80083780. */ uint32 gtmain_cd_sector_read(uint32 guest_destination, uint32 words)
 {
     return original_sector_completion(guest_destination, words) == 0;
 }

@@ -1,6 +1,6 @@
 #include "game_first2_registry.h"
 
-void gtmain_menu_frame_begin(void) { w_u8(0x80091B39u, 0); }
+/* Original: GTMAIN.EXE:sub_80035FB4. */ void gtmain_menu_frame_begin(void) { w_u8(0x80091B39u, 0); }
 static uint32 panel_xy(uint32 x, uint32 y) { return (x & 65535u) | (y << 16); }
 static void panel_rectangle(uint32 ordering, uint32 first, uint32 second, uint32 color)
 {
@@ -11,7 +11,7 @@ static void panel_rectangle(uint32 ordering, uint32 first, uint32 second, uint32
 /* TODO Resolve independent five-argument callback target service */
 /* GTMAIN.EXE 8003AF24 */
 
-uint32 gtmain_menu_panel_draw(uint32 guest_context, sint32 x, sint32 y, uint32 previous)
+/* Original: GTMAIN.EXE:sub_8003AF24. */ uint32 gtmain_menu_panel_draw(uint32 guest_context, sint32 x, sint32 y, uint32 previous)
 {
     uint32 ordering = r_u32(guest_context + 184u) + 4u;
     uint32 display_y = r_u32(0x800BFF6Cu) == 0 ? 240u : 0u;

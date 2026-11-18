@@ -10,7 +10,7 @@ static sint32 choice_sub(sint32 a, sint32 b)
     return (sint32)((uint32)a - (uint32)b);
 }
 
-uint32 gtmain_menu_choice_transition_draw(uint32 ordering, uint32 descriptor,
+/* Original: GTMAIN.EXE:sub_80046BBC. */ uint32 gtmain_menu_choice_transition_draw(uint32 ordering, uint32 descriptor,
     sint32 x, sint32 y, sint32 intensity, uint32 publish, uint32 reverse,
     uint32 lower_title)
 {

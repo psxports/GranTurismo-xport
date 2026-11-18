@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE:8002C994 */
-uint32 gtmain_race_meter_panel_draw(uint32 ordering, uint32 x, uint32 y, uint32 source)
+/* Original: GTMAIN.EXE:sub_8002C994. */ uint32 gtmain_race_meter_panel_draw(uint32 ordering, uint32 x, uint32 y, uint32 source)
 {
     uint32 left = x + 1u, right = x + 12u, row = y + 2u;
     (void)gtmain_race_meter_rectangle_draw(ordering, (sint16)left, (sint16)row, r_s8(source + 215u));

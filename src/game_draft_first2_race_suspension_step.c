@@ -10,13 +10,12 @@ static uint32 suspension_half(sint32 a) { return ((uint32)a + ((uint32)a >> 31))
 
 static uint32 suspension_route(uint32 key, sint32 *mode)
 {
-    /* TODO Bind the unrecorded route lookup with its actual native mode output */
-    gt_draft_failure("Native suspension route lookup and mode output", 0x80052F60u);
+    return gtmain_race_route_fraction((sint32)key, mode);
 }
+
 static uint32 suspension_route_apply(uint32 car, uint32 route)
 {
-    /* TODO Bind the unrecorded pose override and its actual result */
-    gt_draft_failure("Native suspension route pose result", 0x80060050u);
+    return gtmain_race_route_pose_apply(car, route);
 }
 
 static void suspension_heights(uint32 car, uint32 scratch, sint32 fraction, sint32 thresholds[4])
@@ -114,7 +113,7 @@ static uint32 suspension_ground_pair(uint32 car, uint32 parameters, uint32 angle
 }
 
 /* GTMAIN.EXE 8006008C */
-void gtmain_race_suspension_step(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_8006008C. */ void gtmain_race_suspension_step(uint32 cars, sint32 count)
 {
     sint32 index;
     uint32 wheel;

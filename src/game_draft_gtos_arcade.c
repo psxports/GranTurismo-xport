@@ -1474,7 +1474,7 @@ static uint32 gtos_car_renderer(uint32 tag, sint32 x, sint32 y, sint32 rotation,
     return flags & 2u;
 }
 
-static void gtos_arcade_car_model(uint32 tag, sint32 x, sint32 y, uint32 player,
+/* Original: GTOS.EXE:sub_8001813C. */ static void gtos_arcade_car_model(uint32 tag, sint32 x, sint32 y, uint32 player,
     sint32 selected, sint32 rotation, sint32 distance, uint32 flags)
 {
     if (!(sint8)r_u8(0x800762D4u + player)) {

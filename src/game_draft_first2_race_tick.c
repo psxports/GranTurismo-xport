@@ -9,7 +9,7 @@ static uint32 race_tick_call(uint32 owner, uint32 a0, uint32 a1)
 
 /* TODO Resolve independent input decode and mapping adapter limitations */
 /* GTMAIN.EXE 800290C8 */
-void gtmain_race_input_poll(void)
+/* Original: GTMAIN.EXE:sub_800290C8. */ void gtmain_race_input_poll(void)
 {
     gtmain_input_poll();
     gtmain_race_input_update(0x800BC1C0u, 0x800CB782u);
@@ -25,7 +25,7 @@ static void race_demo_command(uint32 owner)
 
 /* TODO Resolve independent menu-input dependencies */
 /* GTMAIN.EXE 80029E90 */
-void gtmain_race_demo_input(void)
+/* Original: GTMAIN.EXE:sub_80029E90. */ void gtmain_race_demo_input(void)
 {
     uint32 action;
     w_u8(0x800B63D8u, 1);
@@ -40,7 +40,7 @@ void gtmain_race_demo_input(void)
 }
 
 /* GTMAIN.EXE 8002CF84 */
-void gtmain_race_pause_input(void)
+/* Original: GTMAIN.EXE:sub_8002CF84. */ void gtmain_race_pause_input(void)
 {
     uint32 pad_second, mode, pad_first, pressed, held_first, held_second, held;
     sint32 selected, count, sound = -1;
@@ -99,7 +99,7 @@ void gtmain_race_pause_input(void)
 }
 
 /* GTMAIN.EXE 8002E4C0 */
-void gtmain_race_effects_tick(void)
+/* Original: GTMAIN.EXE:sub_8002E4C0. */ uint32 gtmain_race_effects_tick(void)
 {
     uint32 group, bit, effect = 0x800B39D4u;
     for (group = 0; group < 4u; ++group) {
@@ -121,10 +121,11 @@ void gtmain_race_effects_tick(void)
         }
         w_u32(0x800B39C4u + 4u * group, mask);
     }
+    return 0u;
 }
 
 /* GTMAIN.EXE 80020F94 */
-void gtmain_race_cars_tick(void)
+/* Original: GTMAIN.EXE:sub_80020F94. */ void gtmain_race_cars_tick(void)
 {
     uint32 car = 0x800B6850u;
     sint32 index = 0;
@@ -156,7 +157,7 @@ void gtmain_race_cars_tick(void)
 }
 
 /* GTMAIN.EXE 8002E214 */
-void gtmain_race_hud_tick(void)
+/* Original: GTMAIN.EXE:sub_8002E214. */ sint32 gtmain_race_hud_tick(void)
 {
     sint32 lap = r_s16(0x800B68B0u);
     sint32 limit = r_s16(0x800B634Cu);
@@ -180,10 +181,11 @@ void gtmain_race_hud_tick(void)
     if (timer) w_u16(0x8009071Au, (uint16)(timer - 1));
     timer = r_s16(0x8009071Cu);
     if (timer) w_u16(0x8009071Cu, (uint16)(timer - 1));
+    return timer ? timer - 1 : 0;
 }
 
 /* GTMAIN.EXE 80030D3C */
-void gtmain_race_pause_blink(void)
+/* Original: GTMAIN.EXE:sub_80030D3C. */ void gtmain_race_pause_blink(void)
 {
     uint32 mode = r_u32(0x800B630Cu);
     if (!mode) {
@@ -196,67 +198,51 @@ void gtmain_race_pause_blink(void)
 }
 
 /* GTMAIN.EXE 80031668 */
-void gtmain_race_sound_callbacks_active(void)
+/* Original: GTMAIN.EXE:sub_80031668. */ sint32 gtmain_race_sound_callbacks_active(void)
 {
-    sint32 index = 0;
-    uint32 car = 0x800B6850u;
-    while (index < (sint16)r_u16(0x800BC1A6u)) {
-        sint32 kind = (sint16)r_u16(car + 26u);
-        if (kind == 1) gtmain_race_sound_car_primary(car);
-        else if (kind == 2) gtmain_race_sound_car_secondary(car);
-        else gtmain_race_sound_car_init(car);
-        ++index;
-        car += 3380u;
-    }
+    return gtmain_race_sound_callbacks_apply(0x800315A8u, 0x800315C8u, 0x800315E8u);
 }
 
 /* GTMAIN.EXE 80031710 */
-void gtmain_race_sound_callbacks_stopped(void)
+/* Original: GTMAIN.EXE:sub_80031710. */ sint32 gtmain_race_sound_callbacks_stopped(void)
 {
-    sint32 index = 0;
-    uint32 car = 0x800B6850u;
-    while (index < (sint16)r_u16(0x800BC1A6u)) {
-        /* All three original callback identities select the same stop body */
-        (void)r_u16(car + 26u);
-        gtmain_race_sound_car_stop(car);
-        ++index;
-        car += 3380u;
-    }
+    return gtmain_race_sound_callbacks_apply(0x8003169Cu, 0x8003169Cu, 0x8003169Cu);
 }
 
 /* GTMAIN.EXE 8002D874 */
-void gtmain_race_time_reset(void)
+/* Original: GTMAIN.EXE:sub_8002D874. */ uint32 gtmain_race_time_reset(void)
 {
-    if (!r_u32(0x800B630Cu)) gtmain_race_time_set(0xFFFFFFFFu);
-    else gtmain_time_string(0x801A8FDCu, r_u32(0x800BDD04u));
+    if (!r_u32(0x800B630Cu)) return gtmain_race_time_set(0xFFFFFFFFu);
+    else return gtmain_time_string(0x801A8FDCu, r_u32(0x800BDD04u));
 }
 
 /* GTMAIN.EXE 8002D970 */
-void gtmain_race_lap_history_reset(void)
+/* Original: GTMAIN.EXE:sub_8002D970. */ uint32 gtmain_race_lap_history_reset(void)
 {
     uint32 mode = r_u32(0x800B630Cu), index;
     w_u16(0x800BDB40u, 0);
     w_u8(0x800B399Cu, 0);
     if (!mode)
         for (index = 0; index < 100u; ++index) w_u32(0x800BDB70u + 4u * index, 0xFFFFFFFFu);
+    return mode ? mode : 400u;
 }
 
 /* GTMAIN.EXE 8002DB48 */
-void gtmain_race_split_reset(void)
+/* Original: GTMAIN.EXE:sub_8002DB48. */ uint32 gtmain_race_split_reset(void)
 {
     if (r_u32(0x800B630Cu) != 1u) w_u8(0x800BDD01u, 0);
-    gtmain_time_string(0x801A8FECu, r_u32(0x800BDB4Cu));
+    return gtmain_time_string(0x801A8FECu, r_u32(0x800BDB4Cu));
 }
 
 /* GTMAIN.EXE 8002DC5C */
-void gtmain_race_best_reset(void)
+/* Original: GTMAIN.EXE:sub_8002DC5C. */ uint32 gtmain_race_best_reset(void)
 {
     if (r_u32(0x800B630Cu) != 1u) w_u8(0x800BDD00u, 0);
-    gtmain_time_string(0x801A8FFCu, r_u32(0x800BDB48u));
+    return gtmain_time_string(0x801A8FFCu, r_u32(0x800BDB48u));
 }
 
 /* GTMAIN.EXE 8002E1F4 */
-void gtmain_race_timers_reset(void)
+/* Original: GTMAIN.EXE:sub_8002E1F4. */ void gtmain_race_timers_reset(void)
 {
     w_u16(0x8009071Au, 0);
     w_u16(0x8009071Cu, 0);

@@ -14,7 +14,7 @@ static sint32 gtmain_native_pad_info_act(uint32 port, sint32 index, sint32 term)
 }
 
 /* GTMAIN.EXE 8007B7B4 */
-void gtmain_input_buttons_reset(uint32 state)
+/* Original: GTMAIN.EXE:sub_8007B7B4. */ void gtmain_input_buttons_reset(uint32 state)
 {
     w_u16(state, 0u);
     w_u16(state + 2u, 0u);
@@ -23,7 +23,7 @@ void gtmain_input_buttons_reset(uint32 state)
 }
 
 /* GTMAIN.EXE 8007B7C8 */
-uint32 gtmain_input_buttons_update(uint32 state, uint32 buttons)
+/* Original: GTMAIN.EXE:sub_8007B7C8. */ uint32 gtmain_input_buttons_update(uint32 state, uint32 buttons)
 {
     uint32 valid = r_u16(state);
     uint32 previous = r_u16(state + 2u);
@@ -38,7 +38,7 @@ uint32 gtmain_input_buttons_update(uint32 state, uint32 buttons)
 }
 
 /* GTMAIN.EXE 8007B7FC */
-sint32 gtmain_input_button_repeat(uint32 counter, uint32 held)
+/* Original: GTMAIN.EXE:sub_8007B7FC. */ sint32 gtmain_input_button_repeat(uint32 counter, uint32 held)
 {
     uint32 count, delay, interval;
     sint32 repeat = 0;
@@ -59,7 +59,7 @@ sint32 gtmain_input_button_repeat(uint32 counter, uint32 held)
 }
 
 /* GTMAIN.EXE 8007A81C */
-uint32 gtmain_input_reset(uint32 state)
+/* Original: GTMAIN.EXE:sub_8007A81C. */ uint32 gtmain_input_reset(uint32 state)
 {
     uint32 button;
     gtmain_input_buttons_reset(state);
@@ -70,7 +70,7 @@ uint32 gtmain_input_reset(uint32 state)
 }
 
 /* GTMAIN.EXE 8007A87C */
-uint32 gtmain_input_packet(uint32 port)
+/* Original: GTMAIN.EXE:sub_8007A87C. */ uint32 gtmain_input_packet(uint32 port)
 {
     uint32 packet = 0x800C0B70u + ((port >> 2u) << 6u);
     if ((r_u8(packet + 1u) & 0xF0u) == 0x80u)
@@ -79,7 +79,7 @@ uint32 gtmain_input_packet(uint32 port)
 }
 
 /* GTMAIN.EXE 8007A8BC */
-sint32 gtmain_input_decode(uint32 state, uint32 packet)
+/* Original: GTMAIN.EXE:sub_8007A8BC. */ sint32 gtmain_input_decode(uint32 state, uint32 packet)
 {
     uint32 buttons = 0u, repeated = 0u, button;
     uint32 family = 0u, readable = packet && !r_u8(packet);
@@ -111,7 +111,7 @@ sint32 gtmain_input_decode(uint32 state, uint32 packet)
 }
 
 /* GTMAIN.EXE 8007A6F0 */
-sint32 gtmain_input_connected(uint32 port)
+/* Original: GTMAIN.EXE:sub_8007A6F0. */ sint32 gtmain_input_connected(uint32 port)
 {
     uint32 sdk_port = (port ^ (port & 4u)) | ((port & 4u) << 2u);
     sint32 state = PadGetState((sint32)sdk_port);
@@ -119,7 +119,7 @@ sint32 gtmain_input_connected(uint32 port)
 }
 
 /* GTMAIN.EXE 8007A7F8 */
-uint32 gtmain_input_rumble(uint32 slot, uint8 small, uint8 large)
+/* Original: GTMAIN.EXE:sub_8007A7F8. */ uint32 gtmain_input_rumble(uint32 slot, uint8 small, uint8 large)
 {
     uint32 request = 0x800C0A90u + 8u * slot;
     w_u8(request + 19u, small);
@@ -129,7 +129,7 @@ uint32 gtmain_input_rumble(uint32 slot, uint8 small, uint8 large)
 }
 
 /* GTMAIN.EXE 8007B848 */
-uint32 gtmain_input_port_update(uint32 state, uint32 port, uint32 slot)
+/* Original: GTMAIN.EXE:sub_8007B848. */ uint32 gtmain_input_port_update(uint32 state, uint32 port, uint32 slot)
 {
     uint32 present = 1u << (slot & 31u);
     uint32 entry = state + 16u + 8u * slot;
@@ -162,7 +162,7 @@ uint32 gtmain_input_port_update(uint32 state, uint32 port, uint32 slot)
 }
 
 /* GTMAIN.EXE 8007B9A4 */
-uint32 gtmain_input_scan(uint32 state)
+/* Original: GTMAIN.EXE:sub_8007B9A4. */ uint32 gtmain_input_scan(uint32 state)
 {
     uint32 physical, present = 0u;
     for (physical = 0u; physical < 2u; ++physical) {
@@ -184,7 +184,7 @@ uint32 gtmain_input_scan(uint32 state)
 }
 
 /* GTMAIN.EXE 8007A9EC */
-uint32 gtmain_input_poll(void)
+/* Original: GTMAIN.EXE:sub_8007A9EC. */ uint32 gtmain_input_poll(void)
 {
     uint32 present, previous, changed, slot;
     /* Native VBlank publishes the bound host controller packets */

@@ -7,7 +7,7 @@ static sint32 simulation_divide(sint32 value, sint32 denominator, uint32 caller)
 }
 
 /* GTMAIN.EXE 80059AE4 */
-void gtmain_race_slip_ratio(uint32 row, sint32 reference, sint32 speed)
+/* Original: GTMAIN.EXE:sub_80059AE4. */ sint32 gtmain_race_slip_ratio(uint32 row, sint32 reference, sint32 speed)
 {
     sint32 difference = (sint32)((uint32)reference - (uint32)speed), value;
     w_u32(row, (uint32)speed); w_u8(row + 20u, 0);
@@ -35,18 +35,21 @@ void gtmain_race_slip_ratio(uint32 row, sint32 reference, sint32 speed)
     }
     if (r_s16(row + 24u) > 4096) w_u16(row + 24u, 4096);
     else if (r_s16(row + 24u) < -4096) w_u16(row + 24u, (uint16)-4096);
-    if (!r_s8(row + 20u)) { w_u16(row + 24u, 0); return; }
+    if (!r_s8(row + 20u)) { w_u16(row + 24u, 0); return 0; }
     value = r_s8(row + 20u) > 0 ? speed : reference;
     if (value < 0) value = (sint32)(0u - (uint32)value);
     if (value < 22760) {
         value = simulation_divide(value, 22760, 0x80059CF4u);
         value = (sint32)((uint32)value * (uint32)r_s16(row + 24u));
-        w_u16(row + 24u, (uint16)(value / 4096));
+        value /= 4096;
+        w_u16(row + 24u, (uint16)value);
+        return value;
     }
+    return 0;
 }
 
 /* GTMAIN.EXE 8005A780 */
-void gtmain_race_axle_slip_update(uint32 car, sint32 index)
+/* Original: GTMAIN.EXE:sub_8005A780. */ uint32 gtmain_race_axle_slip_update(uint32 car, sint32 index)
 {
     uint32 scratch = 0x1F800000u + 84u * (uint32)index, reference, value, offset;
     sint32 axle, coefficient, sum;
@@ -80,10 +83,11 @@ void gtmain_race_axle_slip_update(uint32 car, sint32 index)
     }
     w_u32(car + 1760u, r_u32(scratch + 16u)); w_u32(car + 1764u, r_u32(scratch + 44u));
     w_u32(car + 1768u, r_u32(scratch + 20u)); w_u32(car + 1772u, r_u32(scratch + 48u));
+    return r_u32(scratch + 48u);
 }
 
 /* GTMAIN.EXE 8005AD5C */
-void gtmain_race_slip_publish(uint32 car, sint32 index)
+/* Original: GTMAIN.EXE:sub_8005AD5C. */ sint32 gtmain_race_slip_publish(uint32 car, sint32 index)
 {
     uint32 scratch = 0x1F800000u + 84u * (uint32)index;
     sint32 value = r_s16(scratch + 28u);
@@ -95,10 +99,11 @@ void gtmain_race_slip_publish(uint32 car, sint32 index)
     w_u8(car + 203u, (uint8)value); w_u8(car + 135u, (uint8)value);
     value = r_s16(scratch + 56u) / 32; if (value < -128) value = -128; if (value > 127) value = 127;
     w_u8(car + 339u, (uint8)value); w_u8(car + 271u, (uint8)value);
+    return value;
 }
 
 /* GTMAIN.EXE 8005AE80 */
-void gtmain_race_axle_velocity_integrate(uint32 car, sint32 index, sint32 axle)
+/* Original: GTMAIN.EXE:sub_8005AE80. */ sint32 gtmain_race_axle_velocity_integrate(uint32 car, sint32 index, sint32 axle)
 {
     uint32 parameters = car + 404u, row = 0x1F800000u + 84u * (uint32)index + 28u * (uint32)axle;
     uint32 axis = car + 1732u + 4u * (uint32)axle, gear, first, second;
@@ -123,7 +128,7 @@ void gtmain_race_axle_velocity_integrate(uint32 car, sint32 index, sint32 axle)
     coefficient = r_s16(parameters + 1156u + 2u * (uint32)axle);
     w_u32(axis, r_u32(axis) + (uint32)simulation_fixed((sint64)value * coefficient));
 braking:
-    if (!(r_u8(car + 1784u + (uint32)axle) & 2u)) return;
+    if (!(r_u8(car + 1784u + (uint32)axle) & 2u)) return 0;
     value = r_s32(row + 12u); gear = r_u8(car + 32u);
     value = simulation_divide(value, r_s32(parameters + 1092u + 4u * gear), 0x8005B2F8u);
     value = simulation_divide(value, r_s16(parameters + 1176u + 2u * (uint32)axle), 0x8005B334u);
@@ -134,8 +139,10 @@ braking:
         updated = (sint32)((uint32)current - (uint32)force); w_u32(axis, (uint32)updated); if (updated < 0) w_u32(axis, 0);
     } else {
         current = r_s32(axis);
-        if (current < 0) { updated = (sint32)((uint32)force + (uint32)current); w_u32(axis, (uint32)updated); if (updated > 0) w_u32(axis, 0); }
+        updated = (sint32)((uint32)force + (uint32)current);
+        if (current < 0) { w_u32(axis, (uint32)updated); if (updated > 0) w_u32(axis, 0); }
     }
+    return updated;
 }
 
 static void simulation_clamp(uint32 car, sint32 index, int self_store)
@@ -168,14 +175,14 @@ static void simulation_missing(uint32 owner, uint32 car, sint32 index)
     case 0x8005B470u: gtmain_race_engine_velocity_update(car, index); break;
     case 0x8005D114u: gtmain_race_yaw_integrate(car, index); break;
     case 0x8005D478u: gtmain_race_world_velocity_integrate(car); break;
+    case 0x8005D718u: gtmain_race_tire_wear_update(car); break;
     default:
-        /* TODO: Bind the unrecorded final simulation dependency 8005D718 */
         gt_draft_unresolved_call(owner, car, 0, 0, 0, 0, 0, 0, 0); break;
     }
 }
 
 /* GTMAIN.EXE 8005DC70 */
-void gtmain_race_simulation_step(uint32 nodes, sint32 count)
+/* Original: GTMAIN.EXE:sub_8005DC70. */ void gtmain_race_simulation_step(uint32 nodes, sint32 count)
 {
     sint32 index, axle, speed, coefficient, sum;
     uint32 node, car, scratch, wheel, first, second, stage;

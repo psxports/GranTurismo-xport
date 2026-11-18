@@ -1,4 +1,5 @@
 #include "game_first2_registry.h"
+#include "xport_trace.h"
 
 static uint32 gtmain_packet_link_read(uint32 address)
 {
@@ -17,7 +18,7 @@ static void gtmain_packet_link(uint32 ordering_link, uint32 first, uint32 last)
     gtmain_packet_link_write(last, previous);
 }
 
-sint32 gtmain_frame_defaults(uint32 context)
+/* Original: GTMAIN.EXE:sub_8006F3AC. */ sint32 gtmain_frame_defaults(uint32 context)
 {
     uint32 first, second, third;
     sint32 result;
@@ -35,7 +36,7 @@ sint32 gtmain_frame_defaults(uint32 context)
     return result;
 }
 
-uint32 gtmain_packet_draw_area(uint32 ordering_link, uint32 offset, uint32 top_left, uint32 bottom_right)
+/* Original: GTMAIN.EXE:sub_8006F498. */ uint32 gtmain_packet_draw_area(uint32 ordering_link, uint32 offset, uint32 top_left, uint32 bottom_right)
 {
     uint32 packet = r_u32(0x800BFE4Cu);
     w_u32(packet, 0x03000000u);
@@ -67,7 +68,7 @@ static uint32 packet_rectangle_words(uint32 ordering_link, uint32 first, uint32 
     return packet;
 }
 
-uint32 gtmain_packet_rectangle(uint32 ordering_link, uint32 corners, uint32 color)
+/* Original: GTMAIN.EXE:sub_8006F4F0. */ uint32 gtmain_packet_rectangle(uint32 ordering_link, uint32 corners, uint32 color)
 {
     uint32 first = r_u32(corners), second = r_u32(corners + 4u);
     return packet_rectangle_words(ordering_link, first, second, color);
@@ -80,7 +81,7 @@ uint32 gtmain_packet_rectangle_native(uint32 ordering_link, const sint16 *corner
     return packet_rectangle_words(ordering_link, first, second, color);
 }
 
-uint32 gtmain_packet_page(uint32 ordering_link, uint16 page)
+/* Original: GTMAIN.EXE:sub_8006F590. */ uint32 gtmain_packet_page(uint32 ordering_link, uint16 page)
 {
     uint32 packet = r_u32(0x800BFE4Cu);
     w_u32(packet, 0x01000000u); w_u32(packet + 4u, (uint32)page | 0xE1000000u);
@@ -130,7 +131,7 @@ static uint32 packet_outline_words(uint32 ordering_link, uint32 first, uint32 se
     return last;
 }
 
-uint32 gtmain_packet_outline(uint32 ordering_link, uint32 corners, uint32 color)
+/* Original: GTMAIN.EXE:sub_8006F624. */ uint32 gtmain_packet_outline(uint32 ordering_link, uint32 corners, uint32 color)
 {
     uint32 first = r_u32(corners), second = r_u32(corners + 4u);
     return packet_outline_words(ordering_link, first, second, color);
@@ -145,16 +146,37 @@ uint32 gtmain_packet_outline_native(uint32 ordering_link, const sint16 *corners4
 
 uint32 gtmain_packet_sprite(uint32 ordering_link, uint32 xy, uint32 uv_clut, uint32 wh, uint32 color)
 {
-    uint32 packet = r_u32(0x800BFE4Cu);
-    w_u32(packet, 0x04000000u);
-    w_u32(packet + 8u, xy); w_u32(packet + 12u, uv_clut); w_u32(packet + 16u, wh);
-    w_u32(packet + 4u, color ^ 0x65000000u);
-    gtmain_packet_link(ordering_link, packet, packet);
-    w_u32(0x800BFE4Cu, packet + 20u);
+    uint32 packet, previous = xy, end, base, count, shift, lane, value;
+    FUNCTION_MARKER(0x800706BC, "GTMAIN.EXE");
+    packet = r_u32(0x800BFE4C);
+    w_u32(packet, 0x04000000);
+    w_u32(packet + 8, xy);
+    w_u32(packet + 12, uv_clut);
+    w_u32(packet + 16, wh);
+    w_u32(packet + 4, color ^ 0x65000000);
+    end = ordering_link + 2;
+    base = end & ~3;
+    count = (end & 3) + 1;
+    shift = (4 - count) * 8;
+    for (lane = 0; lane < count; ++lane) {
+        value = r_u8(base + lane);
+        previous = (previous & ~((uint32)255 << (shift + lane * 8))) |
+            (value << (shift + lane * 8));
+    }
+    value = packet << 8;
+    for (lane = 0; lane < count; ++lane)
+        w_u8(base + lane, value >> (shift + lane * 8));
+    end = packet + 2;
+    base = end & ~3;
+    count = (end & 3) + 1;
+    shift = (4 - count) * 8;
+    for (lane = 0; lane < count; ++lane)
+        w_u8(base + lane, previous >> (shift + lane * 8));
+    w_u32(0x800BFE4C, packet + 20);
     return packet;
 }
 
-uint32 gtmain_packet_buffer_select(uint32 index)
+/* Original: GTMAIN.EXE:sub_800702BC. */ uint32 gtmain_packet_buffer_select(uint32 index)
 {
     uint32 packet = r_u32(0x800BFE58u + (index << 2)), bytes = r_u32(0x800BFE48u);
     w_u32(0x800BFE60u, index); w_u32(0x800BFE4Cu, packet);
@@ -162,13 +184,13 @@ uint32 gtmain_packet_buffer_select(uint32 index)
     return packet;
 }
 
-uint32 gtmain_packet_buffers(uint32 first, uint32 second, uint32 bytes)
+/* Original: GTMAIN.EXE:sub_8006F0A0. */ uint32 gtmain_packet_buffers(uint32 first, uint32 second, uint32 bytes)
 {
     w_u32(0x800BFE58u, first); w_u32(0x800BFE5Cu, second); w_u32(0x800BFE48u, bytes);
     return 0x800BFE58u;
 }
 
-sint32 gtmain_draw_background(uint8 enabled, uint8 red, uint8 green, uint8 blue)
+/* Original: GTMAIN.EXE:sub_8006F0D0. */ sint32 gtmain_draw_background(uint8 enabled, uint8 red, uint8 green, uint8 blue)
 {
     uint32 index;
     for (index = 0u; index < 2u; ++index)
@@ -179,7 +201,7 @@ sint32 gtmain_draw_background(uint8 enabled, uint8 red, uint8 green, uint8 blue)
     return 0;
 }
 
-uint32 gtmain_race_screen_rectangle(uint32 ordering_link)
+/* Original: GTMAIN.EXE:sub_80030AE4. */ uint32 gtmain_race_screen_rectangle(uint32 ordering_link)
 {
     return gtmain_packet_rectangle(ordering_link, 0x800912F4u, 0u);
 }

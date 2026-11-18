@@ -6,7 +6,7 @@ static sint32 boost_fixed(sint64 value)
 }
 
 /* GTMAIN.EXE 8005E6CC */
-void gtmain_race_engine_boost_initialize(uint32 specification, uint32 engine_curve)
+/* Original: GTMAIN.EXE:sub_8005E6CC. */ void gtmain_race_engine_boost_initialize(uint32 specification, uint32 engine_curve)
 {
     uint32 s = specification, d = engine_curve, first, second, third;
     sint32 value, center, amplitude, divisor;
@@ -35,7 +35,7 @@ void gtmain_race_engine_boost_initialize(uint32 specification, uint32 engine_cur
 }
 
 /* GTMAIN.EXE 8005E5B8 */
-sint32 gtmain_race_engine_boost_curve(uint32 engine_curve, sint16 first, sint16 second)
+/* Original: GTMAIN.EXE:sub_8005E5B8. */ sint32 gtmain_race_engine_boost_curve(uint32 engine_curve, sint16 first, sint16 second)
 {
     sint16 arguments[2] = {first, second};
     uint32 sum = 0, i;
@@ -53,7 +53,7 @@ sint32 gtmain_race_engine_boost_curve(uint32 engine_curve, sint16 first, sint16 
 }
 
 /* GTMAIN.EXE 8005E678 */
-sint32 gtmain_race_engine_boost_limit(uint32 engine_curve, sint16 first, sint16 second)
+/* Original: GTMAIN.EXE:sub_8005E678. */ sint32 gtmain_race_engine_boost_limit(uint32 engine_curve, sint16 first, sint16 second)
 {
     sint32 result = gtmain_race_engine_boost_curve(engine_curve, first, second);
     sint32 limit = r_s16(engine_curve + 172u) + 4096;
@@ -61,7 +61,7 @@ sint32 gtmain_race_engine_boost_limit(uint32 engine_curve, sint16 first, sint16 
 }
 
 /* GTMAIN.EXE 8005BE34 */
-sint32 gtmain_race_steering_curve(uint32 curve, sint32 angle)
+/* Original: GTMAIN.EXE:sub_8005BE34. */ sint32 gtmain_race_steering_curve(uint32 curve, sint32 angle)
 {
     sint32 wrapped = gtmain_race_angle_wrap(angle), value, sign;
     if (wrapped < -1024) { value = (sint32)((uint32)wrapped + 2048u); sign = -1; }
@@ -71,7 +71,7 @@ sint32 gtmain_race_steering_curve(uint32 curve, sint32 angle)
 }
 
 /* GTMAIN.EXE 8004E730 */
-void gtmain_race_top_speed_initialize(uint32 parameters)
+/* Original: GTMAIN.EXE:sub_8004E730. */ void gtmain_race_top_speed_initialize(uint32 parameters)
 {
     uint32 d = parameters, gear = 1, i, speed, sum;
     sint32 bound = boost_fixed((sint64)r_s32(d + 444u) * 14745) >> 12;

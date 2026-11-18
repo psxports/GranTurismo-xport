@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* Guest-address variant of selected GTMAIN.EXE:8006A21C */
-static uint32 sections_read_retry(uint32 path, uint32 destination, uint32 requested_bytes)
+uint32 sections_read_retry(uint32 path, uint32 destination, uint32 requested_bytes)
 {
     for (;;) {
         uint32 result = gtmain_cd_file_load(path, destination, requested_bytes, 0);
@@ -16,7 +16,7 @@ static uint32 sections_align(uint32 address)
 }
 
 /* GTMAIN.EXE:80069FF0 */
-uint32 gtmain_resource_sections_load(uint32 path, uint32 destination, uint32 requested_bytes)
+/* Original: GTMAIN.EXE:sub_80069FF0. */ uint32 gtmain_resource_sections_load(uint32 path, uint32 destination, uint32 requested_bytes)
 {
     uint32 resource = sections_read_retry(path, destination, requested_bytes);
     uint32 cursor = (resource + 75u) & ~3u;

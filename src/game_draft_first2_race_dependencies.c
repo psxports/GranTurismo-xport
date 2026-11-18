@@ -18,7 +18,7 @@ static void race_input_map(uint32 state, uint32 packet, uint32 buttons,
 
 /* TODO Resolve independent pad mapping and rumble adapter limitations */
 /* GTMAIN.EXE 80028F00 */
-void gtmain_race_input_update(uint32 state, uint32 configuration)
+/* Original: GTMAIN.EXE:sub_80028F00. */ void gtmain_race_input_update(uint32 state, uint32 configuration)
 {
     sint32 port = r_s16(state);
     uint32 packet, connected, previous, kind, held;
@@ -53,19 +53,14 @@ void gtmain_race_input_update(uint32 state, uint32 configuration)
     w_u16(state + 78u, (uint16)(connected ? held & (held ^ previous) : 0u));
 }
 
-static void race_menu_prepare(uint32 owner)
-{
-    /* TODO Bind unselected noarg preparation calls 80029898 and 80029830 */
-    (void)race_dependency(owner, 0u, 0u, 0u);
-}
-
 /* GTMAIN.EXE 80029928 */
-sint32 gtmain_race_menu_input(void)
+/* Original: GTMAIN.EXE:sub_80029928. */ sint32 gtmain_race_menu_input(void)
 {
     uint32 pressed, held;
     sint32 selected, count;
-    race_menu_prepare(0x80029898u);
-    race_menu_prepare(0x80029830u);
+    FUNCTION_MARKER(0x80029928, "GTMAIN.EXE");
+    gtmain_menu_request_phase_tick();
+    gtmain_menu_scroll_tick();
     pressed = r_u16(0x800BC1C8u);
     selected = r_s8(0x8008F88Du);
     held = r_u16(0x800BC1C6u);
@@ -102,7 +97,7 @@ sint32 gtmain_race_menu_input(void)
 }
 
 /* GTMAIN.EXE 8006CA50 */
-uint32 gtmain_time_string(uint32 destination, uint32 milliseconds)
+/* Original: GTMAIN.EXE:sub_8006CA50. */ uint32 gtmain_time_string(uint32 destination, uint32 milliseconds)
 {
     uint32 seconds, minutes, hours, arguments[4];
     if (!milliseconds || milliseconds == 0xFFFFFFFFu)
@@ -126,20 +121,22 @@ uint32 gtmain_time_string(uint32 destination, uint32 milliseconds)
 }
 
 /* GTMAIN.EXE 8002D8BC */
-void gtmain_race_time_set(uint32 time)
+/* Original: GTMAIN.EXE:sub_8002D8BC. */ uint32 gtmain_race_time_set(uint32 time)
 {
-    if (!r_u32(0x800B630Cu)) {
-        w_u32(0x800BDD04u, time);
-        gtmain_time_string(0x801A8FDCu, time);
-    }
+    uint32 mode = r_u32(0x800B630Cu);
+    if (mode) return mode;
+    w_u32(0x800BDD04u, time);
+    return gtmain_time_string(0x801A8FDCu, time);
 }
 
 /* GTMAIN.EXE 8002D9FC */
-void gtmain_race_lap_time_store(uint32 time)
+/* Original: GTMAIN.EXE:sub_8002D9FC. */ uint32 gtmain_race_lap_time_store(uint32 time)
 {
     uint32 mode = r_u32(0x800B630Cu);
     sint32 index = r_s8(0x800B399Cu);
-    if (!mode && index < 100) w_u32(0x800BDB70u + ((uint32)index << 2), time);
+    if (mode) return index < 100;
+    if (index < 100) w_u32(0x800BDB70u + ((uint32)index << 2u), time);
+    return (uint32)index << 2u;
 }
 
 static void race_car_callback(uint32 owner, uint32 car)
@@ -158,7 +155,7 @@ static void race_car_callback(uint32 owner, uint32 car)
 }
 
 /* GTMAIN.EXE 800313F8 */
-sint32 gtmain_race_sound_callbacks_apply(uint32 first_owner, uint32 second_owner, uint32 third_owner)
+/* Original: GTMAIN.EXE:sub_800313F8. */ sint32 gtmain_race_sound_callbacks_apply(uint32 first_owner, uint32 second_owner, uint32 third_owner)
 {
     sint32 index = 0;
     sint32 count = r_s16(0x800BC1A6u);
@@ -175,7 +172,7 @@ sint32 gtmain_race_sound_callbacks_apply(uint32 first_owner, uint32 second_owner
 }
 
 /* GTMAIN.EXE 8002E574 */
-uint32 gtmain_race_effect_alloc(void)
+/* Original: GTMAIN.EXE:sub_8002E574. */ uint32 gtmain_race_effect_alloc(void)
 {
     uint32 group, bit;
     if (r_s32(0x800B6318u) < 2) return 0;
@@ -192,22 +189,22 @@ uint32 gtmain_race_effect_alloc(void)
 }
 
 /* GTMAIN.EXE 8002E620 */
-void gtmain_race_effect_init(uint32 effect)
+/* Original: GTMAIN.EXE:sub_8002E620. */ uint32 gtmain_race_effect_init(uint32 effect)
 {
     memset(psx_addr(effect, 32u), 0, 32u);
     w_u32(effect + 8u, 0x0F8F0F80u);
     w_u16(effect + 24u, 16); w_u16(effect + 26u, 17); w_u16(effect + 30u, 4095);
     w_u32(effect, 0x7FC00080u); w_u32(effect + 4u, 0x0026008Fu); w_u16(effect + 28u, 137);
+    return 137u;
 }
 
-/* TODO Bind the original one-argument license result service */
 static uint32 race_license_result_service(uint32 car_state)
 {
-    return race_dependency(0x80057180u, car_state, 0, 0);
+    return gtmain_race_objective_update(car_state);
 }
 
 /* GTMAIN.EXE 80029F40 */
-uint32 gtmain_race_license_result_tick(void)
+/* Original: GTMAIN.EXE:sub_80029F40. */ uint32 gtmain_race_license_result_tick(void)
 {
     uint32 result, thresholds, record, first, second, third, time, category = 0;
     if (r_u8(0x800CB7F5u) != 4u || r_s8(0x8008F893u)) return 4;
@@ -251,7 +248,7 @@ static uint32 race_assist_activation(uint32 enabled)
 }
 
 /* GTMAIN.EXE 80030C24 */
-uint32 gtmain_race_assist_tick(void)
+/* Original: GTMAIN.EXE:sub_80030C24. */ uint32 gtmain_race_assist_tick(void)
 {
     sint32 result = gt_draft_80030B20();
     if (result >= 0 && result < 2) {
@@ -262,7 +259,7 @@ uint32 gtmain_race_assist_tick(void)
 }
 
 /* GTMAIN.EXE 80030B0C */
-void gtmain_race_assist_reset(void)
+/* Original: GTMAIN.EXE:sub_80030B0C. */ void gtmain_race_assist_reset(void)
 {
     w_u16(0x800912E2u, 0);
     w_u16(0x800912E0u, 0);
@@ -275,7 +272,7 @@ static void race_mode_handler(uint32 owner)
 }
 
 /* GTMAIN.EXE 8002B190 */
-void gtmain_race_mode_tick(void)
+/* Original: GTMAIN.EXE:sub_8002B190. */ void gtmain_race_mode_tick(void)
 {
     if (!r_s16(0x800B63D6u)) return;
     switch (r_u8(0x800CB7F5u)) {
@@ -301,10 +298,10 @@ void gtmain_race_mode_tick(void)
 }
 
 /* GTMAIN.EXE 8002B0DC */
-void gtmain_race_countdown_tick(void)
+/* Original: GTMAIN.EXE:sub_8002B0DC. */ sint32 gtmain_race_countdown_tick(void)
 {
     sint32 timer = r_s16(0x800B6312u), divisor, numerator, quotient, previous;
-    if (!timer) return;
+    if (!timer) return 0;
     numerator = (sint16)(timer - 1);
     divisor = r_s32(0x800BF518u);
     if (!divisor) gt_draft_failure("GTMAIN race countdown division by zero", 0x8002B114u);
@@ -318,13 +315,14 @@ void gtmain_race_countdown_tick(void)
             gtmain_race_stream_start(r_s8(0x800B63BFu), 1);
             sound = 10;
         }
-        gtmain_race_sound_effect_default(sound);
+        return gtmain_race_sound_effect_default(sound);
     }
+    return quotient < 4;
 }
 
 /* GTMAIN.EXE 8002ADA4 */
-void gtmain_race_rumble_clear(void)
+/* Original: GTMAIN.EXE:sub_8002ADA4. */ uint32 gtmain_race_rumble_clear(void)
 {
     gtmain_input_rumble(0, 0, 0);
-    gtmain_input_rumble(4, 0, 0);
+    return gtmain_input_rumble(4, 0, 0);
 }

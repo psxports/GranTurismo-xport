@@ -4,6 +4,9 @@
 /* TODO Bind remaining original suspension and lap dependencies */
 static uint32 suspension_call(uint32 owner, uint32 a, uint32 b, uint32 c, uint32 d)
 {
+    if (owner == 0x80056EBCu) return gtmain_race_objective_mode2_time(a);
+    if (owner == 0x80056EF8u) return gtmain_race_objective_mode3_time(a);
+    if (owner == 0x80056F44u) return gtmain_race_objective_mode4_time(a, b);
     return gt_draft_unresolved_call(owner, a, b, c, d, 0, 0, 0, 0);
 }
 
@@ -20,7 +23,7 @@ static uint32 suspension_fp(uint32 a, uint32 b)
 }
 
 /* GTMAIN.EXE 80067D48 */
-sint32 gtmain_race_curve16(uint32 curve, sint32 value)
+/* Original: GTMAIN.EXE:sub_80067D48. */ sint32 gtmain_race_curve16(uint32 curve, sint32 value)
 {
     uint16 count = r_u16(curve), low = 0, high = (uint16)(count - 1u), index;
     uint32 xs = r_u32(curve + 4u), ys;
@@ -64,7 +67,7 @@ sint32 gtmain_race_curve16(uint32 curve, sint32 value)
 }
 
 /* GTMAIN.EXE 8005C0C0 */
-void gtmain_race_suspension_car_prepare(uint32 car)
+/* Original: GTMAIN.EXE:sub_8005C0C0. */ uint32 gtmain_race_suspension_car_prepare(uint32 car)
 {
     uint32 force[4], rate[4], enabled, i;
     sint32 delta = r_s16(car + 1788u) - r_s16(car + 1902u), value;
@@ -82,10 +85,11 @@ void gtmain_race_suspension_car_prepare(uint32 car)
     for (i = 0; i < 4u; ++i) force[i] = suspension_fp(force[i], rate[i]);
     for (i = 0; i < 4u; ++i)
         w_u32(car + 156u + 68u * i, suspension_fp((uint32)r_s16(0x80093E4Cu + 2u * r_u8(car + 176u + 68u * i)), force[i]));
+    return 64u;
 }
 
 /* GTMAIN.EXE 8005C514 */
-void gtmain_race_suspension_car_update(uint32 car)
+/* Original: GTMAIN.EXE:sub_8005C514. */ void gtmain_race_suspension_car_update(uint32 car)
 {
     uint32 coefficient = suspension_fp(r_u32(car + 1792u), 25736u), result, first, second;
     w_u32(car + 1932u, r_u32(car + 1728u) - suspension_fp(coefficient, (uint32)r_s16(car + 416u)));
@@ -100,7 +104,7 @@ void gtmain_race_suspension_car_update(uint32 car)
 }
 
 /* GTMAIN.EXE 8002D424 */
-void gtmain_race_input_playback(uint32 object, uint32 state)
+/* Original: GTMAIN.EXE:sub_8002D424. */ void gtmain_race_input_playback(uint32 object, uint32 state)
 {
     uint32 count, cursor, duration, axes, buttons, flags, steer, header, old_buttons;
     sint32 previous;
@@ -138,10 +142,10 @@ void gtmain_race_input_playback(uint32 object, uint32 state)
 }
 
 /* GTMAIN.EXE 80055780 */
-void gtmain_race_brake_assist(uint32 car)
+/* Original: GTMAIN.EXE:sub_80055780. */ sint32 gtmain_race_brake_assist(uint32 car)
 {
     uint32 axle, wheel, half;
-    sint32 maximum, coefficient, value;
+    sint32 maximum, coefficient, value = 0;
     for (axle = 0; axle < 2u; ++axle) {
         half = 22u + 2u * axle;
         if (!r_u16(car + half)) continue;
@@ -154,12 +158,15 @@ void gtmain_race_brake_assist(uint32 car)
             - suspension_fp((uint32)(maximum - r_s16(car + 1002u + 64u * axle)), r_u32(car + 1636u + 4u * axle)));
         if (coefficient < 0) coefficient = 0;
         if (coefficient > 4096) coefficient = 4096;
-        w_u16(car + half, (uint16)suspension_fp((uint32)coefficient, (uint32)r_s16(car + half)));
+        value = (sint32)suspension_fp((uint32)coefficient, (uint32)r_s16(car + half));
+        w_u16(car + half, (uint16)value);
+        if (!axle) value = 0;
     }
+    return value;
 }
 
 /* GTMAIN.EXE 80055A64 */
-void gtmain_race_controls_launch(uint32 car, sint32 index, sint32 time)
+/* Original: GTMAIN.EXE:sub_80055A64. */ uint32 gtmain_race_controls_launch(uint32 car, sint32 index, sint32 time)
 {
     uint32 value;
     w_u8(0x1F8001FDu + 4u * (uint32)index, 0);
@@ -170,22 +177,27 @@ void gtmain_race_controls_launch(uint32 car, sint32 index, sint32 time)
         w_u16(car + 16u, r_u8(car + 1707u) ? 4096 : 0);
     } else {
         value = (uint32)(r_s16(car + 38u) - r_u16(car + 1470u)) << 13;
-        w_u16(car + 16u, (uint16)(2560 - suspension_div(value, r_u16(car + 660u))));
+        w_u16(car + 16u, (uint16)(2560u - (uint32)suspension_div(value, r_u16(car + 660u))));
         if (r_s16(car + 16u) < 0) w_u16(car + 16u, 0);
         else if (r_s16(car + 16u) > 4096) w_u16(car + 16u, 4096);
     }
     value = r_u16(car + 16u); w_u16(car + 20u, 0); w_u16(car + 24u, 0); w_u16(car + 22u, 0);
     w_u16(car + 14u, 0); w_u16(car + 18u, (uint16)value);
+    return value;
 }
 
 /* GTMAIN.EXE 80055928 */
-void gtmain_race_throttle_assist(uint32 car)
+/* Original: GTMAIN.EXE:sub_80055928. */ sint32 gtmain_race_throttle_assist(uint32 car)
 {
     uint32 type, wheel;
     sint32 minimum = 4096, value, front, rear, coefficient;
-    if (r_u8(car + 1691u) != 1u) return;
-    type = r_u8(car + 1460u); if (type == 4u || type == 2u || type == 3u) return;
-    if (r_s16(car + 38u) < (sint32)(r_u16(car + 1470u) >> 1) || !r_u16(car + 18u)) return;
+    if (r_u8(car + 1691u) != 1u) return 4;
+    type = r_u8(car + 1460u);
+    if (type == 4u) return 2;
+    if (type == 2u || type == 3u) return 3;
+    value = r_u16(car + 1470u) >> 1;
+    if (r_s16(car + 38u) < value) return value;
+    if (!r_s16(car + 18u)) return 0;
     for (wheel = 0; wheel < 4u; ++wheel) if (r_u8(car + 132u + 68u * wheel)) {
         value = r_s16(car + 180u + 68u * wheel); if (value < minimum) minimum = value;
     }
@@ -193,7 +205,9 @@ void gtmain_race_throttle_assist(uint32 car)
     coefficient = (sint32)(suspension_fp((uint32)(minimum - front), r_u32(0x80093DCCu)) + r_u32(0x80093DC8u));
     if (coefficient < 0) coefficient = 0;
     if (coefficient > 4096) coefficient = 4096;
-    w_u16(car + 18u, (uint16)suspension_fp((uint32)coefficient, (uint32)r_s16(car + 18u)));
+    value = (sint32)suspension_fp((uint32)coefficient, (uint32)r_s16(car + 18u));
+    w_u16(car + 18u, (uint16)value);
+    return value;
 }
 
 static uint32 suspension_lap_ratio(uint32 difference, uint32 span)
@@ -207,7 +221,7 @@ static void suspension_lap_report(uint32 car, sint32 lap, sint32 time, uint32 el
 }
 
 /* GTMAIN.EXE 800576D4 */
-sint32 gtmain_race_lap_crossing(uint32 car, sint32 previous, sint32 rank)
+/* Original: GTMAIN.EXE:sub_800576D4. */ sint32 gtmain_race_lap_crossing(uint32 car, sint32 previous, sint32 rank)
 {
     sint32 length, lap = 0, current, target, time;
     uint32 index, ratio, tick, elapsed, old, flags;
@@ -275,13 +289,13 @@ sint32 gtmain_race_lap_crossing(uint32 car, sint32 previous, sint32 rank)
 }
 
 /* GTMAIN.EXE 80065C44 */
-void gtmain_race_control_latch(uint32 car, uint8 value, uint32 hold)
+/* Original: GTMAIN.EXE:sub_80065C44. */ void gtmain_race_control_latch(uint32 car, uint8 value, uint32 hold)
 {
     if (hold || !r_u8(car + 1965u)) { w_u8(car + 1964u, value); w_u8(car + 1965u, (uint8)hold); }
 }
 
 /* GTMAIN.EXE 8002D6D4 */
-void gtmain_race_input_record(uint32 object, uint32 state)
+/* Original: GTMAIN.EXE:sub_8002D6D4. */ void gtmain_race_input_record(uint32 object, uint32 state)
 {
     uint32 count, flags, buttons, steer, axes, low, high, changed = 120u;
     sint32 duration;

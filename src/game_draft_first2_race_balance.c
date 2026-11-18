@@ -19,7 +19,7 @@ static sint32 gtmain_balance_fraction(sint32 numerator, sint32 denominator, uint
 }
 
 /* GTMAIN.EXE:800617E8 */
-sint32 gtmain_race_speed_percent(sint32 percent)
+/* Original: GTMAIN.EXE:sub_800617E8. */ sint32 gtmain_race_speed_percent(sint32 percent)
 {
     sint32 value = (sint32)((uint32)percent << 12u) / 100;
     w_u32(0x80093EA8u, (uint32)value);
@@ -27,7 +27,7 @@ sint32 gtmain_race_speed_percent(sint32 percent)
 }
 
 /* GTMAIN.EXE:80061814 */
-sint32 gtmain_race_balance_config(uint32 enabled)
+/* Original: GTMAIN.EXE:sub_80061814. */ sint32 gtmain_race_balance_config(uint32 enabled)
 {
     sint32 value;
     if (enabled) {
@@ -57,7 +57,7 @@ sint32 gtmain_race_balance_config(uint32 enabled)
 }
 
 /* GTMAIN.EXE:80061B20 */
-sint32 gtmain_race_balance_boost(uint32 car, sint32 lap_delta, sint32 distance_delta)
+/* Original: GTMAIN.EXE:sub_80061B20. */ sint32 gtmain_race_balance_boost(uint32 car, sint32 lap_delta, sint32 distance_delta)
 {
     sint32 value = 4096;
     if (!(r_u8(car + 58u) & 16u)) {
@@ -79,7 +79,7 @@ sint32 gtmain_race_balance_boost(uint32 car, sint32 lap_delta, sint32 distance_d
 }
 
 /* GTMAIN.EXE:80061C04 */
-sint32 gtmain_race_balance_slow(uint32 car, sint32 lap_delta, sint32 distance_delta)
+/* Original: GTMAIN.EXE:sub_80061C04. */ sint32 gtmain_race_balance_slow(uint32 car, sint32 lap_delta, sint32 distance_delta)
 {
     sint32 limit = (sint32)r_u32(0x80093EC0u), reduction, value;
     if (lap_delta > 0 || distance_delta >= limit) reduction = (sint32)r_u32(0x80093EB8u);
@@ -98,7 +98,7 @@ sint32 gtmain_race_balance_slow(uint32 car, sint32 lap_delta, sint32 distance_de
 }
 
 /* GTMAIN.EXE:80065194 */
-sint32 gtmain_race_position_delta(uint32 first_car, uint32 second_car,
+/* Original: GTMAIN.EXE:sub_80065194. */ sint32 gtmain_race_position_delta(uint32 first_car, uint32 second_car,
     sint32 *lap_delta, sint32 *distance_delta)
 {
     sint32 first_lap = (sint16)r_u16(first_car + 56u), second_lap = (sint16)r_u16(second_car + 56u);
@@ -120,7 +120,7 @@ sint32 gtmain_race_position_delta(uint32 first_car, uint32 second_car,
 }
 
 /* GTMAIN.EXE:80061CD4 */
-uint32 gtmain_race_balance_update(uint32 reference_car, uint32 car)
+/* Original: GTMAIN.EXE:sub_80061CD4. */ uint32 gtmain_race_balance_update(uint32 reference_car, uint32 car)
 {
     sint32 laps, distance, ahead;
     uint32 mode, result = r_u8(car + 1960u);
@@ -161,7 +161,7 @@ uint32 gtmain_race_balance_update(uint32 reference_car, uint32 car)
 }
 
 /* GTMAIN.EXE:80061F78 */
-sint32 gtmain_race_speed_apply(uint32 car)
+/* Original: GTMAIN.EXE:sub_80061F78. */ sint32 gtmain_race_speed_apply(uint32 car)
 {
     sint32 scale = (sint16)r_u16(car + 1702u), first, second;
     if (scale == 4096) {
@@ -180,7 +180,7 @@ sint32 gtmain_race_speed_apply(uint32 car)
 }
 
 /* GTMAIN.EXE:80065230 */
-sint32 gtmain_race_position_compare(uint32 cars, sint32 first, sint32 second)
+/* Original: GTMAIN.EXE:sub_80065230. */ sint32 gtmain_race_position_compare(uint32 cars, sint32 first, sint32 second)
 {
     uint32 a = cars + 3380u * (uint32)first + 40u, b;
     sint32 first_lap, second_lap, first_distance, second_distance;
@@ -197,7 +197,7 @@ sint32 gtmain_race_position_compare(uint32 cars, sint32 first, sint32 second)
 }
 
 /* GTMAIN.EXE:80065300 */
-sint32 gtmain_race_positions_init(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80065300. */ sint32 gtmain_race_positions_init(uint32 cars, sint32 count)
 {
     sint32 i;
     for (i = 0; i < 6; ++i) w_u8(0x800BFE40u + (uint32)i, 255u);
@@ -209,7 +209,7 @@ sint32 gtmain_race_positions_init(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE:80065380 */
-sint32 gtmain_race_positions_sort(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80065380. */ sint32 gtmain_race_positions_sort(uint32 cars, sint32 count)
 {
     sint32 i;
     for (i = 1; i < count; ++i) {

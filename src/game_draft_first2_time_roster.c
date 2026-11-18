@@ -25,7 +25,7 @@ static sint32 time_roster_width(sint32 font, const char text[64])
 }
 
 /* GTMAIN.EXE:800214C8 */
-void gtmain_race_time_roster_draw(uint32 ordering, sint32 y, sint32 count)
+/* Original: GTMAIN.EXE:sub_800214C8. */ void gtmain_race_time_roster_draw(uint32 ordering, sint32 y, sint32 count)
 {
     uint32 node, leader_time, row = 0u;
     char text[64];

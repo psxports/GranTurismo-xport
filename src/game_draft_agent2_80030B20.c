@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 80030B20 */
-sint32 gt_draft_80030B20(void)
+/* Original: GTMAIN.EXE:sub_80030B20. */ sint32 gt_draft_80030B20(void)
 {
     uint32 timer = r_u16(0x800912E2u);
     sint32 selected = r_s16(0x800912E0u);

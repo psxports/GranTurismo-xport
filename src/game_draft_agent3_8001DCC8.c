@@ -1,7 +1,7 @@
 #include "game_draft_registry.h"
 #include "game_first2_registry.h"
 
-uint32 gtmain_camera_follow_controls(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001DCC8. */ uint32 gtmain_camera_follow_controls(uint32 camera)
 {
     uint32 controller = r_u32(camera + 184u);
     uint32 buttons = r_u16(controller + 8u);

@@ -8,11 +8,11 @@ static void rpm_link(uint32 ordering, uint32 packet)
 }
 
 /* GTMAIN.EXE 8002C028 */
-void gtmain_race_rpm_scale_draw(uint32 ordering, sint32 x, sint32 y, uint32 car)
+/* Original: GTMAIN.EXE:sub_8002C028. */ uint32 gtmain_race_rpm_scale_draw(uint32 ordering, sint32 x, sint32 y, uint32 car)
 {
     uint32 position = ((uint32)y << 16) | (uint32)x, data = car + 2344u;
     sint32 count = (sint16)r_u16(car + 2350u), index, filled;
-    uint32 packet = r_u32(0x800BFE4Cu), record;
+    uint32 packet = r_u32(0x800BFE4Cu), record, result;
     for (index = 0; index < count; ++index) {
         w_u32(packet, 0x03000000u); w_u32(packet + 4u, (index & 3) ? 0x40C0C0C0u : 0x40FFFFFFu);
         record = data + (uint32)index * 16u;
@@ -30,7 +30,7 @@ void gtmain_race_rpm_scale_draw(uint32 ordering, sint32 x, sint32 y, uint32 car)
         w_u32(packet + 20u, position + r_u32(record + 40u));
         rpm_link(ordering, packet); packet += 24u;
     }
-    w_u32(0x800BFE4Cu, packet); gtmain_text_font(0); gtmain_text_color(0x00808080u);
+    w_u32(0x800BFE4Cu, packet); gtmain_text_font(0); result = gtmain_text_color(0x00808080u);
     count = (sint16)r_u16(data + 6u);
     for (index = 0; index < count; index += 4) {
         sint32 tx, ty;
@@ -41,4 +41,5 @@ void gtmain_race_rpm_scale_draw(uint32 ordering, sint32 x, sint32 y, uint32 car)
         ty = (sint32)((uint32)y + (uint32)(sint32)(sint16)r_u16(record + 14u) - 3u);
         gtmain_text_format(ordering, (sint16)tx, (sint16)ty, 0x8008C02Cu, &arguments);
     }
+    return count > 0 ? (uint32)index << 4 : result;
 }

@@ -3,10 +3,9 @@
 #include "game_local_stack.h"
 #include <string.h>
 
-/* TODO Implement unrecorded GTMAIN.EXE 800521A4 only for an observed native blocker */
 static void physics_controls_hud_clear(uint32 car)
 {
-    gt_draft_unresolved_call(0x800521A4u, car, 0, 0, 0, 0, 0, 0, 0);
+    gtmain_race_controls_hud_clear(car);
 }
 
 static uint32 physics_mul(uint32 a, uint32 b)
@@ -35,7 +34,7 @@ static void physics_controls_read(uint8 *controls, uint32 source, uint32 player,
 }
 
 /* GTMAIN.EXE 800521AC */
-void gtmain_race_physics_prepare(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_800521AC. */ void gtmain_race_physics_prepare(uint32 cars, sint32 count)
 {
     sint32 index;
     uint32 replay = r_s16(0x800B63DEu) != 0;
@@ -126,7 +125,7 @@ void gtmain_race_physics_prepare(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 80067368 */
-void gtmain_race_collisions_tick(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80067368. */ void gtmain_race_collisions_tick(uint32 cars, sint32 count)
 {
     sint32 index, other;
     for (index = 0; index < count; ++index) gtmain_race_controls_reset(cars + 3380u * (uint32)index + 40u);
@@ -153,7 +152,7 @@ void gtmain_race_collisions_tick(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 8005F734 */
-void gtmain_race_wheel_contacts_prepare(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_8005F734. */ void gtmain_race_wheel_contacts_prepare(uint32 cars, sint32 count)
 {
     sint32 index;
     uint32 wheel;
@@ -192,7 +191,7 @@ void gtmain_race_wheel_contacts_prepare(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 8005FA9C */
-void gtmain_race_wheel_contacts_query(uint32 unused_cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_8005FA9C. */ void gtmain_race_wheel_contacts_query(uint32 unused_cars, sint32 count)
 {
     sint32 index;
     uint32 wheel;
@@ -202,7 +201,7 @@ void gtmain_race_wheel_contacts_query(uint32 unused_cars, sint32 count)
 }
 
 /* GTMAIN.EXE 8005FB34 */
-void gtmain_race_wheel_contacts_apply(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_8005FB34. */ void gtmain_race_wheel_contacts_apply(uint32 cars, sint32 count)
 {
     sint32 index;
     uint32 wheel;
@@ -236,7 +235,7 @@ void gtmain_race_wheel_contacts_apply(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 80052884 */
-void gtmain_race_pose_update(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80052884. */ void gtmain_race_pose_update(uint32 cars, sint32 count)
 {
     sint32 index;
     if (!r_s16(0x800B63DEu)) gtmain_race_suspension_step(cars, count);
@@ -296,7 +295,7 @@ void gtmain_race_pose_update(uint32 cars, sint32 count)
 }
 
 /* GTMAIN.EXE 80057DB8 */
-uint32 gtmain_race_lap_groups_tick(uint32 cars)
+/* Original: GTMAIN.EXE:sub_80057DB8. */ uint32 gtmain_race_lap_groups_tick(uint32 cars)
 {
     sint32 index, group = 0;
     for (index = 0; index < r_s16(0x800BC1A6u); ++index) {
@@ -332,16 +331,19 @@ uint32 gtmain_race_lap_groups_tick(uint32 cars)
 }
 
 /* GTMAIN.EXE 80057F7C */
-void gtmain_race_clock_tick(void)
+/* Original: GTMAIN.EXE:sub_80057F7C. */ uint32 gtmain_race_clock_tick(void)
 {
     if (!r_s16(0x800B63DEu)) {
         uint32 increment = r_u32(0x800B6318u) == 1u ? 50u : 100u;
-        w_u32(0x80093D78u, r_u32(0x80093D78u) + increment);
+        uint32 result = r_u32(0x80093D78u) + increment;
+        w_u32(0x80093D78u, result);
+        return result;
     }
+    return 1u;
 }
 
 /* GTMAIN.EXE 80028BA8 */
-sint32 gtmain_race_pad_axis_value(sint32 mapping, uint32 unused_state, uint32 packet, uint32 range, uint32 analog)
+/* Original: GTMAIN.EXE:sub_80028BA8. */ sint32 gtmain_race_pad_axis_value(sint32 mapping, uint32 unused_state, uint32 packet, uint32 range, uint32 analog)
 {
     sint32 value, minimum, maximum;
     if (mapping < 16) return 0;

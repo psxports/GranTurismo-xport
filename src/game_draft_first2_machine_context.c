@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 800403C4 */
-uint32 gtmain_menu_machine_context_bind(uint8 kind, uint32 owner, uint32 resource, uint8 state, uint32 value, uint32 text)
+/* Original: GTMAIN.EXE:sub_800403C4. */ uint32 gtmain_menu_machine_context_bind(uint8 kind, uint32 owner, uint32 resource, uint8 state, uint32 value, uint32 text)
 {
     w_u32(0x801F1FDCu, owner);
     w_u8(0x801F1FE4u, state);
@@ -15,7 +15,7 @@ uint32 gtmain_menu_machine_context_bind(uint8 kind, uint32 owner, uint32 resourc
 }
 
 /* GTMAIN.EXE 8004A148 */
-uint32 gtmain_menu_entry_name_request_prepare(void)
+/* Original: GTMAIN.EXE:sub_8004A148. */ uint32 gtmain_menu_entry_name_request_prepare(void)
 {
     sint32 index;
     gtmain_menu_resource_request_initialize(0x80092F44u, 31, 256, 0x800BEA40u);

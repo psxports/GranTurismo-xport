@@ -1,44 +1,39 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "xport_trace.h"
 
 static void resource_prepare(void)
 {
-    /* TODO Bind unselected resource preparation 8004AF94 */
-    (void)gt_draft_unresolved_call(0x8004AF94u, 0u, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+    gtmain_parts_all_names_update();
 }
 
 static sint32 machine_select(uint32 selector, uint32 input)
 {
-    /* TODO Bind unselected machine selector 8004B25C */
-    return (sint32)gt_draft_unresolved_call(0x8004B25Cu, selector, input, 0u, 0u, 0u, 0u, 0u, 0u);
+    return gtmain_menu_category_input(selector, input);
 }
 
 static void item_prepare(uint32 item)
 {
-    /* TODO Bind unselected item preparation 8004B6A0 */
-    (void)gt_draft_unresolved_call(0x8004B6A0u, item, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+    gtmain_menu_dropdown_reset(item);
 }
 
 static sint32 item_select(uint32 item, uint32 input)
 {
-    /* TODO Bind unselected item selector 8004B6A8 */
-    return (sint32)gt_draft_unresolved_call(0x8004B6A8u, item, input, 0u, 0u, 0u, 0u, 0u, 0u);
+    return gtmain_menu_dropdown_input(item, input);
 }
 
 static void menu_cancel(uint32 descriptor)
 {
-    /* TODO Bind unselected menu transition 80035364 */
-    (void)gt_draft_unresolved_call(0x80035364u, descriptor, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
+    gtmain_menu_stack_replace(descriptor);
 }
 
-static void resource_copy(uint32 source, uint32 destination, uint32 count, uint32 width)
+static void available_parts_build(uint32 descriptors, uint32 entries, sint32 count, uint32 category)
 {
-    /* TODO Bind unselected resource copy 8004AFCC */
-    (void)gt_draft_unresolved_call(0x8004AFCCu, source, destination, count, width, 0u, 0u, 0u, 0u);
+    gtmain_parts_available_build(descriptors, entries, count, category);
 }
 
 /* GTMAIN.EXE 80045338 */
-uint32 gt_draft_80045338(void)
+/* Original: GTMAIN.EXE:sub_80045338. */ uint32 gt_draft_80045338(void)
 {
     static const uint32 tables[4][6] = {
         { 0x80093540u, 0x800934B8u, 0x800934F4u, 0x8009357Cu, 0x800934A4u, 0x80093590u },
@@ -49,6 +44,7 @@ uint32 gt_draft_80045338(void)
     uint32 input = r_u32(0x800BDD08u), item, buttons;
     sint32 selection, category;
     uint32 index, source, kind, count, width, table;
+    FUNCTION_MARKER(0x80045338, "GTMAIN.EXE");
     resource_prepare();
     gtmain_menu_stream_check();
     if (!(sint8)r_u8(input)) return 0u;
@@ -92,7 +88,7 @@ uint32 gt_draft_80045338(void)
     count = r_u8(tables[table][4] + index);
     w_u8(0x800B5305u, kind);
     width = r_u8(tables[table][5] + index);
-    resource_copy(source, 0x800B5314u, count, width);
+    available_parts_build(source, 0x800B5314u, count, width);
     w_u8(0x800B5374u, width);
     w_u32(0x80093534u, source);
     w_u8(0x80093530u, count);

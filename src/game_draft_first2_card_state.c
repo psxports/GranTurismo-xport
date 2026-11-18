@@ -6,7 +6,7 @@ static uint32 card_bios(uint32 service, uint32 argument)
     /* TODO Bind actual BIOS service data and meaningful result */
     gt_draft_failure("Native card BIOS service adapter", service);
 }
-uint32 gtmain_card_init_result(uint32 mode)
+/* Original: GTMAIN.EXE:sub_80082538. */ uint32 gtmain_card_init_result(uint32 mode)
 {
     (void)card_bios(0x8008B2C8u, 0);
     (void)EnterCriticalSectionPSX();
@@ -16,14 +16,14 @@ uint32 gtmain_card_init_result(uint32 mode)
     gtmain_bios_card_patch(); gtmain_bios_card_patch_second();
     return card_bios(0x8008AF28u, 0);
 }
-uint32 gtmain_card_start_result(void)
+/* Original: GTMAIN.EXE:sub_800825A4. */ uint32 gtmain_card_start_result(void)
 {
     (void)EnterCriticalSectionPSX();
     gtmain_bios_card_start();
     (void)card_bios(0x8008B2C8u, 0);
     return card_bios(0x8008AF28u, 0);
 }
-uint32 gtmain_card_stop(void)
+/* Original: GTMAIN.EXE:sub_800825DC. */ uint32 gtmain_card_stop(void)
 {
     gtmain_bios_card_stop();
     return gtmain_bios_card_patch_restore();
@@ -48,7 +48,7 @@ void gtmain_bios_card_patch_second(void)
     do { uint32 word = r_u32(source); w_u32(destination + 2504u, word); source += 4u; destination += 4u; } while (source != 0x80082740u);
     FlushCache();
 }
-uint32 gtmain_bios_card_patch_restore(void)
+/* Original: GTMAIN.EXE:sub_80082898. */ uint32 gtmain_bios_card_patch_restore(void)
 {
     uint32 table, destination, source = 0x80082908u;
     (void)EnterCriticalSectionPSX();

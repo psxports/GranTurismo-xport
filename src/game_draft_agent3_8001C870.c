@@ -19,7 +19,7 @@ static uint32 direction_divide(uint32 numerator, uint32 denominator)
 }
 
 /* Unverified translation from complete pseudocode and original MIPS */
-uint32 gtmain_camera_direction_matrix(uint8 *matrix, const uint8 *vector)
+/* Original: GTMAIN.EXE:sub_8001C870. */ uint32 gtmain_camera_direction_matrix(uint8 *matrix, const uint8 *vector)
 {
     uint32 x = xport_load_le32(vector);
     uint32 y = xport_load_le32(vector + 4u);

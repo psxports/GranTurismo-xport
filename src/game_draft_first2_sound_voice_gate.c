@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE:8007DE18 */
-void gtmain_sound_voice_tick_if_enabled(void)
+/* Original: GTMAIN.EXE:sub_8007DE18. */ void gtmain_sound_voice_tick_if_enabled(void)
 {
     if (r_u32(0x800B1BE4u)) gtmain_sound_voice_tick();
 }

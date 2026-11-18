@@ -4,7 +4,7 @@
 
 /* TODO Resolve independent inventory and equipment child services */
 /* GTMAIN.EXE 8004ACB8 */
-sint32 gtmain_menu_parts_check(uint32 target)
+/* Original: GTMAIN.EXE:sub_8004ACB8. */ sint32 gtmain_menu_parts_check(uint32 target)
 {
     static const uint8 fields[6] = { 30, 34, 4, 12, 16, 24 };
     uint32 context, table, target_number, current_number, i;

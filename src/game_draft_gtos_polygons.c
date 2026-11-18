@@ -1,7 +1,6 @@
 #include "game_draft_registry.h"
 #include "psx_gte.h"
 
-/* GTOS.EXE 80031F64 */
 static void polygon_link(uint32 table, uint32 packet)
 {
     uint32 old = r_u32(table);
@@ -278,7 +277,7 @@ static uint32 polygon_overlay(uint32 context, uint32 record, uint32 packet, uint
     return packet + (quad ? 40u : 32u);
 }
 
-uint32 gtos_model_polygons(uint32 model, uint32 context)
+/* Original: GTOS.EXE:sub_80031F64. */ uint32 gtos_model_polygons(uint32 model, uint32 context)
 {
     static const uint8 record_bytes[8] = { 16u, 16u, 24u, 28u, 28u, 28u, 36u, 40u };
     static const uint8 packet_bytes[8] = { 20u, 24u, 28u, 36u, 32u, 40u, 40u, 52u };

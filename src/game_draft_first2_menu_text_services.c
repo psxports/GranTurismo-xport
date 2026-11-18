@@ -7,7 +7,7 @@ static uint32 palette_component(uint32 product)
     uint32 added = high + product;
     return ((uint32)((sint32)added >> 7) - (uint32)((sint32)product >> 31)) & 255u;
 }
-uint32 gtmain_menu_palette_color(sint32 palette, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_80035398. */ uint32 gtmain_menu_palette_color(sint32 palette, sint32 intensity)
 {
     uint32 address = 0x80091A78u + (uint32)palette * 3u;
     uint32 red_product = (uint32)intensity * r_u8(address);
@@ -16,15 +16,15 @@ uint32 gtmain_menu_palette_color(sint32 palette, sint32 intensity)
     uint32 blue_product = (uint32)intensity * r_u8(address + 2u);
     return red | (green << 8) | (palette_component(blue_product) << 16);
 }
-uint32 gtmain_menu_gray(uint8 intensity)
+/* Original: GTMAIN.EXE:sub_80035458. */ uint32 gtmain_menu_gray(uint8 intensity)
 {
     return (uint32)intensity | ((uint32)intensity << 8) | ((uint32)intensity << 16);
 }
-uint32 gtmain_menu_text_draw(uint32 ordering, sint32 x, sint32 y, uint32 guest_text, sint32 spacing)
+/* Original: GTMAIN.EXE:sub_8003A8AC. */ uint32 gtmain_menu_text_draw(uint32 ordering, sint32 x, sint32 y, uint32 guest_text, sint32 spacing)
 {
     return gtmain_font_spaced_draw(0x800C0070u, ordering, x, y, guest_text, spacing);
 }
-uint32 gtmain_menu_text_wave(uint32 ordering, sint32 x, sint32 y, uint32 guest_text)
+/* Original: GTMAIN.EXE:sub_8003AC64. */ uint32 gtmain_menu_text_wave(uint32 ordering, sint32 x, sint32 y, uint32 guest_text)
 {
     uint32 text = guest_text, horizontal = 0x800921A4u;
     uint32 vertical = 0x800921B0u, end = 0x800921ADu, result;
@@ -44,7 +44,7 @@ uint32 gtmain_menu_text_wave(uint32 ordering, sint32 x, sint32 y, uint32 guest_t
     } while (result);
     return result;
 }
-uint32 gtmain_menu_text_width(sint32 font, uint32 guest_text, sint32 spacing)
+/* Original: GTMAIN.EXE:sub_8003A8F4. */ uint32 gtmain_menu_text_width(sint32 font, uint32 guest_text, sint32 spacing)
 {
     uint32 cursor = guest_text, length = 0, width;
     if ((sint8)r_u8(cursor)) {

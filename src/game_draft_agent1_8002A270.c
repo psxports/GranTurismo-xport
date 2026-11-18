@@ -2,7 +2,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8002A270 */
-void gt_draft_8002A270(void)
+/* Original: GTMAIN.EXE:sub_8002A270. */ void gt_draft_8002A270(void)
 {
     uint32 ordering = r_u32(0x800B6368u);
     (void)gtmain_race_countdown_block_draw(ordering, 68, -1);

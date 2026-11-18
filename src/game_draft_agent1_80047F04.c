@@ -14,7 +14,7 @@ static void saved_entry_refresh(uint32 owner)
 }
 
 /* GTMAIN.EXE 80047F04 */
-sint32 gtmain_menu_saved_entry_input(uint32 owner, uint32 input)
+/* Original: GTMAIN.EXE:sub_80047F04. */ sint32 gtmain_menu_saved_entry_input(uint32 owner, uint32 input)
 {
     sint32 countdown = (sint8)r_u8(0x800B538Eu);
     sint32 selected, current, kind;

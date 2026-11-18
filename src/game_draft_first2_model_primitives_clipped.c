@@ -494,7 +494,7 @@ static void clipped_prepare_subdivision(uint32 context, uint32 quad, uint32 pack
     clipped_screen(context + 308u, 4u); clipped_screen(context + 312u, 5u);
 }
 
-uint32 gtmain_model_primitives_clipped_draw(uint32 model, uint32 context)
+/* Original: GTMAIN.EXE:sub_800743C0. */ uint32 gtmain_model_primitives_clipped_draw(uint32 model, uint32 context)
 {
     static const uint32 stride[8] = {16u, 16u, 24u, 28u, 28u, 28u, 36u, 40u};
     uint32 group, records, result = r_u32(model + 8u);

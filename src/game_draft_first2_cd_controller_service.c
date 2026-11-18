@@ -20,7 +20,7 @@ static void service_publish(uint32 destination, const uint8 response[8])
     uint32 i;
     for (i = 0; i < 8; ++i) w_u8(destination + i, response[i]);
 }
-uint32 gtmain_cd_controller_service(void)
+/* Original: GTMAIN.EXE:sub_80084138. */ uint32 gtmain_cd_controller_service(void)
 {
     uint8 response[8];
     uint32 flags, status_address, count = 0, i, errors = 0, value;

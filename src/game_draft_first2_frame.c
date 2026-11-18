@@ -2,26 +2,26 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 80027288 */
-uint32 gtmain_race_frame_reset(uint32 font)
+/* Original: GTMAIN.EXE:sub_80027288. */ uint32 gtmain_race_frame_reset(uint32 font)
 {
     return gtmain_font_load((sint32)font);
 }
 
 /* GTMAIN.EXE 8006F0C0 */
-void gtmain_frame_enabled(uint32 enabled)
+/* Original: GTMAIN.EXE:sub_8006F0C0. */ void gtmain_frame_enabled(uint32 enabled)
 {
     w_u32(0x800BFF74u, enabled);
 }
 
 /* GTMAIN.EXE 8006EFB4 */
-void gtmain_display_mask(uint32 enabled)
+/* Original: GTMAIN.EXE:sub_8006EFB4. */ void gtmain_display_mask(uint32 enabled)
 {
     w_u32(0x800BFF70u, enabled);
     SetDispMask(enabled != 0u);
 }
 
 /* GTMAIN.EXE 8006ED9C */
-sint32 gtmain_display_mode_init(uint32 flags)
+/* Original: GTMAIN.EXE:sub_8006ED9C. */ sint32 gtmain_display_mode_init(uint32 flags)
 {
     uint32 mode = flags & 7u, table = 0x800AD898u + 20u * mode;
     uint32 value, index;

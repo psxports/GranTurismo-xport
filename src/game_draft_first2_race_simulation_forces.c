@@ -5,7 +5,7 @@ static sint32 forces_low(sint32 a, sint32 b) { return (sint32)((uint32)a * (uint
 static sint32 forces_time(sint32 v) { return (sint32)(uint32)(((sint64)v * r_s32(0x1F800000u)) / 65536); }
 
 /* GTMAIN.EXE 8005BDEC */
-void gtmain_race_slip_curve_update(uint32 car)
+/* Original: GTMAIN.EXE:sub_8005BDEC. */ void gtmain_race_slip_curve_update(uint32 car)
 {
     sint32 first = gtmain_race_curve16(car + 1068u, r_s16(car + 180u));
     sint32 second_argument = r_s16(car + 316u);
@@ -15,7 +15,7 @@ void gtmain_race_slip_curve_update(uint32 car)
 }
 
 /* GTMAIN.EXE 8005C65C */
-void gtmain_race_lateral_force_update(uint32 car)
+/* Original: GTMAIN.EXE:sub_8005C65C. */ void gtmain_race_lateral_force_update(uint32 car)
 {
     sint32 wheel_values[4], axle, wheel, angle, steering, value, limit, speed;
     uint32 offset, sum;
@@ -47,7 +47,7 @@ void gtmain_race_lateral_force_update(uint32 car)
 }
 
 /* GTMAIN.EXE 8005CD5C */
-void gtmain_race_lateral_drag_update(uint32 car, sint32 index)
+/* Original: GTMAIN.EXE:sub_8005CD5C. */ void gtmain_race_lateral_drag_update(uint32 car, sint32 index)
 {
     uint32 scratch = 0x1F800000u + 84u * (uint32)index, wheel, material, table;
     sint32 wheel_values[4], cosine, sine, speed, axis, difference, projected, first, second, value, coefficient;
@@ -88,7 +88,7 @@ void gtmain_race_lateral_drag_update(uint32 car, sint32 index)
 }
 
 /* GTMAIN.EXE 8005BB54 */
-void gtmain_race_longitudinal_integrate(uint32 car, sint32 index)
+/* Original: GTMAIN.EXE:sub_8005BB54. */ void gtmain_race_longitudinal_integrate(uint32 car, sint32 index)
 {
     uint32 scratch = 0x1F800000u + 84u * (uint32)index, value, first, second;
     sint32 cosine, sine, force, acceleration, speed, updated, coefficient;
@@ -117,7 +117,7 @@ void gtmain_race_longitudinal_integrate(uint32 car, sint32 index)
 }
 
 /* GTMAIN.EXE 8005B470 */
-void gtmain_race_engine_velocity_update(uint32 car, sint32 index)
+/* Original: GTMAIN.EXE:sub_8005B470. */ void gtmain_race_engine_velocity_update(uint32 car, sint32 index)
 {
     uint32 params = car + 404u, scratch = 0x1F800000u + 84u * (uint32)index, kind, gear;
     sint32 value, coefficient, first, second, limit, selected;
@@ -152,7 +152,7 @@ void gtmain_race_engine_velocity_update(uint32 car, sint32 index)
 }
 
 /* GTMAIN.EXE 8005D114 */
-void gtmain_race_yaw_integrate(uint32 car, sint32 index)
+/* Original: GTMAIN.EXE:sub_8005D114. */ void gtmain_race_yaw_integrate(uint32 car, sint32 index)
 {
     uint32 scratch = 0x1F800000u + 84u * (uint32)index, first, second;
     sint32 forward, rear, value, coefficient, left, right;
@@ -171,7 +171,7 @@ void gtmain_race_yaw_integrate(uint32 car, sint32 index)
 }
 
 /* GTMAIN.EXE 8005D478 */
-void gtmain_race_world_velocity_integrate(uint32 car)
+/* Original: GTMAIN.EXE:sub_8005D478. */ void gtmain_race_world_velocity_integrate(uint32 car)
 {
     sint32 forward, lateral, first, second, value, coefficient;
     uint32 i, address;

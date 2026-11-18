@@ -13,7 +13,7 @@ static void stream_status_error(uint8 status, uint32 response)
 }
 
 /* GTMAIN.EXE 8006FA28 */
-sint32 gtmain_stream_stop_request(void)
+/* Original: GTMAIN.EXE:sub_8006FA28. */ sint32 gtmain_stream_stop_request(void)
 {
     gtmain_stream_pause();
     w_u8(0x800994C2u, 9u);
@@ -21,7 +21,7 @@ sint32 gtmain_stream_stop_request(void)
 }
 
 /* GTMAIN.EXE 8006FA54 */
-sint32 gtmain_stream_restart_request(void)
+/* Original: GTMAIN.EXE:sub_8006FA54. */ sint32 gtmain_stream_restart_request(void)
 {
     gtmain_stream_pause();
     w_u8(0x800994C2u, 10u);
@@ -29,7 +29,7 @@ sint32 gtmain_stream_restart_request(void)
 }
 
 /* GTMAIN.EXE 8006FA80 */
-sint32 gtmain_stream_position_update(const uint8 *position)
+/* Original: GTMAIN.EXE:sub_8006FA80. */ sint32 gtmain_stream_position_update(const uint8 *position)
 {
     uint32 sector = (uint32)CdPosToInt((CdlLOC *)position);
     uint32 mask = r_u32(0x800C00A4u), base = r_u32(0x800C00A8u);
@@ -49,16 +49,17 @@ sint32 gtmain_stream_position_update(const uint8 *position)
 }
 
 /* GTMAIN.EXE 8006FE9C */
-sint32 gtmain_stream_state_active(uint32 state)
+/* Original: GTMAIN.EXE:sub_8006FE9C. */ sint32 gtmain_stream_state_active(uint32 state)
 {
     return state == 0u || state - 9u < 10u;
 }
 
 /* GTMAIN.EXE 8006FEBC */
-void gtmain_stream_begin(void)
+/* Original: GTMAIN.EXE:sub_8006FEBC. */ sint32 gtmain_stream_begin(void)
 {
     uint32 state, base;
-    if (gtmain_cd_pending_command()) return;
+    sint32 pending = gtmain_cd_pending_command();
+    if (pending) return pending;
     EnterCriticalSectionPSX();
     state = r_u8(0x800994C2u);
     base = r_u32(0x800C00A8u);
@@ -74,10 +75,11 @@ void gtmain_stream_begin(void)
         }
     }
     ExitCriticalSection();
+    return 0;
 }
 
 /* GTMAIN.EXE 8006FBA8 */
-void gtmain_stream_alternate_sync(uint8 status, const uint8 *response)
+/* Original: GTMAIN.EXE:sub_8006FBA8. */ void gtmain_stream_alternate_sync(uint8 status, const uint8 *response)
 {
     uint32 response_word, state, request;
     if (status == 5u && (response[0] & 0x10u)) return;
@@ -140,7 +142,7 @@ void gtmain_stream_alternate_sync(uint8 status, const uint8 *response)
 }
 
 /* GTMAIN.EXE 80070CB4 */
-uint32 gtmain_vector_normalize_xy(uint8 *out, const uint8 *input)
+/* Original: GTMAIN.EXE:sub_80070CB4. */ uint32 gtmain_vector_normalize_xy(uint8 *out, const uint8 *input)
 {
     uint32 x = (uint32)(sint32)(sint16)xport_load_le16(input);
     uint32 y = (uint32)(sint32)(sint16)xport_load_le16(input + 2u);

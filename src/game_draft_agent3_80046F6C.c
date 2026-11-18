@@ -1,6 +1,6 @@
 #include "game_first2_registry.h"
 
-uint32 gtmain_menu_saved_entry_delete(uint32 owner, sint32 index)
+/* Original: GTMAIN.EXE:sub_80046F6C. */ uint32 gtmain_menu_saved_entry_delete(uint32 owner, sint32 index)
 {
     uint32 entry = owner + 512u;
     sint32 current;

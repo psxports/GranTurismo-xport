@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE:8002332C */
-uint32 gt_draft_8002332C(void)
+/* Original: GTMAIN.EXE:sub_8002332C. */ uint32 gt_draft_8002332C(void)
 {
     uint32 mode = r_u16(0x800B63D6u);
     uint32 ordering = r_u32(0x800B6368u);

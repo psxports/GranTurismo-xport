@@ -18,7 +18,7 @@ static sint32 roster_slot_width(sint32 font, const char *text)
 }
 
 /* GTMAIN.EXE:80038F08 */
-sint32 gtmain_menu_roster_slot_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, uint32 slot)
+/* Original: GTMAIN.EXE:sub_80038F08. */ sint32 gtmain_menu_roster_slot_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, uint32 slot)
 {
     char digit[8];
     uint32 table, descriptor, shade;

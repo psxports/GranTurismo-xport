@@ -166,7 +166,7 @@ restore:
     return result;
 }
 
-sint32 gtmain_polygon_clip_textured_gouraud(uint32 context)
+/* Original: GTMAIN.EXE:sub_80069864. */ sint32 gtmain_polygon_clip_textured_gouraud(uint32 context)
 {
     return (sint32)textured_clip(context);
 }
@@ -178,7 +178,7 @@ static sint32 rectangle_divide(uint32 numerator, sint32 denominator, uint32 addr
     return (sint32)numerator / denominator;
 }
 
-uint32 gtmain_view_rectangle_prepare(uint32 view)
+/* Original: GTMAIN.EXE:sub_8007208C. */ uint32 gtmain_view_rectangle_prepare(uint32 view)
 {
     uint32 a, b, values[9], result;
     sint32 left, right, top, bottom, denominator;
@@ -201,7 +201,7 @@ uint32 gtmain_view_rectangle_prepare(uint32 view)
     w_u16(view + 66u, result); w_u16(view + 68u, a); w_u16(view + 74u, b); return result;
 }
 
-sint32 gtmain_font_string_draw(uint32 font, uint32 ordering_link, sint32 x, sint32 y, uint32 text)
+/* Original: GTMAIN.EXE:sub_80072418. */ sint32 gtmain_font_string_draw(uint32 font, uint32 ordering_link, sint32 x, sint32 y, uint32 text)
 {
     uint32 result = gtmain_primitive_texture_page(font, ordering_link), packet = r_u32(0x800BFE4Cu);
     uint32 glyphs = r_u32(font), kern_table = r_u32(font + 4u), color = r_u32(font + 12u);

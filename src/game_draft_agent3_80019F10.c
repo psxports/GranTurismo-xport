@@ -3,7 +3,7 @@
 
 /* Unverified draft from complete exported pseudocode with guest address operations */
 /* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_80019F10(void)
+/* Original: GTMAIN.EXE:sub_80019F10. */ uint32 gt_draft_80019F10(void)
 {
   ResetCallbackPSX();
   uint32 cd_result = gtmain_cd_init();

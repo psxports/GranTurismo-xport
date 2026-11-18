@@ -18,7 +18,7 @@ static void name_log_message(uint32 format)
 }
 
 /* GTMAIN.EXE:800336D8 */
-sint32 gtmain_menu_name_commit_tick(void)
+/* Original: GTMAIN.EXE:sub_800336D8. */ sint32 gtmain_menu_name_commit_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u), copy_default = 0, descriptor, record;
     sint32 selected, index;

@@ -2,7 +2,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8002FAA0 */
-void gtmain_race_status_draw(uint32 a0, sint32 a1, uint32 a2)
+/* Original: GTMAIN.EXE:sub_8002FAA0. */ void gtmain_race_status_draw(uint32 a0, sint32 a1, uint32 a2)
 {
     sint32 v5 = 0;
     sint32 v6 = 0;

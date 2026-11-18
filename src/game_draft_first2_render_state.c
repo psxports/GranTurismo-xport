@@ -1,12 +1,12 @@
 #include "game_first2_registry.h"
 #include "psx_gte.h"
 
-void gtmain_text_flags(uint8 flags)
+/* Original: GTMAIN.EXE:sub_8006C860. */ void gtmain_text_flags(uint8 flags)
 {
     w_u8(0x800C007Fu, flags | 0x64u);
 }
 
-uint32 gtmain_text_color(uint32 rgb)
+/* Original: GTMAIN.EXE:sub_8006C874. */ uint32 gtmain_text_color(uint32 rgb)
 {
     /* SWL writes the low three color bytes and preserves the command byte */
     w_u8(0x800C007Cu, (uint8)rgb);
@@ -15,17 +15,17 @@ uint32 gtmain_text_color(uint32 rgb)
     return 0x800C007Eu;
 }
 
-uint32 gtmain_course_entry(uint32 index)
+/* Original: GTMAIN.EXE:sub_8006E3D4. */ uint32 gtmain_course_entry(uint32 index)
 {
     return r_u32(0x800C0C0Cu) + (index << 4);
 }
 
-uint32 gtmain_course_name(uint32 index)
+/* Original: GTMAIN.EXE:sub_8006EA90. */ uint32 gtmain_course_name(uint32 index)
 {
     return gtmain_packed_bytes_entry(r_u32(0x800C0C08u), index) + 1u;
 }
 
-uint32 gtmain_matrix_bind_packed_negation(const uint8 *matrix)
+/* Original: GTMAIN.EXE:sub_8006EB0C. */ uint32 gtmain_matrix_bind_packed_negation(const uint8 *matrix)
 {
     uint32 negated = 0u - xport_load_le32(matrix + 8u);
     uint32 word1 = xport_load_le32(matrix + 4u), word0 = xport_load_le32(matrix);
@@ -38,7 +38,7 @@ uint32 gtmain_matrix_bind_packed_negation(const uint8 *matrix)
     return result;
 }
 
-uint32 gtmain_lighting_bind(uint32 context)
+/* Original: GTMAIN.EXE:sub_8006EB5C. */ uint32 gtmain_lighting_bind(uint32 context)
 {
     uint32 first = r_u32(context + 116u), second = r_u32(context + 120u);
     gte_ctc2(first, 8u);
@@ -52,7 +52,7 @@ uint32 gtmain_lighting_bind(uint32 context)
     return first;
 }
 
-uint32 gtmain_model_position(uint32 context, sint32 x, sint32 y, sint32 z)
+/* Original: GTMAIN.EXE:sub_8006D24C. */ uint32 gtmain_model_position(uint32 context, sint32 x, sint32 y, sint32 z)
 {
     uint32 px, py, pz, base_x, base_y, base_z, result;
     w_u32(context + 944u, (uint32)y << 4);
@@ -70,7 +70,7 @@ uint32 gtmain_model_position(uint32 context, sint32 x, sint32 y, sint32 z)
     return result;
 }
 
-sint32 gtmain_resource_pair_value(uint32 key, uint32 pairs)
+/* Original: GTMAIN.EXE:sub_8006C364. */ sint32 gtmain_resource_pair_value(uint32 key, uint32 pairs)
 {
     uint32 index = 0u, count;
     if (!r_u8(pairs)) return 0;
@@ -86,12 +86,12 @@ sint32 gtmain_resource_pair_value(uint32 key, uint32 pairs)
     return 0;
 }
 
-sint32 gtmain_car_count(void)
+/* Original: GTMAIN.EXE:sub_80072210. */ sint32 gtmain_car_count(void)
 {
     return (sint16)r_u16(0x800C0BFEu);
 }
 
-void gtmain_course_car_filter(uint32 enabled)
+/* Original: GTMAIN.EXE:sub_8006E3E8. */ void gtmain_course_car_filter(uint32 enabled)
 {
     if (enabled) w_u32(0x80097484u, (uint32)gtmain_car_count());
     else w_u32(0x80097484u, 0u);

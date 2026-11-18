@@ -23,7 +23,7 @@ static void remaining_math_square0(void)
     Square0(&input, &output);
 }
 
-sint32 gtmain_matrix_scale_axes(uint8 *out, const uint8 *matrix, const uint8 *scales)
+/* Original: GTMAIN.EXE:sub_80070774. */ sint32 gtmain_matrix_scale_axes(uint8 *out, const uint8 *matrix, const uint8 *scales)
 {
     uint32 scale = xport_load_le32(scales), a = xport_load_le32(matrix), b = xport_load_le32(matrix + 4u);
     uint32 high = (uint32)((sint32)a >> 16), c, d, next_scale, component, result;
@@ -51,7 +51,7 @@ sint32 gtmain_matrix_scale_axes(uint8 *out, const uint8 *matrix, const uint8 *sc
     return (sint32)result;
 }
 
-sint32 gtmain_model_range_index(uint32 ranges, const uint8 *position, sint32 divisor)
+/* Original: GTMAIN.EXE:sub_80070830. */ sint32 gtmain_model_range_index(uint32 ranges, const uint8 *position, sint32 divisor)
 {
     sint32 denominator = divisor >> 4;
     sint32 quotient = denominator ? 0x01000000 / denominator : -1;
@@ -76,18 +76,18 @@ sint32 gtmain_model_range_index(uint32 ranges, const uint8 *position, sint32 div
     return -1;
 }
 
-uint32 gtmain_view_projection_prepare(uint32 view)
+/* Original: GTMAIN.EXE:sub_8006B3E0. */ uint32 gtmain_view_projection_prepare(uint32 view)
 {
     gtmain_projection_prepare(view);
     return gtmain_view_rectangle_prepare(view);
 }
 
-sint32 gtmain_course_count(void)
+/* Original: GTMAIN.EXE:sub_80078904. */ sint32 gtmain_course_count(void)
 {
     return (sint16)r_u16(0x800C0BFCu);
 }
 
-sint32 gtmain_course_name_find(uint32 name)
+/* Original: GTMAIN.EXE:sub_8006E95C. */ sint32 gtmain_course_name_find(uint32 name)
 {
     sint32 count = gtmain_course_count(), index = 0;
     if (count <= 0) return -1;
@@ -101,7 +101,7 @@ sint32 gtmain_course_name_find(uint32 name)
     return -1;
 }
 
-uint32 gtmain_course_file_environment(void)
+/* Original: GTMAIN.EXE:sub_8006EAE8. */ uint32 gtmain_course_file_environment(void)
 {
     return gtmain_environment_value(0x8008E194u);
 }

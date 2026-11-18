@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 80029A74 */
-uint32 gtmain_race_mode_record(void)
+/* Original: GTMAIN.EXE:sub_80029A74. */ uint32 gtmain_race_mode_record(void)
 {
     uint32 entry = r_u8(0x800CB7F9u);
     uint32 group = r_u8(0x800CB7F8u);

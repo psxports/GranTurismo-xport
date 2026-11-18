@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 #include "game_local_stack.h"
+#include "xport_trace.h"
 #include <string.h>
 
 static uint32 menu_model_gte_read(uint32 index)
@@ -49,21 +50,16 @@ static uint32 menu_model_read_word(const uint8 *in,uint32 offset)
 {
     return in[offset] | ((uint32)in[offset+1u] << 8) | ((uint32)in[offset+2u] << 16) | ((uint32)in[offset+3u] << 24);
 }
-static void menu_asset_release_missing(void)
-{
-    /* TODO Bind the unselected no-argument asset release */
-    gt_draft_failure("Native menu asset release", 0x8003A2DCu);
-}
-
-uint32 gtmain_menu_asset_activate(uint32 index)
+/* Original: GTMAIN.EXE:sub_8003A27C. */ uint32 gtmain_menu_asset_activate(uint32 index)
 {
     sint32 entry;
-    if ((sint8)r_u8(0x800B52FAu)) menu_asset_release_missing();
+    FUNCTION_MARKER(0x8003A27C, "GTMAIN.EXE");
+    if (r_s8(0x800B52FAu)) gtmain_menu_asset_release();
     w_u8(0x800B52FAu,1);
     entry=gtmain_stream_entry_find(index);
     return (uint32)gtmain_stream_entry_prepare((uint32)entry,1);
 }
-uint32 gtmain_menu_scaled_sprite(uint32 descriptor,uint32 ordering,sint16 x,sint16 y,uint8 intensity,sint32 scale)
+/* Original: GTMAIN.EXE:sub_8003ADC0. */ uint32 gtmain_menu_scaled_sprite(uint32 descriptor,uint32 ordering,sint16 x,sint16 y,uint8 intensity,sint32 scale)
 {
     uint32 width=r_u16(descriptor+8u), uv=r_u32(descriptor+4u), height=r_u16(descriptor+10u);
     uint32 packet=r_u32(0x800BFE4Cu), product=(uint32)scale*width, product_y=(uint32)scale*height;
@@ -103,7 +99,7 @@ static void menu_model_ring_link(uint32 head,uint32 packet,uint32 initial_link)
     for (i=0u;i<head_count;++i) w_u8(head_base+i,new_link >> (head_shift+i*8u));
     for (i=0u;i<packet_count;++i) w_u8(packet_base+i,old_link >> (packet_shift+i*8u));
 }
-uint32 gtmain_menu_model_draw(uint32 ordering,sint16 x,sint16 y,sint16 phase,uint32 model,uint16 depth,uint16 palette,uint32 command,uint16 page,sint32 projection,uint32 flags)
+/* Original: GTMAIN.EXE:sub_8003D354. */ uint32 gtmain_menu_model_draw(uint32 ordering,sint16 x,sint16 y,sint16 phase,uint32 model,uint16 depth,uint16 palette,uint32 command,uint16 page,sint32 projection,uint32 flags)
 {
     /* The render source needs a guest address while its primitives are built */
     uint8 *view = (uint8 *)psx_addr(gt_local_stack_workspace(0x4480u, 180u, 0x8003D354u), 180u);

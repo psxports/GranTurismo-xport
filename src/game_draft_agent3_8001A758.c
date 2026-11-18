@@ -39,7 +39,7 @@ static sint32 polygon_gte_flags(void)
 /* Unverified draft from complete exported pseudocode with guest address operations */
 /* Eight primitive groups retain independent counts, lookahead and clipping paths */
 /* GTE operations use the live shared services in original order */
-uint32 gt_draft_8001A758(uint32 a0, uint32 a1)
+/* Original: GTMAIN.EXE:sub_8001A758. */ uint32 gt_draft_8001A758(uint32 a0, uint32 a1)
 {
   sint32 gte_a0;
   sint32 gte_a1;

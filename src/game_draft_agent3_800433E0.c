@@ -3,12 +3,14 @@
 
 /* Unverified draft from complete exported pseudocode with guest address operations */
 /* TODO Provisional raw argument types and nonstandard callee result carriers need integration review */
-uint32 gt_draft_800433E0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+/* Original: GTMAIN.EXE:sub_800433E0. */ uint32 gt_draft_800433E0(void)
 {
-  sint32 result;
-  w_u8((uint32)((uint32)(((uint32)(r_u32((uint32)(0x800BEA64))) + (uint32)(68)))), (uint32)(r_u16((uint32)(0x8009298Cu))));
-  result = (uint16)(r_u16((uint32)(0x8009299Cu)));
-  w_u8((uint32)((uint32)(((uint32)(r_u32((uint32)(0x800BEA64))) + (uint32)(81)))), (uint32)(r_u16((uint32)(0x8009299Cu))));
-  return result;
+    uint32 object = r_u32(0x800BEA64u);
+    uint32 value = r_u16(0x8009298Cu);
+    w_u8(object + 68u, value);
+    object = r_u32(0x800BEA64u);
+    value = r_u16(0x8009299Cu);
+    w_u8(object + 81u, value);
+    return value;
 }
 

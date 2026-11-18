@@ -3,7 +3,7 @@
 #include "psx_gte.h"
 
 /* GTMAIN.EXE 8002F28C */
-void gt_draft_8002F28C(uint32 context, uint32 objects)
+/* Original: GTMAIN.EXE:sub_8002F28C. */ void gt_draft_8002F28C(uint32 context, uint32 objects)
 {
     uint32 record = objects + 4u;
     sint32 count = (sint32)r_u32(objects);

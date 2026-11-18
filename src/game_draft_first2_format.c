@@ -4,7 +4,7 @@
 static sint32 format_sub(sint32 a, sint32 b) { return (sint32)((uint32)a - (uint32)b); }
 
 /* GTMAIN.EXE 8007BCFC */
-uint32 gtmain_string_copy_bounded(uint32 destination, uint32 source, uint32 capacity)
+/* Original: GTMAIN.EXE:sub_8007BCFC. */ uint32 gtmain_string_copy_bounded(uint32 destination, uint32 source, uint32 capacity)
 {
     uint32 size = gtmain_string_length(source) + 1u;
     if (capacity < size) size = capacity;
@@ -12,7 +12,7 @@ uint32 gtmain_string_copy_bounded(uint32 destination, uint32 source, uint32 capa
 }
 
 /* GTMAIN.EXE 8007C3E0 */
-sint32 gtmain_format_string(sint32 (*emit)(sint8), uint8 flags, sint32 width, sint32 precision, uint32 source)
+/* Original: GTMAIN.EXE:sub_8007C3E0. */ sint32 gtmain_format_string(sint32 (*emit)(sint8), uint8 flags, sint32 width, sint32 precision, uint32 source)
 {
     sint32 length = (sint32)gtmain_string_length(source), padding, left = 0, right = 0, i;
     uint32 count = 0;
@@ -67,14 +67,14 @@ static sint32 format_number_native(sint32 (*emit)(sint8), uint8 flags,
 }
 
 /* GTMAIN.EXE 8007C534 */
-sint32 gtmain_format_number(sint32 (*emit)(sint8), uint8 flags, sint32 width, sint32 precision,
+/* Original: GTMAIN.EXE:sub_8007C534. */ sint32 gtmain_format_number(sint32 (*emit)(sint8), uint8 flags, sint32 width, sint32 precision,
     uint8 sign, uint32 digits, sint32 length, sint32 radix)
 {
     return format_number_native(emit, flags, width, precision, sign, digits, NULL, length, radix);
 }
 
 /* GTMAIN.EXE 8007C7A4 */
-sint32 gtmain_format_decimal(sint32 (*emit)(sint8), uint8 flags, sint32 width, sint32 precision,
+/* Original: GTMAIN.EXE:sub_8007C7A4. */ sint32 gtmain_format_decimal(sint32 (*emit)(sint8), uint8 flags, sint32 width, sint32 precision,
     uint32 low, uint32 high, sint8 sign, uint32 decimal_point)
 {
     uint8 digits[20];
@@ -130,24 +130,20 @@ static sint32 format_cursor_decimal(uint32 *cursor)
     return (sint32)result;
 }
 
-/* TODO Implement the independent unselected octal formatter when required */
 static sint32 format_octal_missing(sint32 (*emit)(sint8), uint8 flags, sint32 width,
     sint32 precision, uint32 low, uint32 high, sint8 sign)
 {
-    gt_draft_failure("Unrecorded octal formatter", 0x8007C8F4u);
-    return -1;
+    return gtmain_format_octal(emit, flags, width, precision, low, high, sign);
 }
 
-/* TODO Implement the independent unselected hexadecimal formatter when required */
 static sint32 format_hex_missing(sint32 (*emit)(sint8), uint8 flags, sint32 width,
     sint32 precision, uint32 low, uint32 high, sint8 letter)
 {
-    gt_draft_failure("Unrecorded hexadecimal formatter", 0x8007C9B4u);
-    return -1;
+    return gtmain_format_hex(emit, flags, width, precision, low, high, (uint32)(sint32)letter);
 }
 
 /* GTMAIN.EXE 8007CAE4 */
-sint32 gtmain_format_engine(sint32 (*emit)(sint8), uint32 format, GTMainFormatArguments *arguments)
+/* Original: GTMAIN.EXE:sub_8007CAE4. */ sint32 gtmain_format_engine(sint32 (*emit)(sint8), uint32 format, GTMainFormatArguments *arguments)
 {
     uint32 count = 0, cursor = format;
     for (;;) {
@@ -233,7 +229,7 @@ sint32 gtmain_format_engine(sint32 (*emit)(sint8), uint32 format, GTMainFormatAr
 }
 
 /* GTMAIN.EXE 8007D408 */
-sint32 gtmain_string_format_guest(uint32 destination, uint32 format, uint32 argument_address)
+/* Original: GTMAIN.EXE:sub_8007D408. */ sint32 gtmain_string_format_guest(uint32 destination, uint32 format, uint32 argument_address)
 {
     GTMainFormatArguments arguments = { NULL, argument_address, 0, 0 };
     sint32 result;
@@ -244,7 +240,7 @@ sint32 gtmain_string_format_guest(uint32 destination, uint32 format, uint32 argu
 }
 
 /* GTMAIN.EXE 8007C014 */
-sint32 gtmain_string_format(uint32 destination, uint32 format, const uint32 *arguments, uint32 argument_count)
+/* Original: GTMAIN.EXE:sub_8007C014. */ sint32 gtmain_string_format(uint32 destination, uint32 format, const uint32 *arguments, uint32 argument_count)
 {
     GTMainFormatArguments input = { arguments, 0, argument_count, 0 };
     sint32 result;

@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* Unverified translation from complete pseudocode and original MIPS */
-uint32 gtmain_camera_pose_prepare(uint32 camera, uint32 mode, sint32 distance)
+/* Original: GTMAIN.EXE:sub_8001DB0C. */ uint32 gtmain_camera_pose_prepare(uint32 camera, uint32 mode, sint32 distance)
 {
     uint32 car = r_u32(camera + 180u);
     uint32 pitch, roll, base_yaw, table_yaw, table_pitch, yaw, first_yaw, result;

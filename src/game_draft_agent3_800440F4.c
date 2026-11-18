@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 800440F4 */
-uint32 gt_draft_800440F4(void)
+/* Original: GTMAIN.EXE:sub_800440F4. */ uint32 gt_draft_800440F4(void)
 {
     uint32 input = r_u32(0x800BDD08u);
     sint32 choice, mode;

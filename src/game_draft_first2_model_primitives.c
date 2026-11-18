@@ -316,7 +316,7 @@ quad_children:
     return first << 8;
 }
 
-uint32 gtmain_model_primitives_draw(uint32 model, uint32 context)
+/* Original: GTMAIN.EXE:sub_80072548. */ uint32 gtmain_model_primitives_draw(uint32 model, uint32 context)
 {
     static const uint8 strides[8] = { 16, 16, 24, 28, 28, 28, 36, 40 };
     uint32 result = r_u32(model + 8u), group;

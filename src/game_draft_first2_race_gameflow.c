@@ -58,7 +58,7 @@ static void race_text_draw_native(uint32 link, sint16 x, sint16 y, const char *t
 }
 
 /* GTMAIN.EXE 8002B2A4 */
-void gtmain_race_stream_transition(sint32 previous, sint32 current)
+/* Original: GTMAIN.EXE:sub_8002B2A4. */ void gtmain_race_stream_transition(sint32 previous, sint32 current)
 {
     if (previous != current) {
         if (previous) {
@@ -77,7 +77,7 @@ void gtmain_race_stream_transition(sint32 previous, sint32 current)
 }
 
 /* GTMAIN.EXE 8002B328 */
-void gtmain_race_frame_tick(void)
+/* Original: GTMAIN.EXE:sub_8002B328. */ void gtmain_race_frame_tick(void)
 {
     sint32 mode, previous, current;
     gtmain_race_input_poll();
@@ -106,13 +106,13 @@ void gtmain_race_frame_tick(void)
 }
 
 /* GTMAIN.EXE 8002D860 */
-uint32 gtmain_race_object_flag(uint32 object)
+/* Original: GTMAIN.EXE:sub_8002D860. */ uint32 gtmain_race_object_flag(uint32 object)
 {
     return object ? r_u16(object + 12u) : 1u;
 }
 
 /* GTMAIN.EXE 8002B44C */
-sint32 gtmain_race_frame_status(void)
+/* Original: GTMAIN.EXE:sub_8002B44C. */ sint32 gtmain_race_frame_status(void)
 {
     if (r_u32(0x800B630Cu) == 1u) {
         if (r_u8(0x800CB7F5u) == 2u &&
@@ -129,7 +129,7 @@ static void race_mode_prepare_missing(uint32 owner)
 }
 
 /* GTMAIN.EXE 8002B4C0 */
-void gtmain_race_mode_prepare(void)
+/* Original: GTMAIN.EXE:sub_8002B4C0. */ void gtmain_race_mode_prepare(void)
 {
     uint32 state = r_u32(0x800B630Cu);
     w_u8(0x800B63CAu, 1);
@@ -150,35 +150,40 @@ void gtmain_race_mode_prepare(void)
 }
 
 /* GTMAIN.EXE 8002B5A4 */
-void gtmain_race_ordering_reset(void)
+/* Original: GTMAIN.EXE:sub_8002B5A4. */ uint32 gtmain_race_ordering_reset(void)
 {
     if (r_s8(0x800B633Cu)) {
         gtmain_ordering_clear(0);
-        gtmain_packet_buffer_select(0);
+        return gtmain_packet_buffer_select(0);
     }
+    return 0u;
 }
 
 /* GTMAIN.EXE 800304A8 */
-void gtmain_race_pause_draw(void)
+/* Original: GTMAIN.EXE:sub_800304A8. */ sint32 gtmain_race_pause_draw(void)
 {
     uint32 link, text;
     sint16 x;
-    if (!r_s16(0x800B6312u) || r_u32(0x800B630Cu) != 1u) return;
+    sint32 result = r_s16(0x800B6312u);
+    if (!result) return 0;
+    if (r_u32(0x800B630Cu) != 1u) return 1;
     link = r_u32(0x800B6368u);
     gtmain_text_font(3);
     gtmain_text_color(0x00808080u);
     x = r_s16(0x80091228u);
     text = r_u32(0x8009122Cu);
     gtmain_font_text_draw(link, x, 68, text);
-    if (r_s8(0x800912A8u) >= 0) {
+    result = r_s8(0x800912A8u);
+    if (result >= 0) {
         x = r_s16(0x80091208u);
         text = r_u32(0x8009120Cu);
-        gtmain_font_text_draw(link, x, 96, text);
+        return gtmain_font_text_draw(link, x, 96, text);
     }
+    return result;
 }
 
 /* GTMAIN.EXE 80030548 */
-void gtmain_race_hud_draw(void)
+/* Original: GTMAIN.EXE:sub_80030548. */ void gtmain_race_hud_draw(void)
 {
     race_call(0x8002FF48u, 0, 0, 0);
     if (r_s8(0x800B63C2u)) race_call(0x80030CA0u, 0, 0, 0);
@@ -197,7 +202,7 @@ void gtmain_race_hud_draw(void)
 }
 
 /* GTMAIN.EXE 8002D1D0 */
-void gtmain_race_menu_draw(void)
+/* Original: GTMAIN.EXE:sub_8002D1D0. */ void gtmain_race_menu_draw(void)
 {
     sint16 bounds[4];
     char formatted[256];
@@ -240,7 +245,7 @@ void gtmain_race_menu_draw(void)
 }
 
 /* GTMAIN.EXE 8002B620 */
-void gtmain_race_overlay_draw(sint32 player)
+/* Original: GTMAIN.EXE:sub_8002B620. */ void gtmain_race_overlay_draw(sint32 player)
 {
     uint32 y;
     if (r_s16(0x800B6508u + 276u * (uint32)player)) gtmain_race_pause_draw();
@@ -252,7 +257,7 @@ void gtmain_race_overlay_draw(sint32 player)
 }
 
 /* GTMAIN.EXE 8002B8D8 */
-void gtmain_race_view_draw(sint32 view_index)
+/* Original: GTMAIN.EXE:sub_8002B8D8. */ void gtmain_race_view_draw(sint32 view_index)
 {
     uint32 view = r_u32(0x800B6638u), scene, depth, horizontal, vertical, y;
     const uint32 scratch = 0x1F800000u;
@@ -281,7 +286,7 @@ void gtmain_race_view_draw(sint32 view_index)
 }
 
 /* GTMAIN.EXE 8002BB8C */
-void gtmain_race_updates_reset(void)
+/* Original: GTMAIN.EXE:sub_8002BB8C. */ void gtmain_race_updates_reset(void)
 {
     gtmain_race_time_reset();
     gtmain_race_lap_history_reset();
@@ -292,7 +297,7 @@ void gtmain_race_updates_reset(void)
 }
 
 /* GTMAIN.EXE 8002BEB4 */
-void gtmain_race_messages_load(void)
+/* Original: GTMAIN.EXE:sub_8002BEB4. */ uint32 gtmain_race_messages_load(void)
 {
     uint32 buffer[512], sector;
     uint32 language = r_u8(0x800C4C3Du);
@@ -300,11 +305,12 @@ void gtmain_race_messages_load(void)
     gtmain_archive_section_load(0x8008C01Cu, table.bytes, sector, language, 0x800BD7F0u, 0);
     gtmain_archive_section_load(0x8008C01Cu, table.bytes, sector, language + 6u, 0x800BC300u, 0);
     if (r_u16(0x800CB7F4u) == 1026u)
-        gtmain_archive_section_load(0x8008C01Cu, table.bytes, sector, language + 18u, 0x8019CFDCu, 0);
+        return gtmain_archive_section_load(0x8008C01Cu, table.bytes, sector, language + 18u, 0x8019CFDCu, 0);
+    return 1026u;
 }
 
 /* GTMAIN.EXE 8002BF84 */
-void gtmain_race_point_rotate(uint32 guest_xy, uint32 angle, sint32 origin_x, sint32 origin_y)
+/* Original: GTMAIN.EXE:sub_8002BF84. */ sint32 gtmain_race_point_rotate(uint32 guest_xy, uint32 angle, sint32 origin_x, sint32 origin_y)
 {
     uint32 offset = (angle & 4095u) << 1;
     sint32 x = r_s16(guest_xy);
@@ -318,10 +324,11 @@ void gtmain_race_point_rotate(uint32 guest_xy, uint32 angle, sint32 origin_x, si
     uint32 rotated_x = race_asr(race_asr(xc, 12) - race_asr(ys, 12) + 576u, 4);
     w_u16(guest_xy, (uint16)((uint32)origin_x + rotated_x));
     w_u16(guest_xy + 2u, (uint16)((uint32)origin_y + race_asr(race_asr(yc, 12) + race_asr(xs, 12) + 576u, 4)));
+    return (sint32)rotated_x;
 }
 
 
-uint32 gtmain_race_labels_draw(uint32 ordering, sint32 y, uint32 mode, uint32 second_line)
+/* Original: GTMAIN.EXE:sub_800306E8. */ uint32 gtmain_race_labels_draw(uint32 ordering, sint32 y, uint32 mode, uint32 second_line)
 {
     if (r_u16(0x800B63DEu))
     {
@@ -342,7 +349,7 @@ uint32 gtmain_race_labels_draw(uint32 ordering, sint32 y, uint32 mode, uint32 se
     return (uint32)gtmain_race_countdown_text_draw(ordering, y);
 }
 
-void gtmain_race_times_draw(uint32 ordering)
+/* Original: GTMAIN.EXE:sub_80030198. */ void gtmain_race_times_draw(uint32 ordering)
 {
     gtmain_race_current_time_draw(ordering, 16, 48);
     gtmain_race_lap_times_draw(ordering, 16, 70);
@@ -350,14 +357,14 @@ void gtmain_race_times_draw(uint32 ordering)
     gtmain_race_record_time_draw(ordering, 224, 38);
 }
 
-uint32 gtmain_race_record_label_draw(void)
+/* Original: GTMAIN.EXE:sub_8002E32C. */ uint32 gtmain_race_record_label_draw(void)
 {
     sint32 enabled = (sint16)r_u16(0x8009071Au);
     if (!enabled) return (uint32)enabled;
     return (uint32)gtmain_race_record_text_draw((uint32)(sint32)(sint16)r_u16(0x80090718u), 0x800B39A4u);
 }
 
-uint32 gtmain_race_driver_hud_draw(uint32 ordering)
+/* Original: GTMAIN.EXE:sub_80030424. */ uint32 gtmain_race_driver_hud_draw(uint32 ordering)
 {
     gtmain_race_instruments_draw(ordering, 238, 150, 0x800B6850u);
     gtmain_race_status_draw(ordering, 68, 0x800B6850u);
@@ -366,7 +373,7 @@ uint32 gtmain_race_driver_hud_draw(uint32 ordering)
     return gtmain_race_minimap_draw(ordering, 16, 144);
 }
 
-sint32 gtmain_race_countdown_text_draw(uint32 ordering, sint32 y)
+/* Original: GTMAIN.EXE:sub_8003061C. */ sint32 gtmain_race_countdown_text_draw(uint32 ordering, sint32 y)
 {
     sint32 enabled = (sint16)r_u16(0x800B6312u);
     sint32 count = (sint16)r_u16(0x800B63DEu);
@@ -447,7 +454,7 @@ static void race_time_draw_native(uint32 ordering, sint32 x, sint32 y, const cha
 }
 
 /* GTMAIN.EXE 8002D8F8 */
-void gtmain_race_current_time_draw(uint32 ordering, sint32 x, sint32 y)
+/* Original: GTMAIN.EXE:sub_8002D8F8. */ void gtmain_race_current_time_draw(uint32 ordering, sint32 x, sint32 y)
 {
     gtmain_text_font(1); gtmain_text_color(0x4080u);
     gtmain_font_text_draw(ordering, x, y, 0x800BDACBu);
@@ -455,7 +462,7 @@ void gtmain_race_current_time_draw(uint32 ordering, sint32 x, sint32 y)
 }
 
 /* GTMAIN.EXE 8002DA30 */
-sint32 gtmain_race_lap_times_draw(uint32 ordering, sint32 x, sint32 y)
+/* Original: GTMAIN.EXE:sub_8002DA30. */ sint32 gtmain_race_lap_times_draw(uint32 ordering, sint32 x, sint32 y)
 {
     sint32 count, lap, first, result, index;
     char text[40];
@@ -478,15 +485,15 @@ sint32 gtmain_race_lap_times_draw(uint32 ordering, sint32 x, sint32 y)
 }
 
 /* GTMAIN.EXE 8002DBE4 */
-void gtmain_race_best_time_draw(uint32 ordering, sint32 x, sint32 y)
+/* Original: GTMAIN.EXE:sub_8002DBE4. */ uint32 gtmain_race_best_time_draw(uint32 ordering, sint32 x, sint32 y)
 {
     gtmain_text_font(1); gtmain_text_color(0x4080u);
     gtmain_font_text_draw(ordering, x, y, 0x800BDABDu);
-    gtmain_text_draw(ordering, (sint16)x, (sint16)((uint32)y + 10u), 0x801A8FECu);
+    return gtmain_text_draw(ordering, (sint16)x, (sint16)((uint32)y + 10u), 0x801A8FECu);
 }
 
 /* GTMAIN.EXE 8002DCF8 */
-void gtmain_race_record_time_draw(uint32 ordering, sint32 x, sint32 y)
+/* Original: GTMAIN.EXE:sub_8002DCF8. */ void gtmain_race_record_time_draw(uint32 ordering, sint32 x, sint32 y)
 {
     gtmain_text_font(1); gtmain_text_color(0x4080u);
     gtmain_font_text_draw(ordering, x, y, 0x800BD865u);
@@ -494,7 +501,7 @@ void gtmain_race_record_time_draw(uint32 ordering, sint32 x, sint32 y)
 }
 
 /* GTMAIN.EXE 8002C264 */
-uint32 gtmain_race_gear_draw(uint32 ordering, sint32 x, sint32 y, const sint16 *bounds, uint32 car)
+/* Original: GTMAIN.EXE:sub_8002C264. */ uint32 gtmain_race_gear_draw(uint32 ordering, sint32 x, sint32 y, const sint16 *bounds, uint32 car)
 {
     uint32 gear = r_u8(car + 72u), mode = r_u8(car + 1731u);
     char text[8];
@@ -505,7 +512,7 @@ uint32 gtmain_race_gear_draw(uint32 ordering, sint32 x, sint32 y, const sint16 *
 }
 
 /* GTMAIN.EXE 8002FCD4 */
-sint32 gtmain_race_lap_counter_draw(uint32 ordering, sint32 x, sint32 y, uint32 car)
+/* Original: GTMAIN.EXE:sub_8002FCD4. */ sint32 gtmain_race_lap_counter_draw(uint32 ordering, sint32 x, sint32 y, uint32 car)
 {
     sint32 lap = (sint16)r_u16(car + 96u), total, configured;
     uint32 words[2];
@@ -525,7 +532,7 @@ sint32 gtmain_race_lap_counter_draw(uint32 ordering, sint32 x, sint32 y, uint32 
 }
 
 /* GTMAIN.EXE 8002FBA8 */
-uint32 gtmain_race_position_draw(uint32 ordering, sint32 x, sint32 y, uint32 corners, uint32 car)
+/* Original: GTMAIN.EXE:sub_8002FBA8. */ uint32 gtmain_race_position_draw(uint32 ordering, sint32 x, sint32 y, uint32 corners, uint32 car)
 {
     sint32 position = (sint8)r_u8(car + 1737u);
     uint32 suffix;
@@ -541,7 +548,7 @@ uint32 gtmain_race_position_draw(uint32 ordering, sint32 x, sint32 y, uint32 cor
 }
 
 /* GTMAIN.EXE 8002FC74 */
-uint32 gtmain_race_position_hud_draw(uint32 ordering, uint32 car)
+/* Original: GTMAIN.EXE:sub_8002FC74. */ uint32 gtmain_race_position_hud_draw(uint32 ordering, uint32 car)
 {
     uint32 mode = r_u8(0x800CB7F5u);
     if (mode == 1u) return 1u;
@@ -550,7 +557,7 @@ uint32 gtmain_race_position_hud_draw(uint32 ordering, uint32 car)
 }
 
 /* GTMAIN.EXE 800301F4 */
-uint32 gtmain_race_minimap_draw(uint32 ordering, sint32 x, sint32 y)
+/* Original: GTMAIN.EXE:sub_800301F4. */ uint32 gtmain_race_minimap_draw(uint32 ordering, sint32 x, sint32 y)
 {
     uint32 disabled = r_u8(0x800CB75Cu);
     sint32 initial, limit, index, active = 0;

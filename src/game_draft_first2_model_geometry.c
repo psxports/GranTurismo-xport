@@ -28,7 +28,7 @@ static uint32 geometry_abs(uint32 value)
     return (sint32)value < 0 ? 0u - value : value;
 }
 
-uint32 gtmain_view_plane_intersections(uint32 view, const uint8 *plane)
+/* Original: GTMAIN.EXE:sub_8006A388. */ uint32 gtmain_view_plane_intersections(uint32 view, const uint8 *plane)
 {
     sint32 px = (sint16)xport_load_le16(plane), py = (sint16)xport_load_le16(plane + 2u);
     uint32 a = (uint32)(px * (sint16)r_u16(view + 36u));
@@ -71,24 +71,24 @@ uint32 gtmain_view_plane_intersections(uint32 view, const uint8 *plane)
     return flags & 15u;
 }
 
-uint32 gtmain_model_matrix_bind(uint32 context, const uint8 *matrix)
+/* Original: GTMAIN.EXE:sub_8006A64C. */ uint32 gtmain_model_matrix_bind(uint32 context, const uint8 *matrix)
 {
-    uint32 negated = 0u - xport_load_le32(matrix + 8u);
-    uint32 word1 = xport_load_le32(matrix + 4u), word0 = xport_load_le32(matrix);
-    uint32 word3 = xport_load_le32(matrix + 12u), word4 = xport_load_le32(matrix + 16u);
-    word1 = (word1 ^ 0xFFFF0000u) + 65536u;
-    if (negated & 65535u) negated += 65536u;
+    uint32 first, second, third, fourth, fifth;
     gtmain_matrix_bind_packed_negation(matrix);
-    /* Readbacks retain the packed words written before any context stores */
-    w_u32(context + 96u, word0); w_u32(context + 100u, word1);
-    w_u32(context + 104u, negated); w_u32(context + 108u, word3);
-    /* Rotation control4 exposes its signed low half */
-    word4 = (uint32)(sint32)(sint16)word4;
-    w_u32(context + 112u, word4);
-    return word4;
+    first = xport_gte_read_control(0u);
+    second = xport_gte_read_control(1u);
+    w_u32(context + 96u, first);
+    third = xport_gte_read_control(2u);
+    w_u32(context + 100u, second);
+    fourth = xport_gte_read_control(3u);
+    w_u32(context + 104u, third);
+    fifth = xport_gte_read_control(4u);
+    w_u32(context + 108u, fourth);
+    w_u32(context + 112u, fifth);
+    return fifth;
 }
 
-sint32 gtmain_model_transform_draw(uint32 context, uint32 variants, uint32 mode)
+/* Original: GTMAIN.EXE:sub_8006CB9C. */ sint32 gtmain_model_transform_draw(uint32 context, uint32 variants, uint32 mode)
 {
     uint32 x, y, z, ax, ay, az, swap, distance, extent, selected, model, bits, corners, index;
     sint32 order, exponent, difference, shift;
@@ -175,7 +175,7 @@ static void geometry_link24(uint32 address, uint32 value)
     w_u8(address, value); w_u8(address + 1u, value >> 8); w_u8(address + 2u, value >> 16);
 }
 
-uint32 gtmain_polygon_clip_draw(uint32 context)
+/* Original: GTMAIN.EXE:sub_8006A69C. */ uint32 gtmain_polygon_clip_draw(uint32 context)
 {
     uint32 either = 0, every = 0xFFFFFFFFu, list = context + 204u, vertex = context + 324u;
     uint32 count, threshold, packet, plane, remaining, result = 0;

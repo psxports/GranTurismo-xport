@@ -1,11 +1,13 @@
 #include "game_draft_registry.h"
+#include "game_first2_registry.h"
+#include "xport_trace.h"
 #include "psx_spu.h"
 
 void gtmain_load_image(void);
 void gtmain_load_bios_kernel(void);
 uint32 gtmain_launch_stack_bound(void);
 
-uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size)
+/* Original: GTMAIN.EXE:sub_8007BD58. */ uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size)
 {
     uint32 cursor = address;
     uint32 pattern = (value & 255u) * 0x01010101u;
@@ -30,7 +32,7 @@ uint32 sub_8007BD58(uint32 address, uint32 value, uint32 size)
     return address;
 }
 
-static uint32 gtmain_heap_initialize(uint32 address, uint32 size)
+/* Original: GTMAIN.EXE:sub_8007C1D0. */ static uint32 gtmain_heap_initialize(uint32 address, uint32 size)
 {
     uint32 available = size < 16u ? 0u : size - 16u;
     uint32 flags;
@@ -46,7 +48,7 @@ static uint32 gtmain_heap_initialize(uint32 address, uint32 size)
     return address;
 }
 
-uint32 sub_8007BC84(void)
+/* Original: GTMAIN.EXE:sub_8007BC84. */ uint32 sub_8007BC84(void)
 {
     uint32 start = (0x801FB733u & ~15u) | 0x80000000u;
     uint32 end = ((r_u32(0x8008F1D8u) - r_u32(0x800B1B4Cu)) & ~15u) | 0x80000000u;
@@ -120,7 +122,7 @@ void gtmain_native_main(void)
     gt_draft_unresolved_call(0x80082928u, result, 0u, 0u, 0u, 0u, 0u, 0u, 0u);
 }
 
-uint32 gtmain_heap_reset(void)
+/* Original: GTMAIN.EXE:sub_8007C250. */ uint32 gtmain_heap_reset(void)
 {
     uint32 start = (0x801FB733u & ~15u) | 0x80000000u;
     uint32 end = ((r_u32(0x8008F1D8u) - r_u32(0x800B1B4Cu)) & ~15u) | 0x80000000u;
@@ -132,30 +134,21 @@ uint32 gtmain_heap_reset(void)
 
 uint32 gtmain_heap_alloc(uint32 bytes)
 {
-    uint32 size = (bytes + 15u) & ~15u;
-    uint32 block = r_u32(0x800B1AACu), best = 0u;
+    uint32 size, block, best = 0, available, flags;
+    FUNCTION_MARKER(0x8007C330, "GTMAIN.EXE");
+    size = (bytes + 15) & ~15;
+    block = r_u32(0x800B1AAC);
     while (block) {
-        if (!(r_u32(block + 12u) & 1u) && r_u32(block + 8u) >= size &&
-            (!best || r_u32(block + 8u) < r_u32(best + 8u))) best = block;
-        block = r_u32(block + 4u);
+        flags = r_u32(block + 12);
+        if (!(flags & 1)) {
+            available = r_u32(block + 8);
+            if (available >= size && (!best || available < r_u32(best + 8))) best = block;
+        }
+        block = r_u32(block + 4);
     }
-    if (!best) return 0u;
-    if (r_u32(best + 8u) >= size + 32u) {
-        uint32 split = best + size + 16u;
-        uint32 previous = r_u32(best), next = r_u32(best + 4u);
-        uint32 available = r_u32(best + 8u), flags = r_u32(best + 12u);
-        w_u32(split, previous);
-        w_u32(split + 4u, next);
-        w_u32(split + 8u, available);
-        w_u32(split + 12u, flags);
-        next = r_u32(best + 4u);
-        w_u32(best + 4u, split);
-        w_u32(split, best);
-        w_u32(best + 8u, size);
-        w_u32(split + 8u, r_u32(split + 8u) - 16u - size);
-        w_u32(split + 12u, r_u32(split + 12u) & ~1u);
-        if (next) w_u32(next, split);
-    }
-    w_u32(best + 12u, r_u32(best + 12u) | 1u);
-    return best + 16u;
+    if (!best) return 0;
+    gt_heap_block_split(best, size);
+    flags = r_u32(best + 12);
+    w_u32(best + 12, flags | 1);
+    return best + 16;
 }

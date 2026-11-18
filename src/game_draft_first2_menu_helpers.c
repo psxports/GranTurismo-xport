@@ -7,14 +7,14 @@ static sint32 menu_high_divide(sint32 value, uint32 multiplier, uint32 shift)
     sint32 high = (sint32)(uint32)((uint64)product >> 32);
     return (sint32)((uint32)(high >> shift) - (uint32)(value >> 31));
 }
-uint32 gtmain_menu_number_scale(uint32 guest_destination, sint32 value, uint32 guest_suffix)
+/* Original: GTMAIN.EXE:sub_8003AA10. */ uint32 gtmain_menu_number_scale(uint32 guest_destination, sint32 value, uint32 guest_suffix)
 {
     sint32 product = (sint32)((uint32)value * 1000u);
     sint32 scaled = menu_high_divide(product, 0x2050C9F9u, 7);
     sint32 thousands = menu_high_divide(scaled, 0x10624DD3u, 6);
     return gtmain_menu_number_tail(guest_destination, scaled, guest_suffix, thousands);
 }
-uint32 gtmain_menu_number_tail(uint32 guest_destination, sint32 value, uint32 guest_suffix, sint32 thousands)
+/* Original: GTMAIN.EXE:sub_8003AA50. */ uint32 gtmain_menu_number_tail(uint32 guest_destination, sint32 value, uint32 guest_suffix, sint32 thousands)
 {
     uint32 cursor = guest_destination, leading = 0;
     sint32 digit;
@@ -35,7 +35,7 @@ uint32 gtmain_menu_number_tail(uint32 guest_destination, sint32 value, uint32 gu
     w_u8(cursor, (uint32)value + 48u);
     return gtmain_string_copy(cursor + 1u, guest_suffix);
 }
-uint32 gtmain_menu_text_digits(uint32 ordering, sint32 x, sint32 y, uint32 guest_text)
+/* Original: GTMAIN.EXE:sub_8003AB80. */ uint32 gtmain_menu_text_digits(uint32 ordering, sint32 x, sint32 y, uint32 guest_text)
 {
     uint32 text = guest_text, offsets = 0x8009218Cu, end, result;
     if (gtmain_menu_wave_select(guest_text)) offsets = 0x80092198u;
@@ -54,7 +54,7 @@ uint32 gtmain_menu_text_digits(uint32 ordering, sint32 x, sint32 y, uint32 guest
     } while (result);
     return result;
 }
-uint32 gtmain_menu_sprite(uint32 guest_descriptor, uint32 ordering, uint16 x, sint32 y, uint8 intensity)
+/* Original: GTMAIN.EXE:sub_8003AD48. */ uint32 gtmain_menu_sprite(uint32 guest_descriptor, uint32 ordering, uint16 x, sint32 y, uint8 intensity)
 {
     uint32 color = (uint32)intensity | ((uint32)intensity << 8) | ((uint32)intensity << 16) | 0x01000000u;
     uint32 uv = r_u32(guest_descriptor + 4u), dimensions = r_u32(guest_descriptor + 12u);
@@ -83,7 +83,7 @@ static uint32 menu_panel_callback_dispatch(uint32 token, uint32 ordering, sint32
     }
 }
 
-uint32 gtmain_menu_panel_callback(uint32 token, uint32 ordering, sint32 x, sint32 y, uint32 display_y, uint32 fade)
+/* Original: GTMAIN.EXE:sub_8003AEE8. */ uint32 gtmain_menu_panel_callback(uint32 token, uint32 ordering, sint32 x, sint32 y, uint32 display_y, uint32 fade)
 {
     return menu_panel_callback_dispatch(token, ordering, x, y, display_y, fade);
 }

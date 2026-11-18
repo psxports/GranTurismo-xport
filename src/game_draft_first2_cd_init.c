@@ -21,7 +21,7 @@ static void gtmain_cd_init_sync_thunk(uint8 status, uint8 *result)
 }
 
 /* GTMAIN.EXE 8007A248 */
-uint32 gtmain_bcd_decode(uint32 packed)
+/* Original: GTMAIN.EXE:sub_8007A248. */ uint32 gtmain_bcd_decode(uint32 packed)
 {
     uint32 shift = 32u, value = 0u;
     do { shift -= 4u; value = value * 10u + ((packed >> shift) & 15u); } while (shift);
@@ -29,7 +29,7 @@ uint32 gtmain_bcd_decode(uint32 packed)
 }
 
 /* GTMAIN.EXE 8007A278 */
-uint32 gtmain_bcd_encode(uint32 value)
+/* Original: GTMAIN.EXE:sub_8007A278. */ uint32 gtmain_bcd_encode(uint32 value)
 {
     uint32 shift = 0u, packed = 0u;
     while (value && shift < 32u) {
@@ -41,7 +41,7 @@ uint32 gtmain_bcd_encode(uint32 value)
 }
 
 /* GTMAIN.EXE 80078C30 */
-void gtmain_cd_default_sync(uint8 status, const uint8 *result)
+/* Original: GTMAIN.EXE:sub_80078C30. */ void gtmain_cd_default_sync(uint8 status, const uint8 *result)
 {
     uint32 response;
     if (result && (result[0] & 0x10u)) return;
@@ -52,7 +52,7 @@ void gtmain_cd_default_sync(uint8 status, const uint8 *result)
 }
 
 /* GTMAIN.EXE 80078CDC */
-void gtmain_cd_init_sync(uint8 status, const uint8 *result)
+/* Original: GTMAIN.EXE:sub_80078CDC. */ void gtmain_cd_init_sync(uint8 status, const uint8 *result)
 {
     if (result && (result[0] & 0x10u)) return;
     uint32 phase = r_u8(0x800994C3u), response, state;
@@ -105,7 +105,7 @@ void gtmain_cd_init_sync(uint8 status, const uint8 *result)
 }
 
 /* GTMAIN.EXE 80078EC4 */
-sint32 gtmain_cd_pending_command(void)
+/* Original: GTMAIN.EXE:sub_80078EC4. */ sint32 gtmain_cd_pending_command(void)
 {
     uint32 phase, state, command = 0u, parameter = 0u;
     gtmain_cd_native_poll();
@@ -132,7 +132,7 @@ sint32 gtmain_cd_pending_command(void)
 }
 
 /* GTMAIN.EXE 80078FD0 */
-sint32 gtmain_cd_stop_status(uint32 stop)
+/* Original: GTMAIN.EXE:sub_80078FD0. */ sint32 gtmain_cd_stop_status(uint32 stop)
 {
     uint32 state;
     sint32 value = 2;
@@ -149,26 +149,26 @@ sint32 gtmain_cd_stop_status(uint32 stop)
 }
 
 /* GTMAIN.EXE 800790D4 */
-uint32 gtmain_cd_sector_end(uint32 sector, uint32 size)
+/* Original: GTMAIN.EXE:sub_800790D4. */ uint32 gtmain_cd_sector_end(uint32 sector, uint32 size)
 {
     return sector + ((size + 2047u) >> 11u);
 }
 
 /* GTMAIN.EXE 800790E4 */
-void gtmain_cd_mode(uint8 mode) { w_u8(0x800C00B0u, mode ^ 0x68u); }
+/* Original: GTMAIN.EXE:sub_800790E4. */ void gtmain_cd_mode(uint8 mode) { w_u8(0x800C00B0u, mode ^ 0x68u); }
 
 /* GTMAIN.EXE 800790F8 */
-void gtmain_cd_filter(uint8 file, uint8 channel)
+/* Original: GTMAIN.EXE:sub_800790F8. */ void gtmain_cd_filter(uint8 file, uint8 channel)
 {
     w_u8(0x800994B8u, file);
     w_u8(0x800994B9u, channel);
 }
 
 /* GTMAIN.EXE 80079110 */
-void gtmain_cd_parameter(uint16 value) { w_u16(0x800994B4u, value); }
+/* Original: GTMAIN.EXE:sub_80079110. */ void gtmain_cd_parameter(uint16 value) { w_u16(0x800994B4u, value); }
 
 /* GTMAIN.EXE 80079120 */
-void gtmain_cd_buffers(uint32 first, uint32 second, uint32 mode)
+/* Original: GTMAIN.EXE:sub_80079120. */ void gtmain_cd_buffers(uint32 first, uint32 second, uint32 mode)
 {
     EnterCriticalSectionPSX();
     w_u32(0x800C00A8u, first);
@@ -178,14 +178,14 @@ void gtmain_cd_buffers(uint32 first, uint32 second, uint32 mode)
 }
 
 /* GTMAIN.EXE 80079224 */
-sint32 gtmain_cd_stop(void)
+/* Original: GTMAIN.EXE:sub_80079224. */ sint32 gtmain_cd_stop(void)
 {
     w_u8(0x800994BFu, 2u);
     return gtmain_cd_stop_status(1u);
 }
 
 /* GTMAIN.EXE 80079854 */
-sint32 gtmain_cd_directory_reset(void)
+/* Original: GTMAIN.EXE:sub_80079854. */ sint32 gtmain_cd_directory_reset(void)
 {
     w_u8(0x800AD9A0u, 0u);
     w_u32(0x800AD990u, 0xFFFFFFFFu);
@@ -194,7 +194,7 @@ sint32 gtmain_cd_directory_reset(void)
 }
 
 /* GTMAIN.EXE 8007994C */
-uint32 gtmain_cd_directory_find(const uint8 *name, uint32 directory, uint32 buffer)
+/* Original: GTMAIN.EXE:sub_8007994C. */ uint32 gtmain_cd_directory_find(const uint8 *name, uint32 directory, uint32 buffer)
 {
     uint8 upper[128];
     uint32 length = 0u, entry, end;
@@ -217,7 +217,7 @@ uint32 gtmain_cd_directory_find(const uint8 *name, uint32 directory, uint32 buff
 }
 
 /* GTMAIN.EXE 800796A0 */
-sint32 gtmain_cd_directory_tick(void)
+/* Original: GTMAIN.EXE:sub_800796A0. */ sint32 gtmain_cd_directory_tick(void)
 {
     uint32 buffer = r_u32(0x800AD99Cu), state, done = 0u;
     w_u32(0x800AD990u, r_u32(0x800C0A50u) - 1u);
@@ -260,10 +260,10 @@ sint32 gtmain_cd_directory_tick(void)
 }
 
 /* GTMAIN.EXE 80079878 */
-void gtmain_cd_directory_start(void)
+/* Original: GTMAIN.EXE:sub_80079878. */ sint32 gtmain_cd_directory_start(void)
 {
     w_u8(0x800AD9A0u, 1u);
     w_u32(0x800AD99Cu, 0x800C01D0u);
     gtmain_cd_stream_callback(0x800796A0u);
-    gtmain_cd_stream_start(16u);
+    return gtmain_cd_stream_start(16u);
 }

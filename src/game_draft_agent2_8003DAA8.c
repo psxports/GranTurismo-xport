@@ -2,8 +2,7 @@
 
 static uint32 record_symbol_convert(uint32 symbol)
 {
-    /* TODO Bind the unselected original symbol converter */
-    return gt_draft_unresolved_call(0x80071640u, symbol, 0, 0, 0, 0, 0, 0, 0);
+    return gtmain_text_character_encode((uint16)symbol);
 }
 
 static uint32 record_icon_decode(uint32 icon)
@@ -22,7 +21,7 @@ static uint32 record_payload_prepare(uint32 record)
 }
 
 /* GTMAIN.EXE 8003DAA8 */
-uint32 gtmain_menu_record_header_prepare(void)
+/* Original: GTMAIN.EXE:sub_8003DAA8. */ uint32 gtmain_menu_record_header_prepare(void)
 {
     uint32 source = 0x801F1FECu, destination = 0x801D2FDCu;
     uint32 character, value, icon;

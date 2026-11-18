@@ -28,7 +28,7 @@ static void parameters_header(uint32 header, uint32 count, uint32 x, uint32 y)
 }
 
 /* GTMAIN.EXE 8004EBE8 */
-void gtmain_race_specification_curves_build(uint32 source_x, uint32 source_y, uint32 source_z, uint32 source_extra,
+/* Original: GTMAIN.EXE:sub_8004EBE8. */ void gtmain_race_specification_curves_build(uint32 source_x, uint32 source_y, uint32 source_z, uint32 source_extra,
     sint32 count, uint32 source_a, uint32 source_b, uint32 source_c, uint32 source_d, sint32 secondary_count,
     uint32 curve_y, uint32 curve_z, uint32 curve_extra, uint32 output_x, uint32 output_y, uint32 output_z,
     uint32 output_extra, uint32 peak_first, uint32 peak_second)
@@ -69,7 +69,7 @@ void gtmain_race_specification_curves_build(uint32 source_x, uint32 source_y, ui
 }
 
 /* GTMAIN.EXE 8005BF54 */
-sint32 gtmain_race_steering_peak(uint32 parameters)
+/* Original: GTMAIN.EXE:sub_8005BF54. */ sint32 gtmain_race_steering_peak(uint32 parameters)
 {
     sint32 maximum = 0, best = 90, degree, angle, value;
     for (degree = -45; degree < 46; ++degree) {
@@ -82,7 +82,7 @@ sint32 gtmain_race_steering_peak(uint32 parameters)
 }
 
 /* GTMAIN.EXE 8005E9B4 */
-void gtmain_race_engine_curve_initialize(uint32 specification, uint32 curve, uint32 enabled)
+/* Original: GTMAIN.EXE:sub_8005E9B4. */ void gtmain_race_engine_curve_initialize(uint32 specification, uint32 curve, uint32 enabled)
 {
     uint32 s = specification, d = curve, address, old, i;
     sint32 value, numerator, denominator, argument;
@@ -114,7 +114,7 @@ void gtmain_race_engine_curve_initialize(uint32 specification, uint32 curve, uin
 }
 
 /* GTMAIN.EXE 8004E9D8 */
-void gtmain_race_force_parameters_initialize(uint32 parameters, uint32 enabled)
+/* Original: GTMAIN.EXE:sub_8004E9D8. */ void gtmain_race_force_parameters_initialize(uint32 parameters, uint32 enabled)
 {
     uint32 d = parameters, old;
     sint32 speed, value, first, second;
@@ -132,7 +132,7 @@ void gtmain_race_force_parameters_initialize(uint32 parameters, uint32 enabled)
 }
 
 /* GTMAIN.EXE 80057FD4 */
-void gtmain_race_transmission_initialize(uint32 specification, uint32 transmission, uint32 engine_curve)
+/* Original: GTMAIN.EXE:sub_80057FD4. */ void gtmain_race_transmission_initialize(uint32 specification, uint32 transmission, uint32 engine_curve)
 {
     uint32 s = specification, d = transmission, e = engine_curve, kind, mode, i, old, high, low;
     sint32 value, first, second, inverse_first, inverse_second, factor = 0, maximum, denominator, result;

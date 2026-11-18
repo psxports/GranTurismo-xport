@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 80041150 */
-uint32 gtmain_menu_item_center_draw(uint32 ordering, uint32 descriptor,
+/* Original: GTMAIN.EXE:sub_80041150. */ uint32 gtmain_menu_item_center_draw(uint32 ordering, uint32 descriptor,
     sint32 x, sint32 y, sint32 intensity)
 {
     uint32 kind = r_u8(descriptor) & 63u;

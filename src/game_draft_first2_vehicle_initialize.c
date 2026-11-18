@@ -13,12 +13,12 @@ static void zero_bytes(uint32 destination, uint32 count)
     for (uint32 i = 0; i < count; ++i) w_u8(destination + i, 0);
 }
 
-uint32 gtmain_camera_resource_path(void)
+/* Original: GTMAIN.EXE:sub_8001C14C. */ uint32 gtmain_camera_resource_path(void)
 {
     return gtmain_environment_value(0x8008B894u);
 }
 
-uint32 gtmain_race_simulation_configure(void)
+/* Original: GTMAIN.EXE:sub_80051C88. */ uint32 gtmain_race_simulation_configure(void)
 {
     gtmain_race_speed_percent(r_u8(0x800CB7F4u) == 1 ? 125 : 100);
     uint32 mode = r_u8(0x800CB7F5u);
@@ -39,7 +39,7 @@ uint32 gtmain_race_simulation_configure(void)
     return gtmain_race_tuning_initialize();
 }
 
-void gtmain_race_controls_initialize(uint32 controls, uint32 preserve_history)
+/* Original: GTMAIN.EXE:sub_8002D3C4. */ void gtmain_race_controls_initialize(uint32 controls, uint32 preserve_history)
 {
     if (!controls) return;
     if (preserve_history) {
@@ -51,16 +51,18 @@ void gtmain_race_controls_initialize(uint32 controls, uint32 preserve_history)
     w_u32(controls + 8u, 0xffffffffu);
 }
 
-sint32 gtmain_race_points_print(uint32 guest_label)
+/* Original: GTMAIN.EXE:sub_80020610. */ sint32 gtmain_race_points_print(uint32 guest_label)
 {
-    printf((const char *)psx_addr(0x8008B980u, 1u),
-        (const char *)psx_addr(guest_label, 1u));
-    for (uint32 i = 0; i < 6u; ++i)
-        printf((const char *)psx_addr(0x8008B98Cu, 1u), (int)r_u16(0x800B6840u + i * 2u));
-    return printf((const char *)psx_addr(0x8008B990u, 1u));
+    uint32 length = 0, i;
+    while (r_u8(guest_label + length)) ++length;
+    printf((const char *)psx_addr(0x8008B980, 12),
+        (const char *)psx_addr(guest_label, length + 1));
+    for (i = 0; i < 6; ++i)
+        printf((const char *)psx_addr(0x8008B98C, 4), r_u16(0x800B6840 + i * 2));
+    return printf((const char *)psx_addr(0x8008B990, 2));
 }
 
-sint32 gtmain_race_points_apply(void)
+/* Original: GTMAIN.EXE:sub_80020740. */ sint32 gtmain_race_points_apply(void)
 {
     sint32 count = (sint16)r_u16(0x800B6666u);
     for (sint32 i = 0; i < count; ++i)
@@ -68,7 +70,7 @@ sint32 gtmain_race_points_apply(void)
     return gtmain_race_points_print(0x8008B99Cu);
 }
 
-uint32 gtmain_race_vehicle_variant_set(uint32 car, sint8 variant)
+/* Original: GTMAIN.EXE:sub_8004EF48. */ uint32 gtmain_race_vehicle_variant_set(uint32 car, sint8 variant)
 {
     sint32 mode = (sint8)r_u8(car + 1689u);
     if (mode == 2) { w_u8(car + 1461u, 0); return 2; }
@@ -80,7 +82,7 @@ uint32 gtmain_race_vehicle_variant_set(uint32 car, sint8 variant)
     return 4;
 }
 
-uint32 gtmain_race_ai_default(uint32 offset)
+/* Original: GTMAIN.EXE:sub_80053AC8. */ uint32 gtmain_race_ai_default(uint32 offset)
 {
     return r_u32(r_u32(0x800BF51Cu) + 24u) ? offset + 3u : 0;
 }
@@ -88,10 +90,10 @@ uint32 gtmain_race_ai_default(uint32 offset)
 static void alternate_basis_prepare(uint32 position, uint32 first_basis, uint32 second_basis)
 {
     /* TODO Bind the unselected original alternate coordinate basis service */
-    gt_draft_unresolved_call(0x8005F260u, position, first_basis, second_basis, 0, 0, 0, 0, 0);
+    gtmain_race_course_projection_set(position, first_basis, second_basis);
 }
 
-uint32 gtmain_race_vehicle_grid_initialize(uint32 car, uint32 segment, sint32 x, sint32 z, sint32 sine, sint32 cosine)
+/* Original: GTMAIN.EXE:sub_80051498. */ uint32 gtmain_race_vehicle_grid_initialize(uint32 car, uint32 segment, sint32 x, sint32 z, sint32 sine, sint32 cosine)
 {
     w_u32(car + 1892u, segment);
     sint32 height = gtmain_collision_height_query(x, z, 409600, (uint32 *)psx_addr(car + 1892u, 4));
@@ -167,7 +169,7 @@ uint32 gtmain_race_vehicle_grid_initialize(uint32 car, uint32 segment, sint32 x,
     return 0;
 }
 
-void gtmain_race_vehicle_initialize(uint32 car, uint32 specification, uint32 segment, sint32 x, sint32 z,
+/* Original: GTMAIN.EXE:sub_80051A80. */ void gtmain_race_vehicle_initialize(uint32 car, uint32 specification, uint32 segment, sint32 x, sint32 z,
     sint32 sine, sint32 cosine, uint32 body, uint8 variant, uint8 mode, uint32 transmission)
 {
     gtmain_race_car_mode_set(car, (sint8)body);

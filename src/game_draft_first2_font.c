@@ -2,7 +2,7 @@
 #include "game_draft_registry.h"
 
 /* GTMAIN.EXE 8006ED0C */
-uint32 gtmain_font_load(sint32 font)
+/* Original: GTMAIN.EXE:sub_8006ED0C. */ uint32 gtmain_font_load(sint32 font)
 {
     uint32 buffer[8192];
     const uint8 *data;
@@ -17,7 +17,7 @@ uint32 gtmain_font_load(sint32 font)
 }
 
 /* GTMAIN.EXE 8006C900 */
-sint32 gtmain_text_width(sint32 font, uint32 text)
+/* Original: GTMAIN.EXE:sub_8006C900. */ sint32 gtmain_text_width(sint32 font, uint32 text)
 {
     uint32 metrics, kerning, total = 0u, glyph;
     switch (font) {
@@ -43,7 +43,7 @@ sint32 gtmain_text_width(sint32 font, uint32 text)
 }
 
 /* GTMAIN.EXE 8006F038 */
-uint32 gtmain_frame_ordering(uint32 alternate)
+/* Original: GTMAIN.EXE:sub_8006F038. */ uint32 gtmain_frame_ordering(uint32 alternate)
 {
     return gtmain_audio_buffer_end(r_u32(alternate ? 0x800BFF6Cu : 0x800BFF68u));
 }

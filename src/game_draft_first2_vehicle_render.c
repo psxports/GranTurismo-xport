@@ -71,13 +71,13 @@ static void vehicle_translation(uint32 context)
     gte_ctc2(a, 5); a = r_u32(context + 92u); gte_ctc2(b, 6); gte_ctc2(a, 7);
 }
 
-sint32 gtmain_driver_hidden(uint32 car)
+/* Original: GTMAIN.EXE:sub_8001E410. */ sint32 gtmain_driver_hidden(uint32 car)
 {
     uint32 driver = r_u32(0x800B6638u);
     return car == r_u32(driver + 180u) ? (sint8)r_u8(driver + 254u) : 0;
 }
 
-sint32 gtmain_model_wheel_matrix(uint32 context, sint32 scale)
+/* Original: GTMAIN.EXE:sub_8006D1E0. */ sint32 gtmain_model_wheel_matrix(uint32 context, sint32 scale)
 {
     sint32 x = (sint16)r_u16(context + 964u), y = (sint16)r_u16(context + 970u);
     sint32 z = (sint16)r_u16(context + 976u);
@@ -89,7 +89,7 @@ sint32 gtmain_model_wheel_matrix(uint32 context, sint32 scale)
     return gtmain_matrix_multiply(psx_addr(context + 960u, 20u), psx_addr(context + 884u, 20u), psx_addr(context + 960u, 20u));
 }
 
-uint32 gtmain_model_wheel_draw(uint32 context, sint32 radius, uint32 detail)
+/* Original: GTMAIN.EXE:sub_8006D2C4. */ uint32 gtmain_model_wheel_draw(uint32 context, sint32 radius, uint32 detail)
 {
     uint32 x = r_u32(context + 940u), cx = r_u32(context + 44u);
     uint32 y = r_u32(context + 944u), z = r_u32(context + 948u);
@@ -229,7 +229,7 @@ static uint32 vehicle_clip(uint32 context, uint32 packet, uint32 link, uint32 co
     return r_u32(context + 180u);
 }
 
-uint32 gtmain_model_shadow_draw(uint32 context, uint32 model)
+/* Original: GTMAIN.EXE:sub_8006D688. */ uint32 gtmain_model_shadow_draw(uint32 context, uint32 model)
 {
     uint32 x = r_u32(context + 864u), cx = r_u32(context + 44u);
     uint32 y = r_u32(context + 868u), z = r_u32(context + 872u);

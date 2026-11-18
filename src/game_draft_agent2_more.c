@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "xport_trace.h"
 /* Unverified draft translations */
 /* TODO Resolve unspecified outgoing argument carriers during integration */
 
@@ -25,7 +26,7 @@ uint32 gt_draft_8002C944(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
 }
 
 /* GTMAIN.EXE 8003CC54 */
-uint32 gtmain_menu_status_input(void)
+/* Original: GTMAIN.EXE:sub_8003CC54. */ uint32 gtmain_menu_status_input(void)
 {
     uint32 input = r_u32(0x800BDD08u), context;
     sint32 phase;
@@ -52,18 +53,36 @@ uint32 gtmain_menu_status_input(void)
     return 3u;
 }
 
-uint32 gt_draft_80041FE0(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+uint32 gtmain_parts_transmission_options_finish(uint32 flags)
 {
-    w_u8(0x800928A0u, r_u8(0x800928A0u) & 31u);
-    uint32 count = r_u8(r_u32(0x800BEA60u) + 42);
-    w_u8(0x80092864u, count + 1);
-    for (uint32 i = 0; i < count; ++i) {
-        w_u32(0x80092868u + 4u * i, r_u32(0x80092844u + 4u * i));
-        w_u16(0x80092888u + 2u * i, r_u16(r_u32(0x800BEA60u) + 2u * i + 26));
+    uint32 context, count, index, label, value;
+    w_u8(0x800928A0, flags);
+    context = r_u32(0x800BEA60);
+    count = r_u8(context + 42);
+    w_u8(0x80092864, count + 1);
+    for (index = 0; index < count; ++index) {
+        label = r_u32(0x80092844 + index * 4);
+        w_u32(0x80092868 + index * 4, label);
+        context = r_u32(0x800BEA60);
+        value = r_u16(context + index * 2 + 26);
+        w_u16(0x80092888 + index * 2, value);
     }
-    w_u32(0x80092868u + 4u * count, 0x800BD29Cu);
-    w_u16(0x80092888u + 2u * count, r_u16(r_u32(0x800BEA60u) + 40));
+    context = r_u32(0x800BEA60);
+    w_u32(0x80092868 + index * 4, 0x800BD29C);
+    value = r_u16(context + 40);
+    w_u16(0x80092888 + index * 2, value);
     return 3;
+}
+
+uint32 gt_draft_80041FE0(uint32 a0, uint32 a1, uint32 a2, uint32 a3,
+    uint32 a4, uint32 a5, uint32 a6, uint32 a7)
+{
+    uint32 flags;
+    FUNCTION_MARKER(0x80041FE0, "GTMAIN.EXE");
+    (void)a0; (void)a1; (void)a2; (void)a3;
+    (void)a4; (void)a5; (void)a6; (void)a7;
+    flags = r_u8(0x800928A0);
+    return gtmain_parts_transmission_options_finish(flags & 31);
 }
 
 uint32 gt_draft_8002FCD4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, uint32 a5, uint32 a6, uint32 a7)
@@ -82,17 +101,10 @@ uint32 gt_draft_8001E6D4(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     return gtmain_car_selection_bind(a0, a1);
 }
 
-static uint32 installed_parts_resource(uint32 category)
+/* Original: GTMAIN.EXE:sub_80042F1C. */ uint32 gt_draft_80042F1C(void)
 {
-    /* TODO Bind unselected parts resource lookup 8001EB94 */
-    return gt_draft_unresolved_call(0x8001EB94u, category,
-        0u, 0u, 0u, 0u, 0u, 0u, 0u);
-}
-
-uint32 gt_draft_80042F1C(void)
-{
-    uint32 first = installed_parts_resource(31u);
-    uint32 second = installed_parts_resource(32u);
+    uint32 first = gtmain_parts_table(31u);
+    uint32 second = gtmain_parts_table(32u);
     uint32 first_offset = r_u8(0x800941DCu);
     uint32 owner = r_u32(0x800BEA64u);
     uint32 second_offset = r_u8(0x800941DDu);
@@ -121,7 +133,7 @@ uint32 gt_draft_80042F1C(void)
 }
 
 /* GTMAIN.EXE 8002F6EC */
-uint32 gt_draft_8002F6EC(uint32 context, uint32 mask)
+/* Original: GTMAIN.EXE:sub_8002F6EC. */ uint32 gt_draft_8002F6EC(uint32 context, uint32 mask)
 {
     uint32 color = r_u32(0x800B6338u);
     uint32 packets = r_u32(0x800BFE4Cu);
@@ -152,7 +164,7 @@ uint32 gt_draft_8002B190(uint32 a0, uint32 a1, uint32 a2, uint32 a3, uint32 a4, 
     uint32 result = (uint32)(sint32)(sint16)r_u16(0x800B63D6u);
     if (!result) return result;
     switch (r_u8(0x800CB7F5u)) {
-    case 0: return gt_draft_80025EAC(0, 0, 0, 0, 0, 0, 0, 0);
+    case 0: return gt_draft_80025EAC();
     case 1: return gt_draft_unresolved_call(0x80026364u, 0, 0, 0, 0, 0, 0, 0, 0);
     case 2: return gt_draft_unresolved_call(0x800264F8u, 0, 0, 0, 0, 0, 0, 0, 0);
     case 3: return gt_draft_unresolved_call(0x80023094u, 0, 0, 0, 0, 0, 0, 0, 0);

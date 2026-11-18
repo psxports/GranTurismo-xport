@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8001D438 */
-sint32 gtmain_camera_saved_pose_load(uint32 camera)
+/* Original: GTMAIN.EXE:sub_8001D438. */ sint32 gtmain_camera_saved_pose_load(uint32 camera)
 {
     uint32 saved = r_u32(0x800B6400u);
     uint32 px, py, pz;
@@ -24,7 +24,7 @@ sint32 gtmain_camera_saved_pose_load(uint32 camera)
 }
 
 /* GTMAIN.EXE 8002CC9C */
-uint32 gtmain_race_records_export(uint32 destination)
+/* Original: GTMAIN.EXE:sub_8002CC9C. */ uint32 gtmain_race_records_export(uint32 destination)
 {
     uint32 first = 0x800CB8E0u;
     uint32 size = gtmain_race_record_size(first);

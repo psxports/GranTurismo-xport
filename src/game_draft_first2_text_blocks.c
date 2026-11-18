@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 80030828 */
-sint32 gtmain_race_countdown_block_draw(uint32 ordering, sint32 y, sint32 label)
+/* Original: GTMAIN.EXE:sub_80030828. */ sint32 gtmain_race_countdown_block_draw(uint32 ordering, sint32 y, sint32 label)
 {
     uint32 next_y;
     if (label >= 0 && (sint16)r_u16(0x800B63DEu)) {
@@ -14,7 +14,7 @@ sint32 gtmain_race_countdown_block_draw(uint32 ordering, sint32 y, sint32 label)
 }
 
 /* GTMAIN.EXE 80030974 */
-uint32 gtmain_race_centered_label_box_draw(uint32 ordering, uint32 color, uint32 text, uint32 corners, sint32 center_x)
+/* Original: GTMAIN.EXE:sub_80030974. */ uint32 gtmain_race_centered_label_box_draw(uint32 ordering, uint32 color, uint32 text, uint32 corners, sint32 center_x)
 {
     sint32 width, right, left, top, half, x;
     uint32 gap;
@@ -33,7 +33,7 @@ uint32 gtmain_race_centered_label_box_draw(uint32 ordering, uint32 color, uint32
 }
 
 /* GTMAIN.EXE 800380F0 */
-sint32 gtmain_menu_machine_caption_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_800380F0. */ sint32 gtmain_menu_machine_caption_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
     sint16 corners[4];
     uint32 color;
@@ -50,7 +50,7 @@ sint32 gtmain_menu_machine_caption_draw(uint32 ordering, sint32 x, sint32 y, sin
 }
 
 /* GTMAIN.EXE 80030938 */
-uint32 gtmain_race_choice_highlight(uint32 command)
+/* Original: GTMAIN.EXE:sub_80030938. */ uint32 gtmain_race_choice_highlight(uint32 command)
 {
     uint32 phase = r_u16(0x800912E2u);
     uint32 intensity = phase & 7u;
@@ -60,7 +60,7 @@ uint32 gtmain_race_choice_highlight(uint32 command)
 }
 
 /* GTMAIN.EXE 80030CA0 */
-uint32 gtmain_race_choice_boxes_draw(void)
+/* Original: GTMAIN.EXE:sub_80030CA0. */ uint32 gtmain_race_choice_boxes_draw(void)
 {
     uint32 ordering = r_u32(0x800B6368u);
     uint32 first = gtmain_race_choice_highlight(0u), second = 0u;

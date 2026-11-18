@@ -1,11 +1,11 @@
 #include "game_first2_registry.h"
 
-uint32 gtmain_car_name(uint32 index)
+/* Original: GTMAIN.EXE:sub_8006B668. */ uint32 gtmain_car_name(uint32 index)
 {
     return r_u32(0x800C0C14u) + index * 6u + 32u;
 }
 
-sint32 gtmain_car_record_find(uint32 name, uint32 archive, uint32 section, uint32 require_alternate)
+/* Original: GTMAIN.EXE:sub_8006B688. */ sint32 gtmain_car_record_find(uint32 name, uint32 archive, uint32 section, uint32 require_alternate)
 {
     uint32 records = archive + r_u32(archive + section * 12u + 16u);
     uint32 names = archive + r_u32(archive + 172u) + 24u;
@@ -25,7 +25,7 @@ sint32 gtmain_car_record_find(uint32 name, uint32 archive, uint32 section, uint3
     return -1;
 }
 
-sint32 gtmain_car_find(uint32 name)
+/* Original: GTMAIN.EXE:sub_8006B828. */ sint32 gtmain_car_find(uint32 name)
 {
     sint32 count = gtmain_car_count();
     sint32 index;
@@ -35,12 +35,12 @@ sint32 gtmain_car_find(uint32 name)
     return -1;
 }
 
-uint32 gtmain_car_config_copy(uint32 destination, uint32 source)
+/* Original: GTMAIN.EXE:sub_8006B898. */ uint32 gtmain_car_config_copy(uint32 destination, uint32 source)
 {
     return gtmain_memory_copy(destination, source, 386u);
 }
 
-uint32 gtmain_car_config_fields(uint32 destination, uint32 source, uint32 descriptors, uint32 archive)
+/* Original: GTMAIN.EXE:sub_8006B8B8. */ uint32 gtmain_car_config_fields(uint32 destination, uint32 source, uint32 descriptors, uint32 archive)
 {
     uint32 word = r_u32(descriptors);
     while (word)
@@ -90,7 +90,7 @@ uint32 gtmain_car_config_fields(uint32 destination, uint32 source, uint32 descri
     return word;
 }
 
-uint32 gtmain_car_config_build(uint32 destination, uint32 selectors, uint32 archive)
+/* Original: GTMAIN.EXE:sub_8006BAD4. */ uint32 gtmain_car_config_build(uint32 destination, uint32 selectors, uint32 archive)
 {
     uint32 table = 0x800940C4u;
     uint32 selector = selectors;
@@ -194,14 +194,14 @@ uint32 gtmain_car_config_build(uint32 destination, uint32 selectors, uint32 arch
     return result;
 }
 
-uint32 gtmain_random_step(uint32 state)
+/* Original: GTMAIN.EXE:sub_8006C31C. */ uint32 gtmain_random_step(uint32 state)
 {
     uint32 result = r_u32(state) * 17u + 17u;
     w_u32(state, result);
     return result;
 }
 
-uint32 gtmain_car_config_bind(uint32 first, uint32 second, uint32 third, sint16 fourth, uint16 fifth)
+/* Original: GTMAIN.EXE:sub_8006C3DC. */ uint32 gtmain_car_config_bind(uint32 first, uint32 second, uint32 third, sint16 fourth, uint16 fifth)
 {
     w_u32(0x800C00D4u, first);
     w_u32(0x800C00CCu, second);

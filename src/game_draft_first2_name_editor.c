@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 8003C338 */
-uint32 gtmain_menu_name_text_set(uint32 request, uint32 text)
+/* Original: GTMAIN.EXE:sub_8003C338. */ uint32 gtmain_menu_name_text_set(uint32 request, uint32 text)
 {
     uint32 length;
     gtmain_string_copy(r_u32(request + 4u), text);
@@ -12,7 +12,7 @@ uint32 gtmain_menu_name_text_set(uint32 request, uint32 text)
 }
 
 /* GTMAIN.EXE 8003C3B0 */
-sint32 gtmain_menu_name_edit(uint32 request, uint32 controls)
+/* Original: GTMAIN.EXE:sub_8003C3B0. */ sint32 gtmain_menu_name_edit(uint32 request, uint32 controls)
 {
     sint32 result = -1, columns = 16, row, cursor, length;
     uint32 buttons = r_u16(controls + 4u);
@@ -108,7 +108,7 @@ reject:
 }
 
 /* GTMAIN.EXE 80048448 */
-uint32 gtmain_menu_name_request_prepare(uint32 owner, sint32 index, uint32 unchanged_result)
+/* Original: GTMAIN.EXE:sub_80048448. */ uint32 gtmain_menu_name_request_prepare(uint32 owner, sint32 index, uint32 unchanged_result)
 {
     uint32 entries = owner + 512u;
     gtmain_menu_resource_request_initialize(0x80092EACu, 17, 256, 0x800B5394u);

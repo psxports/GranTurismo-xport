@@ -8,7 +8,7 @@ static void instruments_link(uint32 ordering, uint32 packet)
 }
 
 /* GTMAIN.EXE 8002C318 */
-uint32 gtmain_race_instruments_draw(uint32 ordering, sint32 x, sint32 y, uint32 car)
+/* Original: GTMAIN.EXE:sub_8002C318. */ uint32 gtmain_race_instruments_draw(uint32 ordering, sint32 x, sint32 y, uint32 car)
 {
     sint32 numerator = (sint16)r_u16(car + 78u) * 2298;
     sint32 denominator = (sint16)r_u16(car + 2348u), angle, speed;

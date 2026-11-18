@@ -16,14 +16,14 @@ static sint32 aero_square(sint32 speed)
     return aero_fixed((uint32)scaled * (uint32)scaled);
 }
 
-sint32 gtmain_race_aero_force(uint32 car, sint32 speed)
+/* Original: GTMAIN.EXE:sub_80051FA8. */ sint32 gtmain_race_aero_force(uint32 car, sint32 speed)
 {
     sint32 square = aero_square(speed);
     sint32 force = aero_fixed((uint32)square * r_u32(car + 0x4E4u));
     return speed < 0 ? force : (sint32)(0u - (uint32)force);
 }
 
-sint32 gtmain_race_aero_components(uint32 car, sint32 speed, sint32 *first, sint32 *second)
+/* Original: GTMAIN.EXE:sub_80052024. */ sint32 gtmain_race_aero_components(uint32 car, sint32 speed, sint32 *first, sint32 *second)
 {
     sint32 square = aero_square(speed);
     sint32 force = aero_fixed((uint32)square * r_u32(car + 0x4E8u));

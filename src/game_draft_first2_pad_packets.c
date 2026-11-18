@@ -42,14 +42,14 @@ static void packet_ack_delay(uint32 delay)
     gt_draft_failure("Native pad timer snapshot", 0x80081E98u);
 }
 
-uint32 gtmain_pad_irq_bind(void)
+/* Original: GTMAIN.EXE:sub_800805F0. */ uint32 gtmain_pad_irq_bind(void)
 {
     w_u32(0x800B5EF0u, 0x80080684u);
     w_u32(0x800B5EF4u, 0x8008061Cu);
     w_u32(0x800B5EECu, 0); w_u32(0x800B5EF8u, 0);
     return 0x800B5EF0u;
 }
-uint32 gtmain_pad_irq_test(void)
+/* Original: GTMAIN.EXE:sub_8008061C. */ uint32 gtmain_pad_irq_test(void)
 {
     uint32 irq = r_u32(0x800B1F1Cu);
     packet_hardware(irq + 4u);
@@ -71,19 +71,19 @@ void gtmain_pad_command_data_bind(uint32 port, uint32 data, uint8 count)
 {
     w_u32(port + 40u, data); w_u8(port + 52u, count);
 }
-sint32 gtmain_pad_packet_start(uint32 port)
+/* Original: GTMAIN.EXE:sub_80081F58. */ sint32 gtmain_pad_packet_start(uint32 port)
 {
     uint32 value = packet_callback(r_u32(0x800B1ED4u), port);
     w_u32(0x800B1F3Cu, value);
     return gtmain_pad_exchange(port, -2);
 }
-sint32 gtmain_pad_packet_command(uint32 port)
+/* Original: GTMAIN.EXE:sub_80081F98. */ sint32 gtmain_pad_packet_command(uint32 port)
 {
     uint32 index = r_u32(0x800B1EFCu);
     uint32 first = r_u32(0x800B1F0Cu);
     return gtmain_pad_packet_command_tail(port, index == first);
 }
-sint32 gtmain_pad_packet_command_tail(uint32 port, uint32 is_first_port)
+/* Original: GTMAIN.EXE:sub_80081FA8. */ sint32 gtmain_pad_packet_command_tail(uint32 port, uint32 is_first_port)
 {
     uint32 command;
     if (is_first_port && r_u32(0x800B1EF8u)) {
@@ -101,11 +101,11 @@ sint32 gtmain_pad_packet_command_tail(uint32 port, uint32 is_first_port)
     command = command ? r_u8(port + 54u) : 66u;
     return gtmain_pad_exchange_timed(port, (uint8)command);
 }
-sint32 gtmain_pad_packet_length(uint32 port)
+/* Original: GTMAIN.EXE:sub_80082070. */ sint32 gtmain_pad_packet_length(uint32 port)
 {
     return gtmain_pad_packet_length_tail(port, r_u32(0x800B1F3Cu));
 }
-sint32 gtmain_pad_packet_length_tail(uint32 port, uint32 prepare_children)
+/* Original: GTMAIN.EXE:sub_80082078. */ sint32 gtmain_pad_packet_length_tail(uint32 port, uint32 prepare_children)
 {
     uint32 outgoing = 0, length;
     sint32 result;
@@ -126,7 +126,7 @@ sint32 gtmain_pad_packet_length_tail(uint32 port, uint32 prepare_children)
     if (!length) w_u32(0x800B1F34u, 32);
     return 0;
 }
-sint32 gtmain_pad_packet_ack(uint32 port)
+/* Original: GTMAIN.EXE:sub_80082130. */ sint32 gtmain_pad_packet_ack(uint32 port)
 {
     uint32 multitap = 0, outgoing;
     sint32 result;
@@ -136,7 +136,7 @@ sint32 gtmain_pad_packet_ack(uint32 port)
     if (result == 90 || !result || result < 0) return result;
     return -9;
 }
-sint32 gtmain_pad_packet_read(uint32 port)
+/* Original: GTMAIN.EXE:sub_800821BC. */ sint32 gtmain_pad_packet_read(uint32 port)
 {
     uint32 multitap = 0, related = 0, related_valid = 0, other, count_address, offset;
     sint32 result;
@@ -212,7 +212,7 @@ sint32 gtmain_pad_packet_read(uint32 port)
     packet_notify(r_u32(0x800B1EBCu), 0);
     return 0;
 }
-uint32 gtmain_pad_poll(void)
+/* Original: GTMAIN.EXE:sub_80080684. */ uint32 gtmain_pad_poll(void)
 {
     uint32 first = r_u32(0x800B1F0Cu), index, limit, base, control, count;
     w_u32(0x800B1F24u, 1);

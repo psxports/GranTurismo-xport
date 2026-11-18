@@ -1,5 +1,6 @@
 #include "game_first2_registry.h"
 #include "game_draft_registry.h"
+#include "game_local_stack.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,11 +74,6 @@ static uint32 race_resource_load(uint32 resource, const uint32 *descriptor, uint
         size, mode, destination, flag);
 }
 
-static void race_workspace_decode(uint8 *workspace, uint32 bytes)
-{
-    gtmain_texture_workspace_publish(workspace, bytes);
-}
-
 static void race_cars_decode(uint32 cars, sint32 count, const uint32 *destinations, uint32 data)
 {
     (void)gtmain_car_records_decode(cars, count, destinations, 6u, data);
@@ -111,32 +107,36 @@ static void race_native_string_copy(char *output, uint32 source)
 }
 
 /* GTMAIN.EXE 80022164 */
-void gtmain_race_cars_invalidate(void) { w_u16(0x8008F3EEu, 0u); }
+/* Original: GTMAIN.EXE:sub_80022164. */ void gtmain_race_cars_invalidate(void) { w_u16(0x8008F3EEu, 0u); }
 
 /* GTMAIN.EXE 80024D38 */
-sint32 gtmain_race_track_invalidate(void)
+/* Original: GTMAIN.EXE:sub_80024D38. */ sint32 gtmain_race_track_invalidate(void)
 {
     w_u32(0x8008F728u, 0xFFFFFFFFu);
     return -1;
 }
 
 /* GTMAIN.EXE 8001EFAC */
-void gtmain_race_config_reset(void) { memset(psx_addr(0x800B6650u, 12u), 0, 12u); }
+/* Original: GTMAIN.EXE:sub_8001EFAC. */ uint32 gtmain_race_config_reset(void)
+{
+    memset(psx_addr(0x800B6650u, 12u), 0, 12u);
+    return 0x800B6650u;
+}
 
 /* GTMAIN.EXE 8002CE4C */
-void gtmain_race_text_bind(uint32 text)
+/* Original: GTMAIN.EXE:sub_8002CE4C. */ void gtmain_race_text_bind(uint32 text)
 {
     w_u32(0x8008FBF4u, text ? text : 0x8008FBECu);
 }
 
 /* GTMAIN.EXE 80031DCC */
-uint32 gtmain_race_render_config(uint32 mode)
+/* Original: GTMAIN.EXE:sub_80031DCC. */ uint32 gtmain_race_render_config(uint32 mode)
 {
     return gtmain_sound_bank_load_original(0x800B49ECu, 0x1010u, 0x801BB70Cu, mode);
 }
 
 /* GTMAIN.EXE 800274EC */
-sint32 gtmain_race_track_find(uint32 names, uint32 name)
+/* Original: GTMAIN.EXE:sub_800274EC. */ sint32 gtmain_race_track_find(uint32 names, uint32 name)
 {
     uint32 index = 0u;
     if (!r_u32(names)) return -1;
@@ -148,7 +148,7 @@ sint32 gtmain_race_track_find(uint32 names, uint32 name)
 }
 
 /* GTMAIN.EXE 8002756C */
-sint32 gtmain_race_track_index(uint32 track)
+/* Original: GTMAIN.EXE:sub_8002756C. */ sint32 gtmain_race_track_index(uint32 track)
 {
     uint32 name = gtmain_course_name(track);
     if (!strncmp(psx_addr(name, 7u), psx_addr(0x8008BC98u, 7u), 7u)) name += 7u;
@@ -156,7 +156,7 @@ sint32 gtmain_race_track_index(uint32 track)
 }
 
 /* GTMAIN.EXE 800275F0 */
-sint32 gtmain_race_arcade_track(uint32 track)
+/* Original: GTMAIN.EXE:sub_800275F0. */ sint32 gtmain_race_arcade_track(uint32 track)
 {
     char name[64];
     uint32 cursor = 0u, suffix;
@@ -168,11 +168,11 @@ sint32 gtmain_race_arcade_track(uint32 track)
 }
 
 /* GTMAIN.EXE 80024D48 */
-sint32 gtmain_race_track_load(uint32 track)
+/* Original: GTMAIN.EXE:sub_80024D48. */ sint32 gtmain_race_track_load(uint32 track)
 {
     uint32 previous = r_u32(0x8008F728u), resource, table, size, descriptor[10];
     uint32 first, second, third, fourth, record, image, workspace_bytes;
-    uint8 *workspace;
+    GT_LOCAL_STACK_FRAME workspace;
     if (previous == track) return (sint32)previous;
     w_u32(0x8008F728u, track);
     gtmain_race_cars_invalidate();
@@ -192,19 +192,18 @@ sint32 gtmain_race_track_load(uint32 track)
     descriptor[7] = first; descriptor[8] = second; descriptor[9] = third;
     image = race_resource_load(resource, descriptor, size, 1u, 0x800D6FDCu, 0u);
     workspace_bytes = (gtmain_texture_workspace_size(image) + 14u) & ~7u;
-    workspace = (uint8 *)malloc(workspace_bytes);
-    race_workspace_decode(workspace, workspace_bytes);
+    workspace = gt_local_stack_push(workspace_bytes, 0x80024D48u);
+    gtmain_texture_workspace_publish(workspace.address);
     gtmain_texture_records_load(image);
     image = race_resource_load(resource, descriptor, size, 0u, 0x800D6FDCu, 0u);
     gtmain_course_resource_bind(image);
     first = gtmain_race_ai_routes_relocate(r_u32(0x800BC1ACu));
-    gtmain_texture_workspace_release(workspace);
-    free(workspace);
+    gt_local_stack_pop(workspace);
     return (sint32)first;
 }
 
 /* GTMAIN.EXE 800221E8 */
-sint32 gtmain_race_cars_load(void)
+/* Original: GTMAIN.EXE:sub_800221E8. */ sint32 gtmain_race_cars_load(void)
 {
     uint32 count = r_u8(0x800B6394u), mode = r_u8(0x800CB7F5u), destinations[6], index;
     w_u16(0x800B6666u, 6u);
@@ -224,7 +223,7 @@ sint32 gtmain_race_cars_load(void)
 }
 
 /* GTMAIN.EXE 80022468 */
-sint32 gtmain_race_car_palettes(uint32 track)
+/* Original: GTMAIN.EXE:sub_80022468. */ sint32 gtmain_race_car_palettes(uint32 track)
 {
     sint32 value = (sint16)r_u16(0x8008F3F0u), index = 0;
     uint32 palettes;
@@ -253,7 +252,7 @@ sint32 gtmain_race_car_palettes(uint32 track)
 }
 
 /* GTMAIN.EXE 80027430 */
-sint32 gtmain_race_session_prepare(void)
+/* Original: GTMAIN.EXE:sub_80027430. */ sint32 gtmain_race_session_prepare(void)
 {
     sint32 result;
     w_u8(0x800B63CAu, 0u); w_u32(0x800B630Cu, 0u);
@@ -263,7 +262,7 @@ sint32 gtmain_race_session_prepare(void)
 }
 
 /* GTMAIN.EXE 8002BBD4 */
-sint32 gtmain_race_session_loop(void)
+/* Original: GTMAIN.EXE:sub_8002BBD4. */ sint32 gtmain_race_session_loop(void)
 {
     uint32 context_address = race_stack_context_address();
     uint8 *context = (uint8 *)psx_addr(context_address, 40u);
@@ -334,7 +333,7 @@ static sint32 session_panel_run(uint32 address)
 }
 
 /* GTMAIN.EXE 80027640 */
-sint32 gtmain_race_session_enter(void)
+/* Original: GTMAIN.EXE:sub_80027640. */ sint32 gtmain_race_session_enter(void)
 {
     uint32 first, second, mode;
     sint32 value, branch;
@@ -400,7 +399,7 @@ setup:
 }
 
 /* GTMAIN.EXE 80028598 */
-sint32 gtmain_race_session_restore(void)
+/* Original: GTMAIN.EXE:sub_80028598. */ sint32 gtmain_race_session_restore(void)
 {
     uint32 source, destination, first, second, third, fourth, mode;
     w_u32(0x800BDD04u, r_u32(0x800CB8E0u));

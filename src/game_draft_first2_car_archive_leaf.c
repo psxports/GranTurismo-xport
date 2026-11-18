@@ -32,13 +32,13 @@ static uint32 car_archive_size_field(uint8 output[16])
 }
 
 /* GTMAIN.EXE 80072220 */
-uint32 gtmain_car_archive_path(void)
+/* Original: GTMAIN.EXE:sub_80072220. */ uint32 gtmain_car_archive_path(void)
 {
     return gtmain_environment_field(0x800AD9A8u, 0, 0x800B55B4u);
 }
 
 /* GTMAIN.EXE 80072250 */
-sint32 gtmain_car_archive_decoded_size(void)
+/* Original: GTMAIN.EXE:sub_80072250. */ sint32 gtmain_car_archive_decoded_size(void)
 {
     uint8 field[16];
     uint32 index = 0, result = 0;
@@ -57,14 +57,14 @@ sint32 gtmain_car_archive_decoded_size(void)
 }
 
 /* GTMAIN.EXE 80031E04 */
-uint32 gtmain_race_instrument_bank_load(uint32 destination, uint32 buffer, uint32 capacity)
+/* Original: GTMAIN.EXE:sub_80031E04. */ uint32 gtmain_race_instrument_bank_load(uint32 destination, uint32 buffer, uint32 capacity)
 {
     return gtmain_sound_bank_load_original(destination, 0x2C800u, buffer, 2);
 }
 
 /* TODO Resolve independent decoded-size and CD service limitations */
 /* GTMAIN.EXE 8006C144 */
-uint32 gtmain_car_archive_records_load(uint32 destination)
+/* Original: GTMAIN.EXE:sub_8006C144. */ uint32 gtmain_car_archive_records_load(uint32 destination)
 {
     uint32 path = gtmain_car_archive_path();
     uint32 decoded = (uint32)gtmain_car_archive_decoded_size();

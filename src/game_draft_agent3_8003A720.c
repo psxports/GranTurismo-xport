@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 /* GTMAIN.EXE 8003A438 */
-static sint32 menu_frame_buffers_initialize(void)
+/* Original: GTMAIN.EXE:sub_8003A438. */ static sint32 menu_frame_buffers_initialize(void)
 {
     gtmain_frame_tables_bind((uint32 *)psx_addr(0x801A8FDCu, 0x5000u),
         (uint32 *)psx_addr(0x801ADFDCu, 0x5000u), 0x1400u);
@@ -20,7 +20,7 @@ static sint32 menu_frame_buffers_initialize(void)
 }
 
 /* GTMAIN.EXE 8003A540 */
-uint32 gtmain_menu_frame_context_initialize(uint8 *context)
+/* Original: GTMAIN.EXE:sub_8003A540. */ uint32 gtmain_menu_frame_context_initialize(uint8 *context)
 {
     menu_frame_buffers_initialize();
     gtmain_display_mode_init(1u);
@@ -38,7 +38,7 @@ uint32 gtmain_menu_frame_context_initialize(uint8 *context)
 }
 
 /* GTMAIN.EXE 8003A5E8 */
-uint32 gtmain_menu_input_context_initialize(uint32 context)
+/* Original: GTMAIN.EXE:sub_8003A5E8. */ uint32 gtmain_menu_input_context_initialize(uint32 context)
 {
     uint32 result;
     w_u32(context + 168u, 0u);
@@ -53,7 +53,7 @@ uint32 gtmain_menu_input_context_initialize(uint32 context)
 }
 
 /* GTMAIN.EXE 8003A720 */
-sint32 gtmain_menu_frame_run(void)
+/* Original: GTMAIN.EXE:sub_8003A720. */ sint32 gtmain_menu_frame_run(void)
 {
     /* The completed race frame has released this stack-region slot */
     uint8 *context = (uint8 *)psx_addr(gt_local_stack_workspace(0x4200u, 40u, 0x8003A720u), 40u);

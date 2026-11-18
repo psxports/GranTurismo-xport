@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 #include "psx.h"
 
-uint8 *gtmain_race_frame_draw(void)
+/* Original: GTMAIN.EXE:sub_8002BA60. */ uint8 *gtmain_race_frame_draw(void)
 {
     sint32 mode = r_s8(0x800B633Cu);
     uint8 submitted = 0, *context;

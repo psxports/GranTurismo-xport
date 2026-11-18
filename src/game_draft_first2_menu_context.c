@@ -1,4 +1,5 @@
 #include "game_first2_registry.h"
+#include "game_draft_registry.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -20,42 +21,77 @@ static uint32 menu_callback_dispatch(uint32 token)
     case 0x80032D1Cu: return gtmain_menu_lap_results_prepare();
     case 0x800379C0u: return gtmain_menu_quick_end_initialize();
     case 0x80036350u: return (uint32)gtmain_menu_race_selection_tick();
+    case 0x80042158: return gt_draft_80042158();
+    case 0x80042478: return gt_draft_80042478();
+    case 0x80042598: return gtmain_parts_rear_stabilizer_apply();
+    case 0x800426B8: return gt_draft_800426B8();
+    case 0x8004283C: return gt_draft_8004283C();
+    case 0x80042910: return gt_draft_80042910();
+    case 0x80042B08: return gtmain_parts_clutch_apply();
+    case 0x80041A68: return gtmain_parts_suspension_options_initialize();
+    case 0x80041C80: return gtmain_parts_front_stabilizer_options_for_category(r_s16(0x800BEA20));
+    case 0x80041D48: return gtmain_parts_rear_stabilizer_options_initialize();
+    case 0x80041DF4: return gtmain_parts_brake_options_for_category(r_s16(0x800BEA20));
+    case 0x80041EFC: return gtmain_parts_turbo_options_initialize();
+    case 0x80041FB0: return gtmain_parts_transmission_options_initialize();
+    case 0x800420CC: return gtmain_parts_clutch_options_initialize();
+    case 0x80042CB8: return gtmain_parts_spring_ranges_initialize();
+    case 0x80042D50: return gtmain_parts_ride_height_ranges_initialize();
+    case 0x80042DE8: return gtmain_parts_damper_ranges_initialize();
+    case 0x80042E84: return gt_draft_80042E84();
+    case 0x80042F1C: return gt_draft_80042F1C();
+    case 0x80043020: return gt_draft_80043020();
+    case 0x800430BC: return gtmain_parts_turbo_range_initialize();
+    case 0x80043140: return gtmain_parts_gear_ranges_initialize();
+    case 0x80043320: return gt_draft_80043320();
+    case 0x800433B0: return gt_draft_800433B0();
+    case 0x800433E0: return gt_draft_800433E0();
+    case 0x80043410: return gt_draft_80043410();
+    case 0x80043594: return gtmain_parts_camber_apply();
+    case 0x800435C4: return gtmain_parts_stabilizer_levels_apply();
+    case 0x800436D8: return gtmain_parts_brake_levels_apply();
+    case 0x80043798: return gtmain_parts_turbo_selection_apply();
+    case 0x800437C8: return gtmain_parts_gear_values_apply();
+    case 0x80043840: return gtmain_parts_clutch_values_apply();
     default:
         /* TODO Bind remaining callback tokens with their actual native ABI */
         gt_draft_failure("Native menu callback token adapter", token);
     }
 }
-/* GTMAIN.EXE 8003527C */
 uint32 gtmain_menu_callback(uint32 token)
 {
+    /* Original occurrences
+     * GTMAIN.EXE:0x8003527C
+     * GTMAIN.EXE:0x8004178C
+     */
     return menu_callback_dispatch(token);
 }
 
-uint32 gtmain_menu_name(uint32 guest_name)
+/* Original: GTMAIN.EXE:sub_8003529C. */ uint32 gtmain_menu_name(uint32 guest_name)
 {
     if (!strncmp((const char *)psx_addr(guest_name, 7), (const char *)psx_addr(0x8008CBC4u, 7), 7)) return guest_name + 7u;
     return guest_name;
 }
-sint32 gtmain_menu_push_tail(uint32 descriptor, uint32 context, sint32 previous_index)
+/* Original: GTMAIN.EXE:sub_800352FC. */ sint32 gtmain_menu_push_tail(uint32 descriptor, uint32 context, sint32 previous_index)
 {
     uint32 next = (uint32)previous_index + 1u;
     w_u8(context + 256u, next);
     w_u32(context + 192u + (uint32)(sint32)(sint8)(uint8)next * 4u, descriptor);
     return 0;
 }
-sint32 gtmain_menu_push(uint32 descriptor)
+/* Original: GTMAIN.EXE:sub_800352DC. */ sint32 gtmain_menu_push(uint32 descriptor)
 {
     uint32 context = r_u32(0x800BDD08u);
     sint32 previous = (sint8)r_u8(context + 256u);
     if (previous >= 15) return -1;
     return gtmain_menu_push_tail(descriptor, context, previous);
 }
-uint32 gtmain_menu_flags(uint8 flags)
+/* Original: GTMAIN.EXE:sub_80035388. */ uint32 gtmain_menu_flags(uint8 flags)
 {
     uint32 context = r_u32(0x800BDD08u);
     w_u8(context + 258u, flags); return context;
 }
-uint32 gtmain_menu_pulse_color(sint32 intensity)
+/* Original: GTMAIN.EXE:sub_8003553C. */ uint32 gtmain_menu_pulse_color(sint32 intensity)
 {
     uint32 address = 0x80091AF8u + (uint32)(sint32)(sint8)r_u8(0x80091B38u) * 3u;
     uint32 first = (uint32)intensity * r_u8(address);
@@ -63,18 +99,18 @@ uint32 gtmain_menu_pulse_color(sint32 intensity)
     uint32 third = (uint32)intensity * r_u8(address + 2u);
     return (menu_scale(first) & 255u) | ((menu_scale(second) & 255u) << 8) | ((menu_scale(third) & 255u) << 16);
 }
-sint32 gtmain_menu_pulse_component(sint32 channel, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_80035608. */ sint32 gtmain_menu_pulse_component(sint32 channel, sint32 intensity)
 {
     uint32 phase = (uint32)(sint32)(sint8)r_u8(0x80091B38u);
     uint32 offset = channel == 0 ? 0u : channel == 1 ? 1u : 2u;
     uint32 product = (uint32)intensity * r_u8(0x80091AF8u + phase * 3u + offset);
     return (sint32)menu_scale(product);
 }
-uint32 gtmain_menu_sound(sint32 effect)
+/* Original: GTMAIN.EXE:sub_80035778. */ uint32 gtmain_menu_sound(sint32 effect)
 {
     return (uint32)gtmain_race_sound_effect(effect, 0x4000, 0x40, 0);
 }
-sint32 gtmain_menu_selection(uint16 buttons, sint32 selection, sint32 count, uint32 decrement_mask, uint32 increment_mask, sint32 sound, uint32 wrap)
+/* Original: GTMAIN.EXE:sub_800356A8. */ sint32 gtmain_menu_selection(uint16 buttons, sint32 selection, sint32 count, uint32 decrement_mask, uint32 increment_mask, sint32 sound, uint32 wrap)
 {
     if (buttons & decrement_mask) {
         if (sound >= 0) (void)gtmain_menu_sound(sound);
@@ -88,7 +124,7 @@ sint32 gtmain_menu_selection(uint16 buttons, sint32 selection, sint32 count, uin
     }
     return selection;
 }
-uint32 gtmain_menu_input(void)
+/* Original: GTMAIN.EXE:sub_800357A0. */ uint32 gtmain_menu_input(void)
 {
     uint32 context = r_u32(0x800BDD08u), packet;
     (void)gtmain_input_poll();
@@ -104,7 +140,7 @@ static void menu_draw_prepare_missing(void)
     gt_draft_failure("Native menu draw preparation", 0x80035DC0u);
 }
 
-uint32 gtmain_menu_draw(void)
+/* Original: GTMAIN.EXE:sub_80035810. */ uint32 gtmain_menu_draw(void)
 {
     sint32 prepare = r_s8(0x80091B39u);
     uint32 context = r_u32(0x800BDD08u), draw_context, start, end;
@@ -148,13 +184,13 @@ uint32 gtmain_menu_draw(void)
     default: return 0u;
     }
 }
-uint32 gtmain_menu_exit_requested(void)
+/* Original: GTMAIN.EXE:sub_80035978. */ uint32 gtmain_menu_exit_requested(void)
 {
     uint32 context = r_u32(0x800BDD08u);
     if (context == 0xFFFFFFFEu) return 0;
     return (r_u8(context + 257u) != 0) * 2u;
 }
-uint32 gtmain_menu_transition(sint8 mode)
+/* Original: GTMAIN.EXE:sub_800359A8. */ uint32 gtmain_menu_transition(sint8 mode)
 {
     uint32 context = r_u32(0x800BDD08u), result = 4;
     sint32 previous = (sint8)r_u8(context + 259u);
@@ -166,7 +202,7 @@ uint32 gtmain_menu_transition(sint8 mode)
     w_u8(context + 259u, (uint8)mode);
     return result;
 }
-uint32 gtmain_menu_transition_tick(void)
+/* Original: GTMAIN.EXE:sub_80035A80. */ uint32 gtmain_menu_transition_tick(void)
 {
     uint32 context = r_u32(0x800BDD08u), result, value;
     sint32 mode = (sint8)r_u8(context + 259u);
@@ -186,15 +222,11 @@ static uint32 menu_current_descriptor(uint32 context)
     sint32 index = (sint8)r_u8(context + 256u);
     return r_u32(context + 192u + (uint32)index * 4u);
 }
-static sint32 menu_pop_missing(void)
+/* Original: GTMAIN.EXE:sub_80035AF0. */ uint32 gtmain_menu_tick(void)
 {
-    /* TODO Bind the unselected no-argument signed-result menu pop */
-    gt_draft_failure("Native menu pop service", 0x8003532Cu);
-}
-
-uint32 gtmain_menu_tick(void)
-{
-    uint32 context = r_u32(0x800BDD08u), old, descriptor, command, enabled;
+    uint32 context, old, descriptor, command, enabled;
+    FUNCTION_MARKER(0x80035AF0, "GTMAIN.EXE");
+    context = r_u32(0x800BDD08u);
     gtmain_menu_frame_begin();
     (void)gtmain_menu_flags(4);
     old = r_u8(0x80091B38u); w_u8(0x80091B38u, old + 1u);
@@ -215,12 +247,12 @@ uint32 gtmain_menu_tick(void)
         { sint32 kind = (sint8)r_u8(descriptor); uint32 buttons = r_u16(context + 6u); if (kind == 1 && (buttons & 8u)) w_u8(context + 257u, 1); }
         return 1;
     case 1:
-        if (menu_pop_missing() < 0) w_u8(context + 257u, 1);
+        if (gtmain_menu_stack_pop() < 0) w_u8(context + 257u, 1);
         else (void)gtmain_menu_callback(r_u32(menu_current_descriptor(context) + 20u));
         w_u32(context + 188u, descriptor); (void)gtmain_menu_transition(3); return 1;
     case 2:
-        if (menu_pop_missing() < 0) w_u8(context + 257u, 1);
-        if (menu_pop_missing() < 0) w_u8(context + 257u, 1);
+        if (gtmain_menu_stack_pop() < 0) w_u8(context + 257u, 1);
+        if (gtmain_menu_stack_pop() < 0) w_u8(context + 257u, 1);
         else (void)gtmain_menu_callback(r_u32(menu_current_descriptor(context) + 20u));
         w_u32(context + 188u, descriptor); (void)gtmain_menu_transition(3); return 1;
     case 3:
@@ -230,7 +262,7 @@ uint32 gtmain_menu_tick(void)
         (void)gtmain_menu_transition(4); return 1;
     case 5: w_u32(context + 188u, descriptor); (void)gtmain_menu_transition(1); return 1;
     case 6: w_u32(context + 188u, descriptor); (void)gtmain_menu_transition(2); return 1;
-    case 7: w_u8(context + 257u, 1); printf((const char *)psx_addr(0x8008CBE0u, 1u)); return 1;
+    case 7: w_u8(context + 257u, 1); printf((const char *)psx_addr(0x8008CBE0u, 18)); return 1;
     default: return 1;
     }
 }

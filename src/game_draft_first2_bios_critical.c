@@ -12,7 +12,7 @@ void gt_native_critical_exit(void)
 }
 
 /* GTMAIN.EXE:8008AF08 */
-uint32 gtmain_bios_critical_enter(void)
+/* Original: GTMAIN.EXE:sub_8008AF08. */ uint32 gtmain_bios_critical_enter(void)
 {
     return (uint32)EnterCriticalSectionPSX();
 }

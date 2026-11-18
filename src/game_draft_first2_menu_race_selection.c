@@ -13,7 +13,7 @@ static uint32 selection_ghost_transition(uint32 check_token, uint32 complete_tok
 }
 
 /* GTMAIN.EXE:80036350 */
-sint32 gtmain_menu_race_selection_tick(void)
+/* Original: GTMAIN.EXE:sub_80036350. */ sint32 gtmain_menu_race_selection_tick(void)
 {
     uint32 input = r_u32(0x800BDD08u), selector, descriptor;
     sint32 selected, mode;

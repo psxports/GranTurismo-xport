@@ -1,21 +1,18 @@
 #include "game_first2_registry.h"
-
-static void menu_arrow(uint32 address, uint32 ordering, sint32 x, sint32 y, uint32 color)
-{
-    /* TODO Bind unselected original arrow bodies 8003B5B8, 8003B600, 8003B690 and 8003B648 */
-    (void)gt_draft_unresolved_call(address, ordering, (uint32)x, (uint32)y, color, 0u, 0u, 0u, 0u);
-}
+#include "xport_trace.h"
 
 /* GTMAIN.EXE 800412F0 */
-uint32 gtmain_menu_item_transition_draw(uint32 output, uint32 ordering,
+/* Original: GTMAIN.EXE:sub_800412F0. */ uint32 gtmain_menu_item_transition_draw(uint32 output, uint32 ordering,
     uint32 selector, sint32 x, sint32 y, sint32 intensity, uint32 flags)
 {
     sint16 previous_x = (sint16)x, current_x = (sint16)x;
     sint16 previous_y = (sint16)y, current_y = (sint16)y;
     sint32 previous_intensity = 0, current_intensity = intensity;
-    uint32 color = gtmain_menu_palette_color(0, intensity);
+    uint32 color;
     uint32 descriptor, result, coordinate;
     sint32 mode, stride, step, offset;
+    FUNCTION_MARKER(0x800412F0, "GTMAIN.EXE");
+    color = gtmain_menu_palette_color(0, intensity);
     w_u8(output + 1u, 255u);
     mode = (sint8)r_u8(selector + 14u);
     if (mode) {
@@ -56,17 +53,17 @@ uint32 gtmain_menu_item_transition_draw(uint32 output, uint32 ordering,
             orientation &= 31u;
             if (orientation == 1u) {
                 offset = (sint16)r_u16(selector + 4u) >> 1;
-                menu_arrow(0x8003B5B8u, ordering, (sint16)x,
+                gtmain_packet_triangle_up(ordering, (sint16)x,
                     (sint32)((uint32)(sint32)(sint16)y - (uint32)offset - 12u), color);
                 offset = (sint16)r_u16(selector + 4u) >> 1;
-                menu_arrow(0x8003B600u, ordering, (sint16)x,
+                gtmain_packet_triangle_down(ordering, (sint16)x,
                     (sint32)((uint32)(sint32)(sint16)y + (uint32)offset + 12u), color);
             } else if (!orientation) {
                 offset = (sint16)r_u16(selector + 2u) >> 1;
-                menu_arrow(0x8003B690u, ordering,
+                gtmain_packet_triangle_left(ordering,
                     (sint32)((uint32)(sint32)(sint16)x - (uint32)offset - 12u), (sint16)y, color);
                 offset = (sint16)r_u16(selector + 2u) >> 1;
-                menu_arrow(0x8003B648u, ordering,
+                gtmain_packet_triangle_right(ordering,
                     (sint32)((uint32)(sint32)(sint16)x + (uint32)offset + 12u), (sint16)y, color);
             }
             (void)gtmain_packet_page(ordering, 544);

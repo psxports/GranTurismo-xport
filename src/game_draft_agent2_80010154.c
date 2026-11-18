@@ -420,7 +420,7 @@ static void segment_quad_workspace(uint32 context, uint32 ordering,
     primitive_screen(context, 348u, 12u); primitive_screen(context, 316u, 13u); primitive_screen(context, 364u, 14u);
 }
 
-uint32 gtmain_course_segment_draw(uint32 context, uint32 segment, uint32 mode)
+/* Original: GTMAIN.EXE:sub_80010154. */ uint32 gtmain_course_segment_draw(uint32 context, uint32 segment, uint32 mode)
 {
     static const uint8 input_bytes[8] = {12, 12, 20, 24, 12, 12, 20, 24};
     uint32 header = mode ? r_u32(segment + 148u) : segment + 164u, group;

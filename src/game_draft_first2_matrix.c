@@ -22,7 +22,7 @@ static void gtmain_matrix_store_column(uint8 *out, uint32 column_index, const ui
     xport_store_le16(out + column_index * 2u + 12u, (uint16)column[2]);
 }
 
-sint32 gtmain_matrix_multiply(uint8 *out, const uint8 *left, const uint8 *right)
+/* Original: GTMAIN.EXE:sub_80070320. */ sint32 gtmain_matrix_multiply(uint8 *out, const uint8 *left, const uint8 *right)
 {
     uint32 first[3], second[3], third[3];
     uint32 r0, r1, r2, r3, r4;
@@ -45,7 +45,7 @@ sint32 gtmain_matrix_multiply(uint8 *out, const uint8 *left, const uint8 *right)
     return (sint32)third[0];
 }
 
-uint8 *gtmain_vector_add(uint8 *out, const uint8 *first, const uint8 *second)
+/* Original: GTMAIN.EXE:sub_80070410. */ uint8 *gtmain_vector_add(uint8 *out, const uint8 *first, const uint8 *second)
 {
     uint32 a[3], b[3], index;
     for (index = 0u; index < 3u; ++index) a[index] = xport_load_le32(first + index * 4u);
@@ -54,7 +54,7 @@ uint8 *gtmain_vector_add(uint8 *out, const uint8 *first, const uint8 *second)
     return out;
 }
 
-uint32 gtmain_matrix_bind_negated_axes(const uint8 *matrix)
+/* Original: GTMAIN.EXE:sub_8007070C. */ uint32 gtmain_matrix_bind_negated_axes(const uint8 *matrix)
 {
     uint32 word1 = xport_load_le32(matrix + 4u), word0 = xport_load_le32(matrix);
     uint32 word2, result, word4, word3;
@@ -68,7 +68,7 @@ uint32 gtmain_matrix_bind_negated_axes(const uint8 *matrix)
     return result;
 }
 
-sint32 gtmain_matrix_scale_gte(uint8 *out, const uint8 *matrix, uint16 scale)
+/* Original: GTMAIN.EXE:sub_800708E8. */ sint32 gtmain_matrix_scale_gte(uint8 *out, const uint8 *matrix, uint16 scale)
 {
     uint32 first[3], second[3], third[3];
     gtmain_matrix_load(matrix);
@@ -87,7 +87,7 @@ sint32 gtmain_matrix_scale_gte(uint8 *out, const uint8 *matrix, uint16 scale)
     return (sint32)third[0];
 }
 
-void gtmain_matrix_shift(uint8 *out, const uint8 *matrix, sint32 shift)
+/* Original: GTMAIN.EXE:sub_800709A8. */ void gtmain_matrix_shift(uint8 *out, const uint8 *matrix, sint32 shift)
 {
     uint32 values[9], index, count;
     if (!shift && out == matrix) return;
@@ -102,7 +102,7 @@ void gtmain_matrix_shift(uint8 *out, const uint8 *matrix, sint32 shift)
     }
 }
 
-uint32 gtmain_matrix_transpose(uint8 *out, const uint8 *matrix)
+/* Original: GTMAIN.EXE:sub_80070A60. */ uint32 gtmain_matrix_transpose(uint8 *out, const uint8 *matrix)
 {
     uint32 value, other;
     if (out != matrix)
@@ -130,7 +130,7 @@ uint32 gtmain_matrix_transpose(uint8 *out, const uint8 *matrix)
     return value;
 }
 
-sint32 gtmain_matrix_rotate_short(uint8 *out, const uint8 *matrix, const uint8 *vector)
+/* Original: GTMAIN.EXE:sub_80070B0C. */ sint32 gtmain_matrix_rotate_short(uint8 *out, const uint8 *matrix, const uint8 *vector)
 {
     uint32 result;
     gtmain_matrix_load(matrix);

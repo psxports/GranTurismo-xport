@@ -24,30 +24,32 @@ static void stream_default_sync(uint8 status, uint8 *response)
 }
 
 /* GTMAIN.EXE 8007A368 */
-void gtmain_frame_display_apply(uint32 alternate)
+/* Original: GTMAIN.EXE:sub_8007A368. */ uint32 gtmain_frame_display_apply(uint32 alternate)
 {
     uint32 index = r_u32(alternate ? 0x800BFF6Cu : 0x800BFF68u);
     uint32 address = 0x800BFE88u + 20u * index;
     PutDispEnv((DISPENV *)psx_addr(address, sizeof(DISPENV)));
+    return address;
 }
 
 /* GTMAIN.EXE 8006F7DC */
-void gtmain_frame_draw_apply(uint32 alternate)
+/* Original: GTMAIN.EXE:sub_8006F7DC. */ uint32 gtmain_frame_draw_apply(uint32 alternate)
 {
     uint32 index = r_u32(alternate ? 0x800BFF6Cu : 0x800BFF68u);
     uint32 address = 0x800BFEB0u + 92u * index;
     PutDrawEnv((DRAWENV *)psx_addr(address, sizeof(DRAWENV)));
+    return address;
 }
 
 /* GTMAIN.EXE 8007A1D4 */
-void gtmain_frame_environments_apply(void)
+/* Original: GTMAIN.EXE:sub_8007A1D4. */ uint32 gtmain_frame_environments_apply(void)
 {
     gtmain_frame_display_apply(0u);
-    gtmain_frame_draw_apply(1u);
+    return gtmain_frame_draw_apply(1u);
 }
 
 /* GTMAIN.EXE 8006F838 */
-sint32 gtmain_ordering_node_insert(uint32 node)
+/* Original: GTMAIN.EXE:sub_8006F838. */ sint32 gtmain_ordering_node_insert(uint32 node)
 {
     uint32 used = r_u32(0x800C00ECu), count = r_u32(node + 12u);
     uint32 capacity = r_u32(0x800C00F0u), previous = 0u, current;
@@ -75,7 +77,7 @@ sint32 gtmain_ordering_node_insert(uint32 node)
 }
 
 /* GTMAIN.EXE 8007A04C */
-sint32 gtmain_projection_horizontal(uint32 context)
+/* Original: GTMAIN.EXE:sub_8007A04C. */ sint32 gtmain_projection_horizontal(uint32 context)
 {
     uint32 scratch[8];
     sint32 left = (sint16)r_u16(context), right = (sint16)r_u16(context + 4u);
@@ -101,7 +103,7 @@ sint32 gtmain_projection_horizontal(uint32 context)
 }
 
 /* GTMAIN.EXE 8007A110 */
-sint32 gtmain_projection_vertical(uint32 context)
+/* Original: GTMAIN.EXE:sub_8007A110. */ sint32 gtmain_projection_vertical(uint32 context)
 {
     uint32 scratch[8];
     sint32 top = (sint16)r_u16(context + 2u), bottom = (sint16)r_u16(context + 6u);
@@ -127,13 +129,13 @@ sint32 gtmain_projection_vertical(uint32 context)
 }
 
 /* GTMAIN.EXE 8007A314 */
-uint32 gtmain_cd_directory_name(uint32 entry)
+/* Original: GTMAIN.EXE:sub_8007A314. */ uint32 gtmain_cd_directory_name(uint32 entry)
 {
     return gtmain_packed_bytes_entry(r_u32(0x800C0C24u), entry) + 1u;
 }
 
 /* GTMAIN.EXE 8007A3BC */
-void gtmain_pad_system_init(void)
+/* Original: GTMAIN.EXE:sub_8007A3BC. */ void gtmain_pad_system_init(void)
 {
     memset(psx_addr(0x800C0A90u, 96u), 0, 96u);
     PadInitDirectPSX(0x800C0AF0u, 0x800C0B30u);
@@ -141,7 +143,7 @@ void gtmain_pad_system_init(void)
 }
 
 /* GTMAIN.EXE 8006F92C */
-void gtmain_stream_callbacks_install(void)
+/* Original: GTMAIN.EXE:sub_8006F92C. */ void gtmain_stream_callbacks_install(void)
 {
     w_u8(0x800994C0u, 0u);
     CdSyncCallback(stream_alternate_sync);
@@ -149,7 +151,7 @@ void gtmain_stream_callbacks_install(void)
 }
 
 /* GTMAIN.EXE 8006F96C */
-sint32 gtmain_stream_callbacks_restore(void)
+/* Original: GTMAIN.EXE:sub_8006F96C. */ sint32 gtmain_stream_callbacks_restore(void)
 {
     CdSyncCallback(stream_default_sync);
     CdReadyCallback(NULL);
@@ -158,14 +160,14 @@ sint32 gtmain_stream_callbacks_restore(void)
 }
 
 /* GTMAIN.EXE 8006F9A4 */
-sint32 gtmain_stream_pause(void)
+/* Original: GTMAIN.EXE:sub_8006F9A4. */ sint32 gtmain_stream_pause(void)
 {
     gtmain_audio_output_scale(7u);
     return gtmain_cd_command(9u, 0u);
 }
 
 /* GTMAIN.EXE 8006F9D0 */
-sint32 gtmain_stream_filter_apply(void)
+/* Original: GTMAIN.EXE:sub_8006F9D0. */ sint32 gtmain_stream_filter_apply(void)
 {
     uint8 parameter[8];
     parameter[0] = r_u8(0x800994B8u);

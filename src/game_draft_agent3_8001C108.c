@@ -2,7 +2,7 @@
 #include "game_draft_agent3_support.h"
 
 /* GTMAIN.EXE 8001C108 */
-uint32 gt_draft_8001C108(uint32 context, uint32 ordering, sint32 view_index)
+/* Original: GTMAIN.EXE:sub_8001C108. */ uint32 gt_draft_8001C108(uint32 context, uint32 ordering, sint32 view_index)
 {
     uint32 group;
     w_u32(context + 772u, ordering);

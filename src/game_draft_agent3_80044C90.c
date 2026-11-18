@@ -3,20 +3,16 @@
 
 static void settings_centered_text(uint32 ordering, uint32 text, sint32 x, sint32 y, sint32 intensity)
 {
-    /* TODO Bind unselected centered text renderer 80043F34 */
-    (void)gt_draft_unresolved_call(0x80043F34u, ordering, text,
-        (uint32)x, (uint32)y, (uint32)intensity, 0u, 0u, 0u);
+    gtmain_parts_caption_draw(ordering, text, x, y, intensity);
 }
 
 static void settings_overlay(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
-    /* TODO Bind unselected settings overlay 800469F0 */
-    (void)gt_draft_unresolved_call(0x800469F0u, ordering,
-        (uint32)x, (uint32)y, (uint32)intensity, 0u, 0u, 0u, 0u);
+    gtmain_parts_overlay_draw(ordering, x, y, intensity);
 }
 
 /* GTMAIN.EXE 80044C90 */
-uint32 gt_draft_80044C90(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
+/* Original: GTMAIN.EXE:sub_80044C90. */ uint32 gt_draft_80044C90(uint32 ordering, sint32 x, sint32 y, sint32 intensity)
 {
     sint32 selection;
     uint32 text;

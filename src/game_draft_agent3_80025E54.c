@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 80025E54 */
-void gtmain_race_mode0_prepare(void)
+/* Original: GTMAIN.EXE:sub_80025E54. */ void gtmain_race_mode0_prepare(void)
 {
     uint32 count, mode;
     w_u16(0x800B63D6u, 7u);

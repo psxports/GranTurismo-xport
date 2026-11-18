@@ -45,7 +45,7 @@ static void pc_cache_car(uint32 cars, sint32 count, uint32 owner, uint32 toggle)
         ++slot;
     }
 }
-uint32 gtmain_race_pair_cache_update(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80062234. */ uint32 gtmain_race_pair_cache_update(uint32 cars, sint32 count)
 {
     uint32 toggle = 1u - r_u32(0x800BF540u);
     w_u32(0x800BF540u, toggle);
@@ -58,7 +58,7 @@ uint32 gtmain_race_pair_cache_update(uint32 cars, sint32 count)
     }
     return (uint32)count * 2u;
 }
-void gtmain_race_pair_cache_refresh(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_80064524. */ void gtmain_race_pair_cache_refresh(uint32 cars, sint32 count)
 {
     sint32 i;
     for (i = 0; i < count; ++i) {
@@ -77,7 +77,7 @@ static uint32 pc_code(sint32 x, sint32 z, sint32 half, sint32 front, sint32 back
     if (x >= half) code |= 1u;
     return code;
 }
-sint32 gtmain_race_pair_clip(uint32 car_index, uint32 other_slot, uint32 car, sint32 *corner, sint32 *side)
+/* Original: GTMAIN.EXE:sub_800626A0. */ sint32 gtmain_race_pair_clip(uint32 car_index, uint32 other_slot, uint32 car, sint32 *corner, sint32 *side)
 {
     sint32 minimum = 4096, chosen_corner = -1, chosen_side = -1;
     sint32 front = r_s32(car + 404u);
@@ -121,7 +121,7 @@ sint32 gtmain_race_pair_clip(uint32 car_index, uint32 other_slot, uint32 car, si
     *corner = chosen_corner; *side = chosen_side;
     return minimum;
 }
-void gtmain_race_pair_impulses_update(uint32 cars, sint32 count)
+/* Original: GTMAIN.EXE:sub_800649A4. */ void gtmain_race_pair_impulses_update(uint32 cars, sint32 count)
 {
     if (count <= 0) return;
     uint32 toggle = r_u32(0x800BF540u);

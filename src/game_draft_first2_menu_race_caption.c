@@ -1,7 +1,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 80033154 */
-uint32 gtmain_menu_replay_caption_initialize(void)
+/* Original: GTMAIN.EXE:sub_80033154. */ uint32 gtmain_menu_replay_caption_initialize(void)
 {
     uint32 mode, source, name, course;
     w_u32(0x8009199Cu, 0x800BCA6Au);
@@ -20,7 +20,7 @@ uint32 gtmain_menu_replay_caption_initialize(void)
 }
 
 /* GTMAIN.EXE 800361D8 */
-uint32 gtmain_menu_race_caption_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, uint32 course_line)
+/* Original: GTMAIN.EXE:sub_800361D8. */ uint32 gtmain_menu_race_caption_draw(uint32 ordering, sint32 x, sint32 y, sint32 intensity, uint32 course_line)
 {
     uint32 text, result;
     sint32 width, centered;

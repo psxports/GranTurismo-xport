@@ -10,7 +10,7 @@ static uint32 view_asr(uint32 value, uint32 shift)
 }
 
 /* GTMAIN.EXE 80079064 */
-sint32 gtmain_stream_name_find(uint32 name)
+/* Original: GTMAIN.EXE:sub_80079064. */ sint32 gtmain_stream_name_find(uint32 name)
 {
     sint32 count = gtmain_audio_status(), index;
     if (count <= 0) return -1;
@@ -22,7 +22,7 @@ sint32 gtmain_stream_name_find(uint32 name)
 }
 
 /* GTMAIN.EXE 80070EC0 */
-void gtmain_texture_page_upload(uint32 image, sint32 page)
+/* Original: GTMAIN.EXE:sub_80070EC0. */ void gtmain_texture_page_upload(uint32 image, sint32 page)
 {
     PSX_RECT rectangle;
     rectangle.x = (sint16)(((uint32)page & 15u) << 6);
@@ -34,7 +34,7 @@ void gtmain_texture_page_upload(uint32 image, sint32 page)
 }
 
 /* GTMAIN.EXE 80070F24 */
-void gtmain_texture_palette_upload(uint32 image, sint32 palette, uint32 index)
+/* Original: GTMAIN.EXE:sub_80070F24. */ void gtmain_texture_palette_upload(uint32 image, sint32 palette, uint32 index)
 {
     PSX_RECT rectangle;
     rectangle.x = (sint16)(((uint32)palette & 63u) << 4);
@@ -46,7 +46,7 @@ void gtmain_texture_palette_upload(uint32 image, sint32 palette, uint32 index)
 }
 
 /* GTMAIN.EXE 80079250 */
-sint32 gtmain_render_view_bind(uint32 destination, uint32 source)
+/* Original: GTMAIN.EXE:sub_80079250. */ sint32 gtmain_render_view_bind(uint32 destination, uint32 source)
 {
     uint32 first, second;
     sint32 result;
@@ -75,7 +75,7 @@ sint32 gtmain_render_view_bind(uint32 destination, uint32 source)
 }
 
 /* GTMAIN.EXE 80070448 */
-uint32 gtmain_render_view_copy(uint32 destination, uint32 source)
+/* Original: GTMAIN.EXE:sub_80070448. */ uint32 gtmain_render_view_copy(uint32 destination, uint32 source)
 {
     uint32 first, second, third, fourth;
     gtmain_render_view_bind(destination, source);
@@ -91,7 +91,7 @@ uint32 gtmain_render_view_copy(uint32 destination, uint32 source)
 }
 
 /* GTMAIN.EXE 80071FA4 */
-sint32 gtmain_projection_prepare(uint32 context)
+/* Original: GTMAIN.EXE:sub_80071FA4. */ sint32 gtmain_projection_prepare(uint32 context)
 {
     uint32 right = r_u16(context + 4u), left = r_u16(context);
     uint32 bottom = r_u16(context + 6u), top = r_u16(context + 2u);
@@ -121,7 +121,7 @@ sint32 gtmain_projection_prepare(uint32 context)
 }
 
 /* GTMAIN.EXE 8007178C */
-sint32 gtmain_angle_atan_wide(sint32 x, sint32 y)
+/* Original: GTMAIN.EXE:sub_8007178C. */ sint32 gtmain_angle_atan_wide(sint32 x, sint32 y)
 {
     uint32 a = (uint32)x, b = (uint32)y;
     uint32 magnitude = (b ^ view_asr(b, 31u)) | (a ^ view_asr(a, 31u));
@@ -134,7 +134,7 @@ sint32 gtmain_angle_atan_wide(sint32 x, sint32 y)
 }
 
 /* GTMAIN.EXE 800704BC */
-uint32 gtmain_render_fog_set(uint32 context, uint32 rgb, uint32 near, uint32 far)
+/* Original: GTMAIN.EXE:sub_800704BC. */ uint32 gtmain_render_fog_set(uint32 context, uint32 rgb, uint32 near, uint32 far)
 {
     uint32 first = (rgb << 4) & 0xFF0u, second = (rgb >> 4) & 0xFF0u;
     uint32 third = (rgb >> 12) & 0xFF0u;

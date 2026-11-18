@@ -2,7 +2,7 @@
 #include "game_first2_registry.h"
 
 /* GTMAIN.EXE 80040F18 */
-sint32 gtmain_menu_parameter_selector_input(uint32 selector, uint32 input)
+/* Original: GTMAIN.EXE:sub_80040F18. */ sint32 gtmain_menu_parameter_selector_input(uint32 selector, uint32 input)
 {
     uint32 mode = r_u8(selector + 12u) & 31u;
     uint32 selected = r_u8(selector + 1u);
